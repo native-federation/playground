@@ -1,0 +1,64 @@
+<div class="e_StorePicker">
+  <div class="e_StorePicker_control" data-boundary="explore">
+    @if (selected(); as s) {
+      <div class="e_StorePicker_selected">
+        <div class="e_StorePicker_content">
+          <img
+            class="e_StorePicker_image"
+            [src]="imageMeta(s.image).src"
+            [srcset]="imageMeta(s.image).srcset"
+            width="200"
+            height="200"
+            alt=""
+          />
+          <p class="e_StorePicker_address">
+            {{ s.name }}<br />
+            {{ s.street }}<br />
+            {{ s.city }}
+          </p>
+        </div>
+      </div>
+    }
+    <ts-button
+      extraClass="e_StorePicker_choose"
+      type="button"
+      (click)="open()"
+    >
+      choose a store
+    </ts-button>
+  </div>
+  <dialog #dialog class="e_StorePicker_dialog" data-boundary="explore">
+    <div class="e_StorePicker_wrapper">
+      <h2>Stores</h2>
+      <ul class="e_StorePicker_list">
+        @for (s of stores(); track s.id) {
+          <li class="e_StorePicker_entry">
+            <div class="e_StorePicker_content">
+              <img
+                class="e_StorePicker_image"
+                [src]="imageMeta(s.image).src"
+                [srcset]="imageMeta(s.image).srcset"
+                width="200"
+                height="200"
+                alt=""
+              />
+              <p class="e_StorePicker_address">
+                {{ s.name }}<br />
+                {{ s.street }}<br />
+                {{ s.city }}
+              </p>
+            </div>
+            <ts-button
+              extraClass="e_StorePicker_select"
+              type="button"
+              [dataId]="s.id"
+              (click)="select(s)"
+            >
+              select
+            </ts-button>
+          </li>
+        }
+      </ul>
+    </div>
+  </dialog>
+</div>

@@ -1,0 +1,35 @@
+
+
+*,
+*::after,
+*::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  text-size-adjust: 100%;
+  font-size: 100%; /* percentage of user given font-size (REM), 100% is 16px  */
+  font-family: sans-serif;
+}
+
+.container {
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 92vw;
+  padding-bottom: 1rem;
+  margin-top: 1.5rem;
+
+  @media only screen and (width >= 48em) {
+    max-width: 45em;
+  }
+
+  @media only screen and (width >= 62em) {
+    max-width: 60em;
+  }
+
+  @media only screen and (width <= 36em) {
+    margin-bottom: 3rem;
+  }
+}

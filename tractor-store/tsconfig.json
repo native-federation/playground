@@ -1,0 +1,55 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "./dist/out-tsc",
+    "paths": {
+      "@internal/*": [
+        "./libs/internal/src/*"
+      ],
+      "@tractor-store/ui": [
+        "./libs/shared/ui/src/public-api.ts"
+      ]
+    },
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "ES2022"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "references": [
+    {
+      "path": "./projects/explore/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/explore/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/decide/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/decide/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/checkout/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/checkout/tsconfig.spec.json"
+    }
+  ]
+}

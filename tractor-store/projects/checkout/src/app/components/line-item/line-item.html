@@ -1,0 +1,47 @@
+@let i = item();
+<a [href]="url()" class="c_LineItem__image">
+  <img
+    [src]="smallSrc()"
+    [srcset]="srcset()"
+    sizes="200px"
+    [alt]="i.name"
+    width="200"
+    height="200"
+  />
+</a>
+<div class="c_LineItem__details">
+  <a [href]="url()" class="c_LineItem__name">
+    <strong>{{ i.name }}</strong><br />{{ i.sku }}
+  </a>
+
+  <div class="c_LineItem__quantity">
+    <span>{{ i.quantity }}</span>
+
+    <form (submit)="onRemove($event)">
+      <input type="hidden" name="sku" [value]="i.sku" />
+      <ts-button
+        type="submit"
+        value="remove"
+        variant="secondary"
+        [rounded]="true"
+        size="small"
+        [title]="'Remove ' + i.name + ' from cart'"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          height="20"
+          width="20"
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+        >
+          <path
+            fill="#000"
+            d="m40 5.172-16 16-16-16L5.171 8l16.001 16L5.171 40 8 42.828l16-16 16 16L42.828 40l-16-16 16-16L40 5.172Z"
+          />
+        </svg>
+      </ts-button>
+    </form>
+  </div>
+  <div class="c_LineItem__price">{{ i.total }} Ø</div>
+</div>

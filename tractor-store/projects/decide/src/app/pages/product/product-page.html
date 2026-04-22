@@ -1,0 +1,39 @@
+@if (product(); as p) {
+  <mfe-explore-header></mfe-explore-header>
+  <main class="d_ProductPage">
+    <div class="d_ProductPage__details">
+      <img
+        class="d_ProductPage__productImage"
+        [src]="productImage()"
+        [attr.srcset]="productSrcset()"
+        sizes="400px"
+        width="400"
+        height="400"
+        [alt]="productAlt()"
+      />
+      <div class="d_ProductPage__productInformation">
+        <h2 class="d_ProductPage__title">{{ p.name }}</h2>
+        <ul class="d_ProductPage__highlights">
+          @for (highlight of highlights(); track highlight) {
+            <li>{{ highlight }}</li>
+          }
+        </ul>
+        <ul class="d_ProductPage__variants">
+          @for (v of variants(); track v.sku) {
+            <app-variant-option
+              [sku]="v.sku"
+              [name]="v.name"
+              [color]="v.color"
+              [selected]="isSelected(v.sku)"
+            />
+          }
+        </ul>
+        <mfe-checkout-add-to-cart [attr.sku]="selectedSku()"></mfe-checkout-add-to-cart>
+      </div>
+    </div>
+    <mfe-explore-recommendations [attr.skus]="selectedSku()"></mfe-explore-recommendations>
+  </main>
+  <mfe-explore-footer></mfe-explore-footer>
+} @else {
+  <p>Product not found.</p>
+}

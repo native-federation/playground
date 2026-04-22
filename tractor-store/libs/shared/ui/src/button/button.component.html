@@ -1,0 +1,25 @@
+@if (href(); as link) {
+  <a
+    [class]="buttonClass()"
+    [href]="link"
+    [attr.data-id]="dataId()"
+    [attr.title]="title()"
+  >
+    <ng-container *ngTemplateOutlet="inner"></ng-container>
+  </a>
+} @else {
+  <button
+    [class]="buttonClass()"
+    [attr.type]="type() ?? 'button'"
+    [attr.data-id]="dataId()"
+    [attr.value]="value()"
+    [attr.title]="title()"
+    [disabled]="disabled()"
+  >
+    <ng-container *ngTemplateOutlet="inner"></ng-container>
+  </button>
+}
+
+<ng-template #inner>
+  <div class="c_Button__inner"><ng-content></ng-content></div>
+</ng-template>

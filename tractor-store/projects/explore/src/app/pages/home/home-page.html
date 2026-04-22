@@ -1,0 +1,18 @@
+<app-header></app-header>
+<main class="e_HomePage">
+  @for (t of teasers(); track t.url) {
+    <a class="e_HomePage__categoryLink" [href]="t.url">
+      <img
+        [src]="t.src"
+        [srcset]="t.srcset"
+        sizes="100vw, (min-width: 500px) 50vw"
+        alt=""
+      />
+      {{ t.title }}
+    </a>
+  }
+  <div class="e_HomePage__recommendations">
+    <app-recommendations [skus]="seedSkus"></app-recommendations>
+  </div>
+</main>
+<app-footer></app-footer>

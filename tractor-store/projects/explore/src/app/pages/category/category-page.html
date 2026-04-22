@@ -1,0 +1,14 @@
+<app-header></app-header>
+<main class="e_CategoryPage">
+  <h2>{{ title() }}</h2>
+  <div class="e_CategoryPage__subline">
+    <p>{{ products().length }} products</p>
+    <app-filter [filters]="filters()"></app-filter>
+  </div>
+  <ul class="e_CategoryPage_list">
+    @for (p of products(); track p.id) {
+      <app-product-tile [product]="p"></app-product-tile>
+    }
+  </ul>
+</main>
+<app-footer></app-footer>

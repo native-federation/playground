@@ -1,0 +1,31 @@
+@if (variant(); as v) {
+  <form class="c_AddToCart" (submit)="onSubmit($event)">
+    <input type="hidden" name="sku" [value]="sku()" />
+    <div class="c_AddToCart__information">
+      <p>{{ v.price }} Ø</p>
+      @if (v.inventory > 0) {
+        <p class="c_AddToCart__stock c_AddToCart__stock--ok">
+          {{ v.inventory }} in stock, free shipping
+        </p>
+      } @else {
+        <p class="c_AddToCart__stock c_AddToCart__stock--empty">out of stock</p>
+      }
+    </div>
+    <ts-button
+      type="submit"
+      variant="primary"
+      extraClass="c_AddToCart__button"
+      [disabled]="outOfStock()"
+    >
+      add to basket
+    </ts-button>
+    <div
+      class="c_AddToCart__confirmed"
+      [class.c_AddToCart__confirmed--hidden]="!confirmed()"
+      aria-live="polite"
+    >
+      <p>Tractor was added.</p>
+      <a href="/checkout/cart" class="c_AddToCart__link">View in basket.</a>
+    </div>
+  </form>
+}

@@ -1,0 +1,10 @@
+@if (items().length > 0) {
+  <div class="e_Recommendations" data-boundary="explore">
+    <h2>Recommendations</h2>
+    <ul class="e_Recommendations_list">
+      @for (item of items(); track item.sku) {
+        <app-recommendation [item]="item"></app-recommendation>
+      }
+    </ul>
+  </div>
+}

@@ -1,0 +1,57 @@
+{
+  "name": "mfe-test",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "ng": "ng",
+    "cdn": "http-server ./public -p 3000 --cors -c-1 --silent",
+    "start:all": "concurrently -n cdn,explore,decide,checkout,host \"pnpm cdn\" \"ng serve explore\" \"ng serve decide\" \"ng serve checkout\" \"ng serve host\"",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build mfe1 --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^21.2.0",
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/elements": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/platform-browser-dynamic": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "es-module-shims": "^1.5.12",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.15.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "^0.27.0"
+    }
+  },
+  "devDependencies": {
+    "@angular-architects/native-federation-v4": "21.1.12",
+    "@angular-devkit/build-angular": "^21.2.0",
+    "@angular/build": "^21.2.0",
+    "@angular/cli": "^21.2.0",
+    "@angular/compiler-cli": "^21.2.0",
+    "@softarc/native-federation": "4.0.0-RC10",
+    "@softarc/native-federation-orchestrator": "4.0.0",
+    "@softarc/native-federation-runtime": "4.0.0-RC10",
+    "@types/jasmine": "~5.1.0",
+    "concurrently": "^9.2.0",
+    "http-server": "^14.1.1",
+    "jasmine-core": "~5.6.0",
+    "jsdom": "^28.0.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.8"
+  }
+}

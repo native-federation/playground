@@ -1,0 +1,57 @@
+<app-compact-header></app-compact-header>
+<main class="c_Checkout">
+  <h2>Checkout</h2>
+  <form
+    class="c_Checkout__form"
+    [formGroup]="form"
+    (submit)="onSubmit($event)"
+  >
+    <h3>Personal Data</h3>
+    <fieldset class="c_Checkout__name">
+      <div>
+        <label class="c_Checkout__label" for="c_firstname">First name</label>
+        <input
+          class="c_Checkout__input"
+          type="text"
+          id="c_firstname"
+          formControlName="firstname"
+          required
+        />
+      </div>
+      <div>
+        <label class="c_Checkout__label" for="c_lastname">Last name</label>
+        <input
+          class="c_Checkout__input"
+          type="text"
+          id="c_lastname"
+          formControlName="lastname"
+          required
+        />
+      </div>
+    </fieldset>
+
+    <h3>Store Pickup</h3>
+    <fieldset>
+      <div class="c_Checkout__store">
+        <mfe-explore-store-picker (store-selected)="onStoreSelected($event)"></mfe-explore-store-picker>
+      </div>
+      <label class="c_Checkout__label" for="c_storeId">Store ID</label>
+      <input
+        class="c_Checkout__input"
+        type="text"
+        id="c_storeId"
+        formControlName="storeId"
+        readonly
+        required
+      />
+    </fieldset>
+
+    <div class="c_Checkout__buttons">
+      <ts-button type="submit" variant="primary" [disabled]="!isReady()">
+        place order
+      </ts-button>
+      <ts-button variant="secondary" href="/checkout/cart">back to cart</ts-button>
+    </div>
+  </form>
+</main>
+<mfe-explore-footer></mfe-explore-footer>
