@@ -6,6 +6,7 @@ import {
   input,
   output,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ButtonComponent } from '@tractor-store/ui';
 import { replaceSize, srcset } from '../../utils/image';
 import { CartService } from '../../services/cart.service';
@@ -21,7 +22,7 @@ export interface LineItemView {
 
 @Component({
   selector: 'app-line-item',
-  imports: [ButtonComponent],
+  imports: [RouterLink, ButtonComponent],
   templateUrl: './line-item.html',
   styleUrl: './line-item.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,7 +34,8 @@ export class LineItemComponent {
   readonly item = input.required<LineItemView>();
   readonly removed = output<string>();
 
-  readonly url = computed(() => `/product/${this.item().id}?sku=${this.item().sku}`);
+  readonly path = computed(() => `/product/${this.item().id}`);
+  readonly queryParams = computed(() => ({ sku: this.item().sku }));
   readonly smallSrc = computed(() => replaceSize(this.item().image, 200));
   readonly srcset = computed(() => srcset(this.item().image, [200, 400]));
 

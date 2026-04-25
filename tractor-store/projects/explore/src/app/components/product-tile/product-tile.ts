@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Product } from '../../services/explore-data.service';
 import { fmtPrice, imgSrc, imgSrcset } from '../../utils/image';
 
 @Component({
   selector: 'app-product-tile',
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './product-tile.scss',
   template: `
     <li class="e_Product">
-      <a class="e_Product_link" [href]="product().url">
+      <a class="e_Product_link" [routerLink]="product().url">
         <img
           class="e_Product_image"
           [src]="imgSrc()"

@@ -5,6 +5,8 @@ export default withNativeFederation({
   name: '@tractor-store/checkout',
   exposes: {
     './Component': './projects/checkout/src/app/bootstrap.ts',
+    './MiniCart': './projects/checkout/src/app/components/mini-cart/bootstrap.ts',
+    './AddToCart': './projects/checkout/src/app/components/add-to-cart/bootstrap.ts',
   },
   shared: {
     ...shareAll(

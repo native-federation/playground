@@ -1,28 +1,40 @@
 import { createCustomElement } from '@angular/elements';
-import { createApplication } from '@angular/platform-browser';
-import { App } from './app';
-import { appConfig } from './app.config';
+import { ComponentBootstrap, LoadRemoteModule } from '@internal/federation';
 import { EnvironmentConfig } from '../env.config';
-import { Router } from '@angular/router';
-import { setImageServer } from './utils/image';
+import { App } from './app';
+import { getApp } from './app-instance';
 
 let registered = false;
 
-export async function bootstrap(env: EnvironmentConfig): Promise<void> {
+export const bootstrap: ComponentBootstrap['bootstrap'] = async (
+  env: EnvironmentConfig,
+  loadRemoteModule: LoadRemoteModule,
+): Promise<void> => {
   if (registered) return;
   registered = true;
 
-  setImageServer(env.imageServer);
+  await Promise.all([
+    loadRemoteModule<ComponentBootstrap>(
+      '@tractor-store/explore',
+      './Header',
+    ).then((m) => m.bootstrap(env, loadRemoteModule)),
+    loadRemoteModule<ComponentBootstrap>(
+      '@tractor-store/explore',
+      './Footer',
+    ).then((m) => m.bootstrap(env, loadRemoteModule)),
+    loadRemoteModule<ComponentBootstrap>(
+      '@tractor-store/explore',
+      './Recommendations',
+    ).then((m) => m.bootstrap(env, loadRemoteModule)),
+    loadRemoteModule<ComponentBootstrap>(
+      '@tractor-store/checkout',
+      './AddToCart',
+    ).then((m) => m.bootstrap(env, loadRemoteModule)),
+  ]);
 
-  await createApplication(appConfig(env)).then(({ injector }) => {
-    if (!customElements.get('mfe-decide')) {
-      customElements.define(
-        'mfe-decide',
-        createCustomElement(App, { injector }),
-      );
-    }
+  const { injector } = await getApp(env);
 
-    const router = injector.get(Router);
-    router.initialNavigation();
-  });
-}
+  if (!customElements.get('mfe-decide')) {
+    customElements.define('mfe-decide', createCustomElement(App, { injector }));
+  }
+};

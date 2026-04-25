@@ -8,6 +8,11 @@
     "src/main.ts"
   ],
   "include": [
-    "src/**/*.d.ts"
+    "src/**/*.ts",
+    "../../libs/internal/src/navigation/index.ts",
+    "../../libs/internal/src/federation/index.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts"
   ]
 }

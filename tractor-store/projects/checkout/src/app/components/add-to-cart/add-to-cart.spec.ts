@@ -1,5 +1,6 @@
 import { ComponentRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { CartService } from '../../services/cart.service';
 import { AddToCartComponent } from './add-to-cart';
 
@@ -12,6 +13,7 @@ describe('AddToCartComponent', () => {
   async function create(sku: string) {
     await TestBed.configureTestingModule({
       imports: [AddToCartComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
     const fixture = TestBed.createComponent(AddToCartComponent);
     const ref: ComponentRef<AddToCartComponent> = fixture.componentRef;

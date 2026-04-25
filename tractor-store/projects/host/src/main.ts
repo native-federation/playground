@@ -1,3 +1,4 @@
+import { EnvironmentConfig } from '@internal/federation';
 import {
   initFederation,
   NativeFederationResult,
@@ -8,24 +9,21 @@ import {
   globalThisStorageEntry,
 } from '@softarc/native-federation-orchestrator/options';
 
-const manifest = {
-  '@tractor-store/explore': 'http://localhost:4201/remoteEntry.json',
-  '@tractor-store/decide': 'http://localhost:4202/remoteEntry.json',
-  '@tractor-store/checkout': 'http://localhost:4203/remoteEntry.json',
-};
-
-initFederation(manifest, {
-  ...useShimImportMap({ shimMode: true }),
-  logger: consoleLogger,
-  storage: globalThisStorageEntry,
-  hostRemoteEntry: './remoteEntry.json',
-  logLevel: 'debug',
-  profile: {
-    latestSharedExternal: false,
-    overrideCachedRemotesIfURLMatches: true,
-  },
-})
-  .then((nf: NativeFederationResult) => {
-    return import('./bootstrap').then((m: any) => m.bootstrap(nf));
-  })
-  .catch((err) => console.error(err));
+fetch('./env.config.json')
+  .then((resp) => resp.json())
+  .then(
+    async (env: EnvironmentConfig & { manifest: Record<string, string> }) => {
+      const nf: NativeFederationResult = await initFederation(env.manifest, {
+        ...useShimImportMap({ shimMode: true }),
+        logger: consoleLogger,
+        storage: globalThisStorageEntry,
+        hostRemoteEntry: './remoteEntry.json',
+        logLevel: 'debug',
+        profile: {
+          latestSharedExternal: false,
+          overrideCachedRemotesIfURLMatches: true,
+        },
+      });
+      return import('./bootstrap').then((m: any) => m.bootstrap(nf, env));
+    },
+  );

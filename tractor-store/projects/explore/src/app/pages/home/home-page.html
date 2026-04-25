@@ -1,7 +1,7 @@
 <app-header></app-header>
 <main class="e_HomePage">
   @for (t of teasers(); track t.url) {
-    <a class="e_HomePage__categoryLink" [href]="t.url">
+    <a class="e_HomePage__categoryLink" [routerLink]="t.url">
       <img
         [src]="t.src"
         [srcset]="t.srcset"

@@ -6,5 +6,5 @@ export interface EnvironmentConfig {
   production: boolean;
   apiUrl: string;
   scope: string;
-  imageServer: string;
+  cdnUrl: string;
 }

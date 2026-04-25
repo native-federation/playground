@@ -5,13 +5,14 @@ import {
   computed,
   input,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 export type ButtonVariant = 'primary' | 'secondary';
 export type ButtonSize = 'small' | 'normal';
 
 @Component({
   selector: 'ts-button',
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, RouterLink],
   templateUrl: './button.component.html',
   styleUrl: './button.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

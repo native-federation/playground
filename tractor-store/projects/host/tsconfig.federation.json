@@ -6,7 +6,12 @@
   },
   "files": [],
   "include": [
-    "src/**/*.d.ts",
-    "../../libs/shared/ui/src/public-api.ts"
+    "src/**/*.ts",
+    "../../libs/shared/ui/src/public-api.ts",
+    "../../libs/internal/src/navigation/index.ts",
+    "../../libs/internal/src/federation/index.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts"
   ]
 }

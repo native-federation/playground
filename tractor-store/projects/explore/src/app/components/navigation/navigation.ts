@@ -1,13 +1,15 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-navigation',
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <nav class="e_Navigation">
       <ul class="e_Navigation__list">
-        <li class="e_Navigation__item"><a href="/products">Machines</a></li>
-        <li class="e_Navigation__item"><a href="/stores">Stores</a></li>
+        <li class="e_Navigation__item"><a routerLink="/products">Machines</a></li>
+        <li class="e_Navigation__item"><a routerLink="/stores">Stores</a></li>
       </ul>
     </nav>
   `,

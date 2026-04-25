@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { cdnUrl } from '../../utils/image';
 
 @Component({
   selector: 'app-compact-header',
+  imports: [RouterLink],
   template: `
     <div class="c_CompactHeader__inner">
-      <a class="c_CompactHeader__link" href="/">
+      <a class="c_CompactHeader__link" routerLink="/">
         <img
           class="c_CompactHeader__logo"
           [src]="logoUrl"

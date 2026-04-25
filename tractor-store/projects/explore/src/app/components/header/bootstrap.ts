@@ -1,8 +1,8 @@
 import { createCustomElement } from '@angular/elements';
 import { ComponentBootstrap, LoadRemoteModule } from '@internal/federation';
-import { EnvironmentConfig } from '../env.config';
-import { App } from './app';
-import { getApp } from './app-instance';
+import { EnvironmentConfig } from '../../../env.config';
+import { getApp } from '../../app-instance';
+import { HeaderComponent } from './header';
 
 let registered = false;
 
@@ -20,7 +20,10 @@ export const bootstrap: ComponentBootstrap['bootstrap'] = async (
 
   const { injector } = await getApp(env);
 
-  if (!customElements.get('mfe-explore')) {
-    customElements.define('mfe-explore', createCustomElement(App, { injector }));
+  if (!customElements.get('mfe-explore-header')) {
+    customElements.define(
+      'mfe-explore-header',
+      createCustomElement(HeaderComponent, { injector }),
+    );
   }
 };

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 export interface FilterItem {
   url: string;
@@ -8,6 +9,7 @@ export interface FilterItem {
 
 @Component({
   selector: 'app-filter',
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './filter.scss',
   template: `
@@ -18,7 +20,7 @@ export interface FilterItem {
           @if (f.active) {
             <li class="e_Filter__filter--active">{{ f.name }}</li>
           } @else {
-            <li><a [href]="f.url">{{ f.name }}</a></li>
+            <li><a [routerLink]="f.url">{{ f.name }}</a></li>
           }
         }
       </ul>

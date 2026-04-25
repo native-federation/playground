@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ExploreDataService } from '../../services/explore-data.service';
 import { RecommendationsComponent } from '../../components/recommendations/recommendations';
 import { HeaderComponent } from '../../components/header/header';
@@ -7,7 +8,7 @@ import { imgSrc, imgSrcset } from '../../utils/image';
 
 @Component({
   selector: 'app-home-page',
-  imports: [RecommendationsComponent, HeaderComponent, FooterComponent],
+  imports: [RouterLink, RecommendationsComponent, HeaderComponent, FooterComponent],
   templateUrl: './home-page.html',
   styleUrl: './home-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

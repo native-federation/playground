@@ -2,9 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
+  inject,
   signal,
 } from '@angular/core';
 import { SpinnerComponent } from '@tractor-store/ui';
+import { ComponentBootstrap } from '@internal/federation';
+import { GET_ENV, NF_LOADER } from '../app.config';
 
 @Component({
   selector: 'app-checkout-shell',
@@ -20,11 +23,23 @@ import { SpinnerComponent } from '@tractor-store/ui';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CheckoutShell {
-  protected readonly loaded = signal(customElements.get('mfe-checkout') != null);
+  protected readonly loaded = signal(
+    customElements.get('mfe-checkout') != null,
+  );
+  private loader = inject(NF_LOADER);
+  private getEnv = inject(GET_ENV);
 
   constructor() {
-    if (!this.loaded()) {
-      customElements.whenDefined('mfe-checkout').then(() => this.loaded.set(true));
-    }
+    const remoteName = '@tractor-store/checkout';
+    this.loader
+      .loadRemoteModule<ComponentBootstrap>(remoteName, './Component')
+      .then((mod) =>
+        mod.bootstrap(this.getEnv(remoteName), this.loader.loadRemoteModule),
+      )
+      .then(() => this.loaded.set(true))
+      .catch((err) => {
+        console.error(`Failed to load remote ${remoteName}`, err);
+        throw err;
+      });
   }
 }

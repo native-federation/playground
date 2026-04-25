@@ -6,13 +6,14 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ButtonComponent } from '@tractor-store/ui';
 import { findVariant } from '../../data/database';
 import { CartService } from '../../services/cart.service';
 
 @Component({
   selector: 'app-add-to-cart',
-  imports: [ButtonComponent],
+  imports: [ButtonComponent, RouterLink],
   templateUrl: './add-to-cart.html',
   styleUrl: './add-to-cart.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,33 +1,36 @@
 import { createCustomElement } from '@angular/elements';
-import { createApplication } from '@angular/platform-browser';
-import { Router } from '@angular/router';
-import { App } from './app';
-import { AddToCartComponent } from './components/add-to-cart/add-to-cart';
-import { MiniCartComponent } from './components/mini-cart/mini-cart';
-import { appConfig } from './app.config';
+import { ComponentBootstrap, LoadRemoteModule } from '@internal/federation';
 import { EnvironmentConfig } from '../env.config';
-import { setImageServer } from './utils/image';
+import { App } from './app';
+import { getApp } from './app-instance';
 
-let bootstrapped = false;
+let registered = false;
 
-export async function bootstrap(env: EnvironmentConfig): Promise<void> {
-  if (bootstrapped) return;
-  bootstrapped = true;
+export const bootstrap: ComponentBootstrap['bootstrap'] = async (
+  env: EnvironmentConfig,
+  loadRemoteModule: LoadRemoteModule,
+): Promise<void> => {
+  if (registered) return;
+  registered = true;
 
-  setImageServer(env.imageServer);
-
-  const { injector } = await createApplication(appConfig(env));
-
-  customElements.define('mfe-checkout', createCustomElement(App, { injector }));
-  customElements.define(
-    'mfe-checkout-mini-cart',
-    createCustomElement(MiniCartComponent, { injector }),
+  await Promise.all(
+    (
+      [
+        './Header',
+        './Footer',
+        './Recommendations',
+        './StorePicker',
+      ] as const
+    ).map((key) =>
+      loadRemoteModule<ComponentBootstrap>('@tractor-store/explore', key).then(
+        (m) => m.bootstrap(env, loadRemoteModule),
+      ),
+    ),
   );
-  customElements.define(
-    'mfe-checkout-add-to-cart',
-    createCustomElement(AddToCartComponent, { injector }),
-  );
 
-  const router = injector.get(Router);
-  router.initialNavigation();
-}
+  const { injector } = await getApp(env);
+
+  if (!customElements.get('mfe-checkout')) {
+    customElements.define('mfe-checkout', createCustomElement(App, { injector }));
+  }
+};
