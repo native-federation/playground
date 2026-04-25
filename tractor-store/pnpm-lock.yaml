@@ -75,36 +75,15 @@ importers:
       '@softarc/native-federation-runtime':
         specifier: ~4.0.0
         version: 4.0.0(typescript@5.9.3)
-      '@types/jasmine':
-        specifier: ~5.1.0
-        version: 5.1.15
       concurrently:
         specifier: ^9.2.0
         version: 9.2.1
       http-server:
         specifier: ^14.1.1
         version: 14.1.1
-      jasmine-core:
-        specifier: ~5.6.0
-        version: 5.6.0
       jsdom:
         specifier: ^28.0.0
         version: 28.1.0
-      karma:
-        specifier: ~6.4.0
-        version: 6.4.4
-      karma-chrome-launcher:
-        specifier: ~3.2.0
-        version: 3.2.0
-      karma-coverage:
-        specifier: ~2.2.0
-        version: 2.2.1
-      karma-jasmine:
-        specifier: ~5.1.0
-        version: 5.1.0(karma@6.4.4)
-      karma-jasmine-html-reporter:
-        specifier: ~2.1.0
-        version: 2.1.0(jasmine-core@5.6.0)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
@@ -2300,9 +2279,6 @@ packages:
   '@types/http-proxy@1.17.17':
     resolution: {integrity: sha512-ED6LB+Z1AVylNTu7hdzuBqOgMnvG/ld6wGCG8wFnAzKX5uyW2K3WD52v0gnLCTK/VLpXtKckgWuyScYK6cSPaw==}
 
-  '@types/jasmine@5.1.15':
-    resolution: {integrity: sha512-ZAC8KjmV2MJxbNTrwXFN+HKeajpXQZp6KpPiR6Aa4XvaEnjP6qh23lL/Rqb7AYzlp3h/rcwDrQ7Gg7q28cQTQg==}
-
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
@@ -3336,9 +3312,6 @@ packages:
     resolution: {integrity: sha512-CV9TW3Y3f8/wT0BRFc1/KAVQ3TUHiXmaAb6VW9vtiMFf7SLoMd1PdAc4W3KFOFETBJUb90KatHqlsZMWV+R9Gg==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
 
-  html-escaper@2.0.2:
-    resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
-
   htmlparser2@10.1.0:
     resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
 
@@ -3558,31 +3531,9 @@ packages:
     resolution: {integrity: sha512-O8dpsF+r0WV/8MNRKfnmrtCWhuKjxrq2w+jpzBL5UZKTi2LeVWnWOmWRxFlesJONmc+wLAGvKQZEOanko0LFTg==}
     engines: {node: '>=8'}
 
-  istanbul-lib-instrument@5.2.1:
-    resolution: {integrity: sha512-pzqtp31nLv/XFOzXGuvhCb8qhjmTVo5vjVk19XE4CRlSWz0KoeJ3bw9XsA7nOp9YBf4qHjwBxkDzKcME/J29Yg==}
-    engines: {node: '>=8'}
-
   istanbul-lib-instrument@6.0.3:
     resolution: {integrity: sha512-Vtgk7L/R2JHyyGW07spoFlB8/lpjiOLTjMdms6AFMraYt3BaJauod/NGrfnVG/y4Ix1JEuMRPDPEj2ua+zz1/Q==}
     engines: {node: '>=10'}
-
-  istanbul-lib-report@3.0.1:
-    resolution: {integrity: sha512-GCfE1mtsHGOELCU8e/Z7YWzpmybrx/+dSTfLrvY8qRmaY6zXTKWn6WQIjaAFw069icm6GVMNkgu0NzI4iPZUNw==}
-    engines: {node: '>=10'}
-
-  istanbul-lib-source-maps@4.0.1:
-    resolution: {integrity: sha512-n3s8EwkdFIJCG3BPKBYvskgXGoy88ARzvegkitk60NxRdwltLOTaH7CUiMRXvwYorl0Q712iEjcWB+fK/MrWVw==}
-    engines: {node: '>=10'}
-
-  istanbul-reports@3.2.0:
-    resolution: {integrity: sha512-HGYWWS/ehqTV3xN10i23tkPkpH46MLCIMFNCaaKNavAXTF1RkqxawEPtnjnGZ6XKSInBKkiOA5BKS+aZiY3AvA==}
-    engines: {node: '>=8'}
-
-  jasmine-core@4.6.1:
-    resolution: {integrity: sha512-VYz/BjjmC3klLJlLwA4Kw8ytk0zDSmbbDLNs794VnWmkcCB7I9aAL/D48VNQtmITyPvea2C3jdUMfc3kAoy0PQ==}
-
-  jasmine-core@5.6.0:
-    resolution: {integrity: sha512-niVlkeYVRwKFpmfWg6suo6H9CrNnydfBLEqefM5UjibYS+UoTjZdmvPJSiuyrRLGnFj1eYRhFd/ch+5hSlsFVA==}
 
   jest-worker@27.5.1:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
@@ -3643,26 +3594,6 @@ packages:
   jsonparse@1.3.1:
     resolution: {integrity: sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==}
     engines: {'0': node >= 0.2.0}
-
-  karma-chrome-launcher@3.2.0:
-    resolution: {integrity: sha512-rE9RkUPI7I9mAxByQWkGJFXfFD6lE4gC5nPuZdobf/QdTEJI6EU4yIay/cfU/xV4ZxlM5JiTv7zWYgA64NpS5Q==}
-
-  karma-coverage@2.2.1:
-    resolution: {integrity: sha512-yj7hbequkQP2qOSb20GuNSIyE//PgJWHwC2IydLE6XRtsnaflv+/OSGNssPjobYUlhVVagy99TQpqUt3vAUG7A==}
-    engines: {node: '>=10.0.0'}
-
-  karma-jasmine-html-reporter@2.1.0:
-    resolution: {integrity: sha512-sPQE1+nlsn6Hwb5t+HHwyy0A1FNCVKuL1192b+XNauMYWThz2kweiBVW1DqloRpVvZIJkIoHVB7XRpK78n1xbQ==}
-    peerDependencies:
-      jasmine-core: ^4.0.0 || ^5.0.0
-      karma: ^6.0.0
-      karma-jasmine: ^5.0.0
-
-  karma-jasmine@5.1.0:
-    resolution: {integrity: sha512-i/zQLFrfEpRyQoJF9fsCdTMOF5c2dK7C7OmsuKg2D0YSsuZSfQDiLuaiktbuio6F2wiCsZSnSnieIQ0ant/uzQ==}
-    engines: {node: '>=12'}
-    peerDependencies:
-      karma: ^6.0.0
 
   karma-source-map-support@1.4.0:
     resolution: {integrity: sha512-RsBECncGO17KAoJCYXjv+ckIz+Ii9NCi+9enk+rq6XC81ezYkb4/RHE6CTXdA7IOJqoF3wcaLfVG0CPmE5ca6A==}
@@ -3763,10 +3694,6 @@ packages:
   make-dir@2.1.0:
     resolution: {integrity: sha512-LS9X+dc8KLxXCb8dni79fLIIUA5VyZoyjSMCwTluaXA0o27cCK0bhXkpgw+sTXVpPy/lSO57ilRixqk0vDmtRA==}
     engines: {node: '>=6'}
-
-  make-dir@4.0.0:
-    resolution: {integrity: sha512-hXdUTZYIVOt1Ex//jAQi+wTZZpUpwBj/0QsOzqegb3rGMMeJiSEu5xLHnYfBrRV4RH2+OCSOO95Is/7x1WJ4bw==}
-    engines: {node: '>=10'}
 
   make-fetch-happen@15.0.5:
     resolution: {integrity: sha512-uCbIa8jWWmQZt4dSnEStkVC6gdakiinAm4PiGsywIkguF0eWMdcjDz0ECYhUolFU3pFLOev9VNPCEygydXnddg==}
@@ -5052,10 +4979,6 @@ packages:
   whatwg-url@16.0.1:
     resolution: {integrity: sha512-1to4zXBxmXHV3IiSSEInrreIlu02vUOvrhxJJH5vcxYTBDAx51cqZiKdyTxlecdKNSjj8EcxGBxNf6Vg+945gw==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
-
-  which@1.3.1:
-    resolution: {integrity: sha512-HxJdYWq1MTIQbJ3nw0cqssHoTNU267KlrDuGZ1WYlxDStUtKUhOaJmh112/TZmHxxUfuJqPXSOm7tDyas0OSIQ==}
-    hasBin: true
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -6355,7 +6278,8 @@ snapshots:
 
   '@chialab/node-resolve@0.19.1': {}
 
-  '@colors/colors@1.5.0': {}
+  '@colors/colors@1.5.0':
+    optional: true
 
   '@csstools/color-helpers@6.0.2': {}
 
@@ -7395,7 +7319,8 @@ snapshots:
       '@sigstore/core': 3.2.0
       '@sigstore/protobuf-specs': 0.5.1
 
-  '@socket.io/component-emitter@3.1.2': {}
+  '@socket.io/component-emitter@3.1.2':
+    optional: true
 
   '@softarc/native-federation-orchestrator@4.0.0':
     dependencies:
@@ -7461,6 +7386,7 @@ snapshots:
   '@types/cors@2.8.19':
     dependencies:
       '@types/node': 25.6.0
+    optional: true
 
   '@types/deep-eql@4.0.2': {}
 
@@ -7495,8 +7421,6 @@ snapshots:
   '@types/http-proxy@1.17.17':
     dependencies:
       '@types/node': 25.6.0
-
-  '@types/jasmine@5.1.15': {}
 
   '@types/json-schema@7.0.15': {}
 
@@ -7812,11 +7736,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  balanced-match@1.0.2: {}
+  balanced-match@1.0.2:
+    optional: true
 
   balanced-match@4.0.4: {}
 
-  base64id@2.0.0: {}
+  base64id@2.0.0:
+    optional: true
 
   baseline-browser-mapping@2.10.19: {}
 
@@ -7888,6 +7814,7 @@ snapshots:
     dependencies:
       balanced-match: 1.0.2
       concat-map: 0.0.1
+    optional: true
 
   brace-expansion@5.0.5:
     dependencies:
@@ -7997,6 +7924,7 @@ snapshots:
       string-width: 4.2.3
       strip-ansi: 6.0.1
       wrap-ansi: 7.0.0
+    optional: true
 
   cliui@8.0.1:
     dependencies:
@@ -8042,7 +7970,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  concat-map@0.0.1: {}
+  concat-map@0.0.1:
+    optional: true
 
   concurrently@9.2.1:
     dependencies:
@@ -8063,6 +7992,7 @@ snapshots:
       utils-merge: 1.0.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   content-disposition@0.5.4:
     dependencies:
@@ -8160,7 +8090,8 @@ snapshots:
       css-tree: 3.2.1
       lru-cache: 11.3.5
 
-  custom-event@1.0.1: {}
+  custom-event@1.0.1:
+    optional: true
 
   data-urls@7.0.0:
     dependencies:
@@ -8169,7 +8100,8 @@ snapshots:
     transitivePeerDependencies:
       - '@noble/hashes'
 
-  date-format@4.0.14: {}
+  date-format@4.0.14:
+    optional: true
 
   debug@2.6.9:
     dependencies:
@@ -8203,7 +8135,8 @@ snapshots:
 
   detect-node@2.1.0: {}
 
-  di@0.0.1: {}
+  di@0.0.1:
+    optional: true
 
   dns-packet@5.6.1:
     dependencies:
@@ -8215,6 +8148,7 @@ snapshots:
       ent: 2.2.2
       extend: 3.0.2
       void-elements: 2.0.1
+    optional: true
 
   dom-serializer@2.0.0:
     dependencies:
@@ -8250,11 +8184,13 @@ snapshots:
 
   emojis-list@3.0.0: {}
 
-  encodeurl@1.0.2: {}
+  encodeurl@1.0.2:
+    optional: true
 
   encodeurl@2.0.0: {}
 
-  engine.io-parser@5.2.3: {}
+  engine.io-parser@5.2.3:
+    optional: true
 
   engine.io@6.6.6:
     dependencies:
@@ -8272,6 +8208,7 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+    optional: true
 
   enhanced-resolve@5.20.1:
     dependencies:
@@ -8284,6 +8221,7 @@ snapshots:
       es-errors: 1.3.0
       punycode: 1.4.1
       safe-regex-test: 1.1.0
+    optional: true
 
   entities@4.5.0: {}
 
@@ -8466,7 +8404,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  extend@3.0.2: {}
+  extend@3.0.2:
+    optional: true
 
   fast-deep-equal@3.1.3: {}
 
@@ -8507,6 +8446,7 @@ snapshots:
       unpipe: 1.0.0
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   finalhandler@1.3.2:
     dependencies:
@@ -8538,7 +8478,8 @@ snapshots:
 
   flat@5.0.2: {}
 
-  flatted@3.4.2: {}
+  flatted@3.4.2:
+    optional: true
 
   follow-redirects@1.16.0(debug@4.4.3):
     optionalDependencies:
@@ -8557,12 +8498,14 @@ snapshots:
       graceful-fs: 4.2.11
       jsonfile: 4.0.0
       universalify: 0.1.2
+    optional: true
 
   fs-minipass@3.0.3:
     dependencies:
       minipass: 7.1.3
 
-  fs.realpath@1.0.0: {}
+  fs.realpath@1.0.0:
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -8621,6 +8564,7 @@ snapshots:
       minimatch: 3.1.5
       once: 1.4.0
       path-is-absolute: 1.0.1
+    optional: true
 
   gopd@1.2.0: {}
 
@@ -8635,6 +8579,7 @@ snapshots:
   has-tostringtag@1.0.2:
     dependencies:
       has-symbols: 1.1.0
+    optional: true
 
   hasown@2.0.2:
     dependencies:
@@ -8664,8 +8609,6 @@ snapshots:
       '@exodus/bytes': 1.15.0
     transitivePeerDependencies:
       - '@noble/hashes'
-
-  html-escaper@2.0.2: {}
 
   htmlparser2@10.1.0:
     dependencies:
@@ -8796,6 +8739,7 @@ snapshots:
     dependencies:
       once: 1.4.0
       wrappy: 1.0.2
+    optional: true
 
   inherits@2.0.4: {}
 
@@ -8861,6 +8805,7 @@ snapshots:
       gopd: 1.2.0
       has-tostringtag: 1.0.2
       hasown: 2.0.2
+    optional: true
 
   is-unicode-supported@2.1.0: {}
 
@@ -8872,7 +8817,8 @@ snapshots:
 
   isarray@1.0.0: {}
 
-  isbinaryfile@4.0.10: {}
+  isbinaryfile@4.0.10:
+    optional: true
 
   isexe@2.0.0: {}
 
@@ -8881,16 +8827,6 @@ snapshots:
   isobject@3.0.1: {}
 
   istanbul-lib-coverage@3.2.2: {}
-
-  istanbul-lib-instrument@5.2.1:
-    dependencies:
-      '@babel/core': 7.29.0
-      '@babel/parser': 7.29.2
-      '@istanbuljs/schema': 0.1.6
-      istanbul-lib-coverage: 3.2.2
-      semver: 6.3.1
-    transitivePeerDependencies:
-      - supports-color
 
   istanbul-lib-instrument@6.0.3:
     dependencies:
@@ -8901,29 +8837,6 @@ snapshots:
       semver: 7.7.4
     transitivePeerDependencies:
       - supports-color
-
-  istanbul-lib-report@3.0.1:
-    dependencies:
-      istanbul-lib-coverage: 3.2.2
-      make-dir: 4.0.0
-      supports-color: 7.2.0
-
-  istanbul-lib-source-maps@4.0.1:
-    dependencies:
-      debug: 4.4.3
-      istanbul-lib-coverage: 3.2.2
-      source-map: 0.6.1
-    transitivePeerDependencies:
-      - supports-color
-
-  istanbul-reports@3.2.0:
-    dependencies:
-      html-escaper: 2.0.2
-      istanbul-lib-report: 3.0.1
-
-  jasmine-core@4.6.1: {}
-
-  jasmine-core@5.6.0: {}
 
   jest-worker@27.5.1:
     dependencies:
@@ -8985,34 +8898,9 @@ snapshots:
   jsonfile@4.0.0:
     optionalDependencies:
       graceful-fs: 4.2.11
+    optional: true
 
   jsonparse@1.3.1: {}
-
-  karma-chrome-launcher@3.2.0:
-    dependencies:
-      which: 1.3.1
-
-  karma-coverage@2.2.1:
-    dependencies:
-      istanbul-lib-coverage: 3.2.2
-      istanbul-lib-instrument: 5.2.1
-      istanbul-lib-report: 3.0.1
-      istanbul-lib-source-maps: 4.0.1
-      istanbul-reports: 3.2.0
-      minimatch: 3.1.5
-    transitivePeerDependencies:
-      - supports-color
-
-  karma-jasmine-html-reporter@2.1.0(jasmine-core@5.6.0)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4):
-    dependencies:
-      jasmine-core: 5.6.0
-      karma: 6.4.4
-      karma-jasmine: 5.1.0(karma@6.4.4)
-
-  karma-jasmine@5.1.0(karma@6.4.4):
-    dependencies:
-      jasmine-core: 4.6.1
-      karma: 6.4.4
 
   karma-source-map-support@1.4.0:
     dependencies:
@@ -9049,6 +8937,7 @@ snapshots:
       - debug
       - supports-color
       - utf-8-validate
+    optional: true
 
   kind-of@6.0.3: {}
 
@@ -9128,7 +9017,8 @@ snapshots:
 
   lodash.debounce@4.0.8: {}
 
-  lodash@4.18.1: {}
+  lodash@4.18.1:
+    optional: true
 
   log-symbols@7.0.1:
     dependencies:
@@ -9152,6 +9042,7 @@ snapshots:
       streamroller: 3.1.5
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   lru-cache@11.3.5: {}
 
@@ -9168,10 +9059,6 @@ snapshots:
       pify: 4.0.1
       semver: 5.7.2
     optional: true
-
-  make-dir@4.0.0:
-    dependencies:
-      semver: 7.7.4
 
   make-fetch-happen@15.0.5:
     dependencies:
@@ -9244,7 +9131,8 @@ snapshots:
 
   mime@1.6.0: {}
 
-  mime@2.6.0: {}
+  mime@2.6.0:
+    optional: true
 
   mimic-function@5.0.1: {}
 
@@ -9263,6 +9151,7 @@ snapshots:
   minimatch@3.1.5:
     dependencies:
       brace-expansion: 1.1.14
+    optional: true
 
   minimist@1.2.8: {}
 
@@ -9303,6 +9192,7 @@ snapshots:
   mkdirp@0.5.6:
     dependencies:
       minimist: 1.2.8
+    optional: true
 
   mrmime@2.0.1: {}
 
@@ -9441,6 +9331,7 @@ snapshots:
   on-finished@2.3.0:
     dependencies:
       ee-first: 1.1.1
+    optional: true
 
   on-finished@2.4.1:
     dependencies:
@@ -9568,7 +9459,8 @@ snapshots:
 
   path-exists@4.0.0: {}
 
-  path-is-absolute@1.0.1: {}
+  path-is-absolute@1.0.1:
+    optional: true
 
   path-key@3.1.1: {}
 
@@ -9692,7 +9584,8 @@ snapshots:
   prr@1.0.1:
     optional: true
 
-  punycode@1.4.1: {}
+  punycode@1.4.1:
+    optional: true
 
   punycode@2.3.1: {}
 
@@ -9702,7 +9595,8 @@ snapshots:
 
   pvutils@1.1.5: {}
 
-  qjobs@1.2.0: {}
+  qjobs@1.2.0:
+    optional: true
 
   qs@6.14.2:
     dependencies:
@@ -9818,6 +9712,7 @@ snapshots:
   rimraf@3.0.2:
     dependencies:
       glob: 7.2.3
+    optional: true
 
   rolldown@1.0.0-rc.4(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2):
     dependencies:
@@ -9901,6 +9796,7 @@ snapshots:
       call-bound: 1.0.4
       es-errors: 1.3.0
       is-regex: 1.2.1
+    optional: true
 
   safer-buffer@2.1.2: {}
 
@@ -10092,6 +9988,7 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+    optional: true
 
   socket.io-parser@4.2.6:
     dependencies:
@@ -10099,6 +9996,7 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   socket.io@4.8.3:
     dependencies:
@@ -10113,6 +10011,7 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+    optional: true
 
   sockjs@0.3.24:
     dependencies:
@@ -10201,6 +10100,7 @@ snapshots:
       fs-extra: 8.1.0
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   string-width@4.2.3:
     dependencies:
@@ -10302,7 +10202,8 @@ snapshots:
     dependencies:
       tldts-core: 7.0.28
 
-  tmp@0.2.5: {}
+  tmp@0.2.5:
+    optional: true
 
   to-regex-range@5.0.1:
     dependencies:
@@ -10355,7 +10256,8 @@ snapshots:
 
   typescript@5.9.3: {}
 
-  ua-parser-js@0.7.41: {}
+  ua-parser-js@0.7.41:
+    optional: true
 
   undici-types@7.19.2: {}
 
@@ -10376,7 +10278,8 @@ snapshots:
     dependencies:
       qs: 6.15.1
 
-  universalify@0.1.2: {}
+  universalify@0.1.2:
+    optional: true
 
   unpipe@1.0.0: {}
 
@@ -10442,7 +10345,8 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  void-elements@2.0.1: {}
+  void-elements@2.0.1:
+    optional: true
 
   w3c-xmlserializer@5.0.0:
     dependencies:
@@ -10581,10 +10485,6 @@ snapshots:
     transitivePeerDependencies:
       - '@noble/hashes'
 
-  which@1.3.1:
-    dependencies:
-      isexe: 2.0.0
-
   which@2.0.2:
     dependencies:
       isexe: 2.0.0
@@ -10620,7 +10520,8 @@ snapshots:
 
   wrappy@1.0.2: {}
 
-  ws@8.18.3: {}
+  ws@8.18.3:
+    optional: true
 
   ws@8.20.0: {}
 
@@ -10645,7 +10546,8 @@ snapshots:
 
   yallist@5.0.0: {}
 
-  yargs-parser@20.2.9: {}
+  yargs-parser@20.2.9:
+    optional: true
 
   yargs-parser@21.1.1: {}
 
@@ -10660,6 +10562,7 @@ snapshots:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 20.2.9
+    optional: true
 
   yargs@17.7.2:
     dependencies:
