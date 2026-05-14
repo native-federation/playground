@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FilterComponent, type FilterItem } from './filter';
 
@@ -53,17 +53,17 @@ describe('FilterComponent', () => {
 
   it('renders inactive filters as nav links pointing at the correct intent', () => {
     const fixture = create();
-    const links = fixture.debugElement.queryAll(By.directive(NavLinkDirective));
+    const links = fixture.debugElement.queryAll(By.directive(NavigateToDirective));
     expect(links.length).toBe(2);
-    const intents = links.map((l) => l.injector.get(NavLinkDirective).navLink());
+    const intents = links.map((l) => l.injector.get(NavigateToDirective).navigateTo());
     expect(intents).toEqual(['explore.products', 'explore.products.category']);
   });
 
   it('falls back to an empty params object when a filter has no params', () => {
     const fixture = create();
     const link = fixture.debugElement
-      .queryAll(By.directive(NavLinkDirective))[0]
-      .injector.get(NavLinkDirective);
+      .queryAll(By.directive(NavigateToDirective))[0]
+      .injector.get(NavigateToDirective);
     expect(link.navParams()).toEqual({});
   });
 });

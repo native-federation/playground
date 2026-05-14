@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { STORE_EVENTS } from '@internal/events';
 import {
   CART_STORAGE_KEY,
   CartStore,
@@ -88,7 +87,7 @@ describe('CheckoutPage', () => {
     const c = fixture.componentInstance;
     c.form.patchValue({ firstname: 'Alice', lastname: 'Anderson' });
     expect(c.isReady()).toBe(false);
-    bus.emit(STORE_EVENTS.selected, { id: 'berlin' });
+    bus.emit('store:selected', { id: 'berlin' });
     expect(c.isReady()).toBe(true);
     expect(c.storeId()).toBe('berlin');
   });
@@ -108,12 +107,12 @@ describe('CheckoutPage', () => {
     const c = fixture.componentInstance;
 
     const navigated = vi.fn();
-    bus.on('navigation:navigate', (event) => {
+    bus.on('nav:navigate', (event) => {
       navigated((event as { data: unknown }).data);
     });
 
     c.form.patchValue({ firstname: 'A', lastname: 'B' });
-    bus.emit(STORE_EVENTS.selected, { id: 'hamburg' });
+    bus.emit('store:selected', { id: 'hamburg' });
     c.onSubmit(new Event('submit'));
     expect(TestBed.inject(CartStore).lineItems()).toEqual([]);
     expect(navigated).toHaveBeenCalledWith({ id: 'checkout.thanks' });

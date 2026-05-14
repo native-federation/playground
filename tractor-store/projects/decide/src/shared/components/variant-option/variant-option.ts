@@ -1,16 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 
 @Component({
   selector: 'app-variant-option',
-  imports: [NavLinkDirective],
+  imports: [NavigateToDirective],
   template: `
     <li class="d_VariantOption" [style.--variant-color]="color()">
       <i class="d_VariantOption__color"></i>
       @if (selected()) {
         <strong>{{ name() }}</strong>
       } @else {
-        <a navLink="decide.product" [navParams]="linkParams()">{{ name() }}</a>
+        <a [navigateTo]="'decide.product'" [navParams]="linkParams()">{{ name() }}</a>
       }
     </li>
   `,

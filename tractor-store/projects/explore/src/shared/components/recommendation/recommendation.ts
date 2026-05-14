@@ -5,20 +5,20 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import type { RecommendationModel } from '../../../core/data/contracts/models/recommendation.model';
 import { ResourceService } from '../../utils/resource.service';
 
 @Component({
   selector: 'app-recommendation',
-  imports: [NavLinkDirective],
+  imports: [NavigateToDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './recommendation.scss',
   template: `
     <li class="e_Recommendation">
       <a
         class="e_Recommendation_link"
-        [navLink]="item().link.intent"
+        [navigateTo]="item().link.intent"
         [navParams]="item().link.params ?? {}"
       >
         <img

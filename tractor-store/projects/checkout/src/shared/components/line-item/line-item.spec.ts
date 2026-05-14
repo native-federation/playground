@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CART_STORAGE_KEY,
@@ -90,12 +90,12 @@ describe('LineItemComponent', () => {
       );
     });
 
-    it('passes the navigation intent and {id, sku} params to NavLinkDirective', () => {
+    it('passes the navigation intent and {id, sku} params to NavigateToDirective', () => {
       const fixture = create();
       const dir = fixture.debugElement
-        .query(By.directive(NavLinkDirective))
-        .injector.get(NavLinkDirective);
-      expect(dir.navLink()).toBe('decide.product');
+        .query(By.directive(NavigateToDirective))
+        .injector.get(NavigateToDirective);
+      expect(dir.navigateTo()).toBe('decide.product');
       expect(dir.navParams()).toEqual({ id: 'AU-03', sku: 'AU-03-RD' });
     });
 

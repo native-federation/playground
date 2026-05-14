@@ -54,6 +54,10 @@ The shape (`libs/events/src/lib/nav-types.ts`):
   - `path` — the path *inside* `basePath`, with optional `:param`
     segments.
   - `element` — the `mfe-*` custom element to render at that path.
+- `navBar?` — optional contributions to a shared nav bar (intent ID +
+  label + order). The registry exposes a sorted list of them via
+  `getNavBar()`; the current build does not render one, but the slot is
+  there for teams that want to add menu items without coordinating.
 
 The intent ID is the only thing that crosses team boundaries. URLs and
 element tags are an implementation detail of the owning team.
@@ -68,36 +72,44 @@ The orchestration (`projects/host/src/app/nav/setup-shell-nav.ts`) is
 small enough to read in full:
 
 ```ts
-export const setupShellNavigation = async (deps): Promise<void> => {
-  deps.onNavigate(async ({ id, payload }) => {
-    try { await deps.registry.navigate(id, payload); }
-    catch (err) { console.error(`[nav] navigation:navigate failed for "${id}"`, err); }
-  });
-  deps.onRoute(async ({ url }) => {
-    try { await deps.router.navigateByUrl(url); }
-    catch (err) { console.error(`[nav] navigation:route failed for "${url}"`, err); }
+export const setupShellNavigation = async ({
+  router,
+  nf,
+  manifest,
+  onNavigate = (handler) => navigateTo.on(handler),
+  fallbackRedirect = 'explore',
+}): Promise<void> => {
+  const loaded = await loadContributions(nf, manifest);
+
+  const registry = new NavRegistry((url) => router.navigateByUrl(url));
+  for (const { contribution } of loaded) registry.register(contribution);
+
+  onNavigate(({ id, payload }) => {
+    void registry.navigate(id, payload).catch((err) => {
+      console.error(`[nav] navigation to intent "${id}" failed`, err);
+    });
   });
 
-  const loaded = await loadContributions(deps.nf, deps.manifest);
-  for (const { contribution } of loaded) deps.registry.register(contribution);
-
-  deps.router.resetConfig([
+  router.resetConfig([
     ...buildRemoteRoutes(loaded),
-    { path: '**', redirectTo: deps.fallbackRedirect ?? 'explore' },
+    { path: '**', redirectTo: fallbackRedirect },
   ]);
-
-  await deps.publishRegistry(deps.registry);
 };
 ```
 
-It does four things:
+It does three things:
 
-1. Subscribes to `navigation:navigate` and `navigation:route` events on
-   the bus — these are how remotes ask the host to go somewhere.
-2. Calls `loadContributions` to fetch every remote's nav module
+1. Calls `loadContributions` to fetch every remote's nav module
    (`projects/host/src/app/nav/load-contributions.ts`, using
    `Promise.allSettled` so one broken remote does not break the whole
-   shell).
+   shell), builds a `NavRegistry` from them, and hands the registry a
+   one-line navigator that calls `Router.navigateByUrl`. Note that the
+   registry holds no Angular dependency — it is plain TypeScript and
+   trivially unit-testable.
+2. Subscribes to the **`nav:navigate`** channel on the bus
+   (via `navigateTo.on(...)` from `@internal/events`). Every click in
+   any remote that goes through `[navigateTo]` lands here, gets
+   resolved by the registry, and finally hits the router.
 3. Resets the Angular Router config with one route per intent. Every
    route lazy-loads the same `RemoteShellComponent`; only the route data
    differs:
@@ -111,42 +123,60 @@ It does four things:
    });
    ```
 
-4. Publishes the populated registry on the bus
-   (`__NF_REGISTRY__.register('navigation:registry', registry)`), which
-   wakes up every `[navLink]` directive that was waiting for it.
+The DI adapter in `projects/host/src/app/nav/provide-shell-nav.ts` runs
+this orchestration as an `appInitializer`, so by the time the user sees
+the first frame the registry is populated and routing is wired.
 
-The DI adapter in `projects/host/src/app/nav/provide-nav.ts` runs this
-orchestration as an `appInitializer`, so by the time the user sees the
-first frame the registry is populated and routing is wired.
-
-## Linking from a remote: `[navLink]`
+## Linking from a remote: `[navigateTo]`
 
 Remotes never type a URL and never inject `Router`. They use a directive
 shipped from `@internal/events`:
 
 ```html
-<a [navLink]="'checkout.cart'">Cart</a>
-<button [navLink]="'decide.product'" [navParams]="{ id: product.id }">
+<a [navigateTo]="'checkout.cart'">Cart</a>
+<button [navigateTo]="'decide.product'" [navParams]="{ id: product.id }">
   See details
 </button>
 ```
 
-The directive (`libs/events/src/lib/nav-link.directive.ts`):
+The directive
+(`libs/events/src/lib/navigate-to.directive.ts`) is intentionally tiny:
 
-- Subscribes to `onRegistryReady` on the bus.
-- Until the registry is published it hides itself
-  (`[hidden]="!available()"`) and reports `aria-disabled="true"`.
-- Once available, it computes `href` via `registry.resolve(intent, params)`
-  so the link is a real anchor with a real URL — middle-click, copy-link,
-  and screen readers all work as expected.
-- On click, it intercepts the navigation and emits `navigation:navigate`
-  on the bus instead of letting the browser navigate. The route change
-  flows through Angular's Router rather than triggering a full reload.
+```ts
+@Directive({
+  selector: 'a[navigateTo], button[navigateTo], [navigateTo]',
+  host: { '(click)': 'onClick($event)', '[style.cursor]': '"pointer"' },
+})
+export class NavigateToDirective {
+  readonly navigateTo = input.required<string>();
+  readonly navParams  = input<NavPayload>({});
 
-The host listens for that event and asks the registry to resolve and
-navigate. The registry (`projects/host/src/app/nav/nav-registry.ts`)
-substitutes path params, peels off the rest as query string, and hands a
-URL to `Router.navigateByUrl`.
+  onClick(event: Event): void {
+    event.preventDefault();
+    navigateToChannel.emit({
+      id: this.navigateTo(),
+      payload: this.navParams(),
+    });
+  }
+}
+```
+
+It listens for a click, prevents the browser's default navigation, and
+emits one `nav:navigate` event with the intent ID and any parameters.
+That's it — no URL computation, no router lookup, no router import
+inside the remote.
+
+> **Trade-off worth flagging.** Because the directive emits an event
+> rather than producing a real `href`, browser features that rely on
+> the `href` attribute — middle-click to open in a new tab, "copy link
+> address", screen-reader URL announcements — do not currently work for
+> `[navigateTo]` links. Restoring those is on the open follow-ups list
+> in the main README.
+
+A `[navigateTo]` to an unknown intent will reach the host, where the
+registry logs `[nav] cannot navigate to unknown or unresolvable intent
+"…"` and the navigation is dropped. A half-deployed system therefore
+fails *visibly in the console* rather than silently in the URL bar.
 
 ## Reading params on the receiving end
 
@@ -173,21 +203,21 @@ arrays) and throw helpful errors for missing required params.
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant DV as decide button<br/>(navLink="checkout.cart")
-    participant ND as NavLinkDirective<br/>(@internal/events)
-    participant Bus as window.__NF_REGISTRY__<br/>(NF event bus)
-    participant HB as host-bus.ts<br/>(host listener)
+    participant DV as decide button<br/>([navigateTo]="checkout.cart")
+    participant ND as NavigateToDirective<br/>(@internal/events)
+    participant Bus as window.__NF_REGISTRY__<br/>("nav:navigate" channel)
+    participant SN as setupShellNavigation<br/>(host listener)
     participant NR as NavRegistry
     participant AR as Angular Router (host)
     participant RS as RemoteShellComponent
-    participant SL as slice-loader
+    participant SL as createSliceLoader
     participant CC as <mfe-cart>
 
     U->>DV: click
     DV->>ND: onClick(event)
-    ND->>Bus: emit('navigation:navigate', {id: 'checkout.cart'})
-    Bus->>HB: deliver event
-    HB->>NR: registry.navigate('checkout.cart', {})
+    ND->>Bus: emit('nav:navigate', {id: 'checkout.cart'})
+    Bus->>SN: deliver event (via navigateTo.on)
+    SN->>NR: registry.navigate('checkout.cart', {})
     NR->>NR: resolve → '/checkout/cart'
     NR->>AR: navigateByUrl('/checkout/cart')
     AR->>RS: activate route, data: {remoteName, element: 'mfe-cart'}
@@ -201,20 +231,26 @@ Notice what *isn't* in the diagram: no import from `decide` to
 typed anywhere inside `decide`'s code. The only thing crossing the
 boundary is the literal `'checkout.cart'`.
 
-## When you already know the URL: `[navRoute]`
+## Programmatic navigation: emit directly
 
-`[navLink]` resolves an intent at click time. Sometimes the URL is
-already known — for example, a category list that builds links from
-fetched data. For that case `@internal/events` ships a sibling directive
-(`libs/events/src/lib/nav-route.directive.ts`):
+`[navigateTo]` is for templates. From TypeScript, a remote can navigate
+by importing the same channel handle and emitting through it:
 
-```html
-<a [navRoute]="'/explore/products/' + category.slug">{{ category.name }}</a>
+```ts
+// projects/checkout/src/features/checkout/checkout.page.ts
+import { navigateTo, storeSelected } from '@internal/events';
+
+onSubmit(event: Event): void {
+  event.preventDefault();
+  if (!this.isReady()) return;
+  this.cart.clear();
+  navigateTo.emit({ id: 'checkout.thanks' });
+}
 ```
 
-It dispatches a `navigation:route` event with the URL, which the host
-turns into a `Router.navigateByUrl`. Same wiring as `[navLink]`, but
-without the registry lookup because the caller already knows the path.
+This is the same channel the directive uses, so any future intent-related
+features (param validation, deep-link auditing, analytics) only need to
+be added once at the host listener.
 
 ## The registry as a hub
 
@@ -230,25 +266,26 @@ flowchart TB
         CC[checkout<br/>nav-contribution]
     end
 
-    subgraph Resolution["Run-time: resolutions out"]
-        EL["[navLink] in explore"]
-        DL["[navLink] in decide"]
-        CL["[navLink] in checkout"]
+    subgraph Resolution["Run-time: intents in, URLs out"]
+        EL["[navigateTo] in explore"]
+        DL["[navigateTo] in decide"]
+        CL["[navigateTo] in checkout"]
     end
 
     EC --> Reg
     DC --> Reg
     CC --> Reg
 
-    Reg --> EL
-    Reg --> DL
-    Reg --> CL
+    EL -- "emits 'nav:navigate'" --> Reg
+    DL -- "emits 'nav:navigate'" --> Reg
+    CL -- "emits 'nav:navigate'" --> Reg
+    Reg -- "Router.navigateByUrl" --> Router((Angular<br/>Router))
 ```
 
-Contributions flow into the registry once, at startup. Once it is
-published on the shared bus (`navigation:registry`), every `[navLink]`
-directive in every remote sees the same picture: the union of every
-team's intents.
+Contributions flow into the registry once, at startup. After that, every
+click in every remote routes through the single host-owned listener.
+The registry itself never leaves the host — remotes only ever speak the
+public intent ID.
 
 ## What this design buys you
 
@@ -268,12 +305,9 @@ Several payoffs fall out of the design:
   with the same `federation.manifest.json`. When `decide` boots on
   `:4202` it loads `mfe-header` from `:4201` (explore) and
   `mfe-add-to-cart` from `:4203` (checkout) just like the host would.
-- **Graceful degradation.** A `[navLink]` to an unknown intent stays
-  hidden with `aria-disabled="true"` instead of producing a broken URL.
-  A half-deployed system fails *visibly* rather than silently.
 - **Standards-friendly.** All cross-app messaging goes through one tiny
-  global (`window.__NF_REGISTRY__`). No framework lock-in beyond
-  Angular's `[navLink]` directive, which is itself only ~50 lines.
+  global (`window.__NF_REGISTRY__`). The bus is plain pub/sub; the only
+  Angular-specific piece, `NavigateToDirective`, is ~30 lines.
 
 The intent system is what turns "three Angular apps loaded into one
 page" into "three independently-evolving products that happen to share

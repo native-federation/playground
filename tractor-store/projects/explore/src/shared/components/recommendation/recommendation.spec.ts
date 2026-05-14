@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ENV } from '../../../env.config';
 import { testEnv } from '../../../testing/env.fixture';
@@ -42,11 +42,11 @@ describe('RecommendationComponent', () => {
     );
   });
 
-  it('passes the navigation intent and params to the navLink directive', () => {
+  it('passes the navigation intent and params to the navigateTo directive', () => {
     const dir = create()
-      .debugElement.query(By.directive(NavLinkDirective))
-      .injector.get(NavLinkDirective);
-    expect(dir.navLink()).toBe('decide.product');
+      .debugElement.query(By.directive(NavigateToDirective))
+      .injector.get(NavigateToDirective);
+    expect(dir.navigateTo()).toBe('decide.product');
     expect(dir.navParams()).toEqual({ id: 'AU-01', sku: 'AU-01-SI' });
   });
 });

@@ -1,7 +1,7 @@
-@if (navLink(); as link) {
+@if (navigateTo(); as link) {
   <a
     [class]="buttonClass()"
-    [navLink]="link"
+    [navigateTo]="link"
     [navParams]="navParams()"
     [attr.data-id]="dataId()"
     [attr.title]="title()"

@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { STORE_EVENTS } from '@internal/events';
 import { StoreHttp } from '../../core/data/http/store-http';
 import { ENV } from '../../env.config';
 import { testEnv } from '../../testing/env.fixture';
@@ -109,7 +108,7 @@ describe('StorePickerComponent', () => {
     const cmp = fixture.componentInstance;
 
     const seen = vi.fn();
-    bus.on(STORE_EVENTS.selected, (event) => seen(event.data));
+    bus.on('store:selected', (event) => seen(event.data));
 
     cmp.select(storeFixture[1]);
     fixture.detectChanges();

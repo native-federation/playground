@@ -3,8 +3,6 @@ import type {
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
 
-export type { LoadRemoteModule } from '@softarc/native-federation-orchestrator';
-
 export interface EnvironmentConfig {
   production: boolean;
   apiUrl: string;
@@ -12,20 +10,21 @@ export interface EnvironmentConfig {
   cdnUrl: string;
 }
 
-// Closure handed in by the shell at bootstrap time. Loads a remote chunk and
-// invokes its bootstrap with the matching env, so a remote can mount slices
-// from other remotes without knowing each remote's EnvironmentConfig.
+// Closure handed to every remote so it can mount slices from other remotes
+// without knowing each remote's EnvironmentConfig. The shell binds the env
+// map and the raw federation loader; remotes just call
+// `loadRemoteSlice(name, element)`.
 export type LoadRemoteSlice = (
   remoteName: string,
   exposedModule: string,
 ) => Promise<void>;
 
-export interface ComponentBootstrap {
+export type ComponentBootstrap = {
   bootstrap: (
     env: EnvironmentConfig,
     loadRemoteSlice: LoadRemoteSlice,
   ) => Promise<void>;
-}
+};
 
 export function toCdnUrl(path: string, cdnUrl: string): string {
   const base = cdnUrl.replace(/\/+$/, '');

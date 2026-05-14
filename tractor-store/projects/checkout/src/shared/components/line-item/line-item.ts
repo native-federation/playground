@@ -6,7 +6,7 @@ import {
   input,
   output,
 } from '@angular/core';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { ButtonComponent } from '@internal/ui';
 import { CartStore } from '../../../core/data/store/cart-store';
 import { ResourceService } from '../../utils/resource.service';
@@ -22,7 +22,7 @@ export interface LineItemView {
 
 @Component({
   selector: 'app-line-item',
-  imports: [NavLinkDirective, ButtonComponent],
+  imports: [NavigateToDirective, ButtonComponent],
   templateUrl: './line-item.html',
   styleUrl: './line-item.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

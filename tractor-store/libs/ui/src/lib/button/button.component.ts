@@ -5,14 +5,14 @@ import {
   computed,
   input,
 } from '@angular/core';
-import { NavLinkDirective, NavPayload } from '@internal/events';
+import { NavigateToDirective, NavPayload } from '@internal/events';
 
 export type ButtonVariant = 'primary' | 'secondary';
 export type ButtonSize = 'small' | 'normal';
 
 @Component({
   selector: 'ts-button',
-  imports: [NgTemplateOutlet, NavLinkDirective],
+  imports: [NgTemplateOutlet, NavigateToDirective],
   templateUrl: './button.component.html',
   styleUrl: './button.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,7 +27,7 @@ export class ButtonComponent {
   readonly dataId = input<string | null>(null);
   readonly title = input<string | null>(null);
   readonly extraClass = input<string>('');
-  readonly navLink = input<string | null>(null);
+  readonly navigateTo = input<string | null>(null);
   readonly navParams = input<NavPayload>({});
 
   readonly buttonClass = computed(() => {

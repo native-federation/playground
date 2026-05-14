@@ -7,7 +7,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { emitStoreSelected } from '@internal/events';
+import { storeSelected } from '@internal/events';
 import { ButtonComponent } from '@internal/ui';
 import type { StoreModel } from '../../core/data/contracts/models/store.model';
 import { StoreHttp } from '../../core/data/http/store-http';
@@ -56,7 +56,7 @@ export class StorePickerComponent {
     this.selected.set(store);
     const el = this.dialogRef().nativeElement;
     if (typeof el.close === 'function') el.close();
-    emitStoreSelected({ id: store.id });
+    storeSelected.emit({ id: store.id });
   }
 
   private toView(store: StoreModel): StoreView {

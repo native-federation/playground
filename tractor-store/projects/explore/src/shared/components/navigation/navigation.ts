@@ -1,18 +1,18 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 
 @Component({
   selector: 'app-navigation',
-  imports: [NavLinkDirective],
+  imports: [NavigateToDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <nav class="e_Navigation">
       <ul class="e_Navigation__list">
         <li class="e_Navigation__item">
-          <a navLink="explore.products">Machines</a>
+          <a [navigateTo]="'explore.products'">Machines</a>
         </li>
         <li class="e_Navigation__item">
-          <a navLink="explore.stores">Stores</a>
+          <a [navigateTo]="'explore.stores'">Stores</a>
         </li>
       </ul>
     </nav>

@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { emitNavigate, onStoreSelected } from '@internal/events';
+import { navigateTo, storeSelected } from '@internal/events';
 import { ButtonComponent } from '@internal/ui';
 import { CartStore } from '../../core/data/store/cart-store';
 import { CompactHeaderComponent } from '../../shared/components/compact-header/compact-header';
@@ -31,7 +31,7 @@ export class CheckoutPage {
     void this.loader('@tractor-store/explore', 'mfe-store-picker');
     void this.loader('@tractor-store/explore', 'mfe-footer');
 
-    const off = onStoreSelected(({ id }) => this.applyStoreId(id));
+    const off = storeSelected.on(({ id }) => this.applyStoreId(id));
     inject(DestroyRef).onDestroy(off);
   }
 
@@ -52,7 +52,7 @@ export class CheckoutPage {
     event.preventDefault();
     if (!this.isReady()) return;
     this.cart.clear();
-    emitNavigate({ id: 'checkout.thanks' });
+    navigateTo.emit({ id: 'checkout.thanks' });
   }
 
   private applyStoreId(id: string): void {

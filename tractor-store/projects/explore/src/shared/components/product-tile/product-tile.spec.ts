@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ProductModel } from '../../../core/data/contracts/models/product.model';
 import { ENV } from '../../../env.config';
@@ -44,12 +44,12 @@ describe('ProductTileComponent', () => {
     );
   });
 
-  it('passes the navigation intent and params to the navLink directive', () => {
+  it('passes the navigation intent and params to the navigateTo directive', () => {
     const fixture = create();
     const dir = fixture.debugElement
-      .query(By.directive(NavLinkDirective))
-      .injector.get(NavLinkDirective);
-    expect(dir.navLink()).toBe('decide.product');
+      .query(By.directive(NavigateToDirective))
+      .injector.get(NavigateToDirective);
+    expect(dir.navigateTo()).toBe('decide.product');
     expect(dir.navParams()).toEqual({ id: 'CL-01' });
   });
 });

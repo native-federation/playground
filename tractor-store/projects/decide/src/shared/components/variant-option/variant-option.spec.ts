@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { VariantOption } from './variant-option';
 
@@ -73,16 +73,16 @@ describe('VariantOption', () => {
     expect(li.style.getPropertyValue('--variant-color')).toBe('#123456');
   });
 
-  it('passes the navigation intent and {id, sku} params to NavLinkDirective', () => {
+  it('passes the navigation intent and {id, sku} params to NavigateToDirective', () => {
     const fixture = create({
       id: 'CL-01',
       sku: 'CL-01-GR',
       selected: false,
     });
     const dir = fixture.debugElement
-      .query(By.directive(NavLinkDirective))
-      .injector.get(NavLinkDirective);
-    expect(dir.navLink()).toBe('decide.product');
+      .query(By.directive(NavigateToDirective))
+      .injector.get(NavigateToDirective);
+    expect(dir.navigateTo()).toBe('decide.product');
     expect(dir.navParams()).toEqual({ id: 'CL-01', sku: 'CL-01-GR' });
   });
 
@@ -100,8 +100,8 @@ describe('VariantOption', () => {
     fixture.detectChanges();
 
     const dir = fixture.debugElement
-      .query(By.directive(NavLinkDirective))
-      .injector.get(NavLinkDirective);
+      .query(By.directive(NavigateToDirective))
+      .injector.get(NavigateToDirective);
     expect(dir.navParams()).toEqual({ id: 'AU-02', sku: 'AU-02-OG' });
   });
 });

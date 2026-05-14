@@ -12,19 +12,11 @@ import {
 } from '../mappers/category.mapper';
 import { categoryCatalog } from './category-http.fixtures';
 
-const NETWORK_LATENCY_MS = 150;
-
-function fakeNetwork<T>(payload: T): Promise<T> {
-  return new Promise((resolve) =>
-    setTimeout(() => resolve(payload), NETWORK_LATENCY_MS),
-  );
-}
-
 @Injectable({ providedIn: 'root' })
 export class CategoryHttp {
   list(): ResourceRef<CategoryModel[] | undefined> {
     return resource<CategoryModel[], void>({
-      loader: () => fakeNetwork(toCategoryListModel(categoryCatalog)),
+      loader: () => Promise.resolve(toCategoryListModel(categoryCatalog)),
     });
   }
 
@@ -35,7 +27,7 @@ export class CategoryHttp {
       params: () => key() ?? undefined,
       loader: ({ params }) => {
         const match = categoryCatalog.find((c) => c.key === params);
-        return fakeNetwork(
+        return Promise.resolve(
           match ? toCategoryModel(match as GetCategoryResponse) : undefined,
         );
       },

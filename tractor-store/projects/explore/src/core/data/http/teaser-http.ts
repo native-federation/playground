@@ -3,14 +3,6 @@ import type { ListTeasersResponse } from '../contracts/endpoints/teaser-list.con
 import type { TeaserModel } from '../contracts/models/teaser.model';
 import { toTeaserListModel } from '../mappers/teaser.mapper';
 
-const NETWORK_LATENCY_MS = 150;
-
-function fakeNetwork<T>(payload: T): Promise<T> {
-  return new Promise((resolve) =>
-    setTimeout(() => resolve(payload), NETWORK_LATENCY_MS),
-  );
-}
-
 const teasers: ListTeasersResponse = [
   {
     title: 'Classic Tractors',
@@ -28,7 +20,7 @@ const teasers: ListTeasersResponse = [
 export class TeaserHttp {
   list(): ResourceRef<TeaserModel[] | undefined> {
     return resource<TeaserModel[], void>({
-      loader: () => fakeNetwork(toTeaserListModel(teasers)),
+      loader: () => Promise.resolve(toTeaserListModel(teasers)),
     });
   }
 }

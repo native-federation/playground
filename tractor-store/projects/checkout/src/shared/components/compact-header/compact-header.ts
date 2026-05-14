@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { ResourceService } from '../../utils/resource.service';
 
 @Component({
   selector: 'app-compact-header',
-  imports: [NavLinkDirective],
+  imports: [NavigateToDirective],
   template: `
     <div class="c_CompactHeader__inner">
-      <a class="c_CompactHeader__link" navLink="explore.home">
+      <a class="c_CompactHeader__link" [navigateTo]="'explore.home'">
         <img
           class="c_CompactHeader__logo"
           [src]="logoUrl"

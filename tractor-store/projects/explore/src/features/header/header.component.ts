@@ -4,14 +4,14 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   inject,
 } from '@angular/core';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { NavigationComponent } from '../../shared/components/navigation/navigation';
 import { ResourceService } from '../../shared/utils/resource.service';
 import { LOADER } from '../../core/remote-loader';
 
 @Component({
   selector: 'app-header',
-  imports: [NavigationComponent, NavLinkDirective],
+  imports: [NavigationComponent, NavigateToDirective],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

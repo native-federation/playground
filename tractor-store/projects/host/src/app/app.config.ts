@@ -8,11 +8,10 @@ import {
   FederationManifest,
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
-import { EnvironmentConfig } from '@internal/federation';
-import { createSliceLoader, LOAD_REMOTE_SLICE } from './loader/slice-loader';
-import { ENV } from './env.config';
+import { EnvironmentConfig, createSliceLoader } from '@internal/federation';
+import { ENV, LOAD_REMOTE_SLICE } from './env.config';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { provideShellNav } from './nav/provide-nav';
+import { provideShellNav } from './nav/provide-shell-nav';
 
 export const appConfig = (
   nf: NativeFederationResult,

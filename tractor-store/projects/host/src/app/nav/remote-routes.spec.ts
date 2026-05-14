@@ -1,83 +1,92 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { LoadedContribution } from './load-contributions';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { NavContribution } from '@internal/events';
 import { buildRemoteRoutes } from './remote-routes';
 
-const contribution = (
-  source: string,
-  basePath: string,
-  intents: { id: string; path: string; element?: string }[],
-): LoadedContribution => ({
-  remoteName: source,
-  contribution: { source, basePath, intents },
+const loaded = (contribution: NavContribution) => ({
+  remoteName: contribution.source,
+  contribution,
 });
 
 describe('buildRemoteRoutes', () => {
-  afterEach(() => vi.restoreAllMocks());
+  let consoleWarn: ReturnType<typeof vi.spyOn>;
 
-  it('produces one route per intent that has an element', () => {
+  beforeEach(() => {
+    consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleWarn.mockRestore();
+  });
+
+  it('builds one route per routed intent', () => {
     const routes = buildRemoteRoutes([
-      contribution('@a/explore', 'explore', [
-        { id: 'explore.home', path: '/', element: 'mfe-explore-home' },
-        { id: 'explore.products', path: '/products', element: 'mfe-explore-list' },
-      ]),
+      loaded({
+        source: '@x/explore',
+        basePath: 'explore',
+        intents: [
+          { id: 'explore.home', path: '/', element: 'mfe-home' },
+          { id: 'explore.products', path: '/products', element: 'mfe-list' },
+        ],
+      }),
     ]);
+
     expect(routes).toHaveLength(2);
-    expect(routes.map((r) => r.path)).toEqual(['explore', 'explore/products']);
-  });
-
-  it('joins basePath and intent path into a leading-slash-free route path', () => {
-    const [route] = buildRemoteRoutes([
-      contribution('@a/decide', 'decide', [
-        { id: 'decide.product', path: '/product/:id', element: 'mfe-decide-product' },
-      ]),
-    ]);
-    expect(route.path).toBe('decide/product/:id');
-  });
-
-  it('encodes the remote name and element in route data so RemoteShell can pick them up', () => {
-    const [route] = buildRemoteRoutes([
-      contribution('@a/decide', 'decide', [
-        { id: 'decide.product', path: '/product/:id', element: 'mfe-decide-product' },
-      ]),
-    ]);
-    expect(route.data).toEqual({
-      remoteName: '@a/decide',
-      element: 'mfe-decide-product',
+    expect(routes[0].path).toBe('explore');
+    expect(routes[0].data).toEqual({
+      remoteName: '@x/explore',
+      element: 'mfe-home',
+    });
+    expect(routes[1].path).toBe('explore/products');
+    expect(routes[1].data).toEqual({
+      remoteName: '@x/explore',
+      element: 'mfe-list',
     });
   });
 
-  it('skips intents that have no element (link-only intents)', () => {
+  it('attaches a lazy loadComponent to each route', () => {
     const routes = buildRemoteRoutes([
-      contribution('@a/explore', 'explore', [
-        { id: 'explore.home', path: '/', element: 'mfe-explore-home' },
-        { id: 'explore.linkonly', path: '/somewhere' },
-      ]),
+      loaded({
+        source: '@x/explore',
+        basePath: 'explore',
+        intents: [{ id: 'a', path: '/', element: 'mfe-a' }],
+      }),
     ]);
-    expect(routes.map((r) => r.path)).toEqual(['explore']);
+    expect(typeof routes[0].loadComponent).toBe('function');
   });
 
-  it('warns and skips contributions that contribute zero routed intents', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it('skips intents without an element (link-only intents)', () => {
     const routes = buildRemoteRoutes([
-      contribution('@a/links-only', 'links', [
-        { id: 'links.x', path: '/x' },
-      ]),
+      loaded({
+        source: '@x/decide',
+        basePath: 'decide',
+        intents: [
+          { id: 'decide.product', path: '/product/:id', element: 'mfe-p' },
+          // link-only intent — no element
+          { id: 'decide.link-only', path: '/external' },
+        ],
+      }),
     ]);
-    expect(routes).toHaveLength(0);
-    expect(warn).toHaveBeenCalledOnce();
-    expect(warn.mock.calls[0][0]).toMatch(/@a\/links-only/);
+
+    expect(routes).toHaveLength(1);
+    expect(routes[0].path).toBe('decide/product/:id');
   });
 
-  it('returns an empty Routes array for an empty input', () => {
+  it('warns and skips contributions with no routed intents', () => {
+    const routes = buildRemoteRoutes([
+      loaded({
+        source: '@x/link-only',
+        basePath: 'l',
+        intents: [{ id: 'l.go', path: '/go' }],
+      }),
+    ]);
+
+    expect(routes).toEqual([]);
+    expect(consoleWarn).toHaveBeenCalledWith(
+      expect.stringContaining('@x/link-only'),
+    );
+  });
+
+  it('returns an empty list for an empty input', () => {
     expect(buildRemoteRoutes([])).toEqual([]);
-  });
-
-  it('attaches a loadComponent function to each route', () => {
-    const [route] = buildRemoteRoutes([
-      contribution('@a/explore', 'explore', [
-        { id: 'explore.home', path: '/', element: 'mfe-explore-home' },
-      ]),
-    ]);
-    expect(typeof route.loadComponent).toBe('function');
   });
 });

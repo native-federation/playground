@@ -8,14 +8,6 @@ import type { VariantModel } from '../contracts/models/variant.model';
 import { toVariantListModel, toVariantModel } from '../mappers/variant.mapper';
 import { variantCatalog } from './variant-http.fixtures';
 
-const NETWORK_LATENCY_MS = 150;
-
-function fakeNetwork<T>(payload: T): Promise<T> {
-  return new Promise((resolve) =>
-    setTimeout(() => resolve(payload), NETWORK_LATENCY_MS),
-  );
-}
-
 @Injectable({ providedIn: 'root' })
 export class VariantHttp {
   getBySku(
@@ -25,7 +17,7 @@ export class VariantHttp {
       params: () => sku() ?? undefined,
       loader: ({ params }) => {
         const match = variantCatalog.find((v) => v.sku === params);
-        return fakeNetwork(match ? toVariantModel(match) : undefined);
+        return Promise.resolve(match ? toVariantModel(match) : undefined);
       },
     });
   }
@@ -39,7 +31,7 @@ export class VariantHttp {
         if (params.length === 0) return Promise.resolve([]);
         const wanted = new Set(params);
         const matches = variantCatalog.filter((v) => wanted.has(v.sku));
-        return fakeNetwork(toVariantListModel(matches));
+        return Promise.resolve(toVariantListModel(matches));
       },
     });
   }

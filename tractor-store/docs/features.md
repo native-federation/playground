@@ -61,8 +61,9 @@ own.
 ### Events it emits
 
 - `store:selected` — when the user picks a pickup store inside
-  `mfe-store-picker`. Defined in `libs/events/src/lib/store-bus.ts` and
-  consumed by `mfe-checkout` to pre-fill the order's store field.
+  `mfe-store-picker`. Defined as a typed channel in
+  `libs/events/src/lib/store-event-bus.ts` and consumed by `mfe-checkout`
+  to pre-fill the order's store field.
 
 ---
 
@@ -147,7 +148,12 @@ but load no foreign fragments themselves.
 ### Events it speaks
 
 - **Listens to** `store:selected` from explore (`features/checkout/checkout.page.ts`)
-  — pre-fills the order's store field when the user picks a store.
+  via `storeSelected.on(({ id }) => …)` — pre-fills the order's store
+  field when the user picks a store.
+- **Emits** `nav:navigate` after a successful submission, with intent
+  `'checkout.thanks'`, to ask the host to route to the confirmation
+  page. This is the same channel that powers `[navigateTo]`; the page
+  just uses it directly from TypeScript.
 - **Internal `cart:updated`** (`core/data/store/cart-bus.ts`) — keeps
   every `CartStore` instance in step. Because each loaded checkout
   slice has its own injector, a user adding an item via
@@ -183,42 +189,39 @@ Two heuristics fall out of the table:
 
 ## Cross-remote events
 
-A summary of every event channel that travels on
-`window.__NF_REGISTRY__`:
+Every channel that travels on `window.__NF_REGISTRY__`:
 
-| Channel                | Defined in                                            | Emitter                | Subscriber                    |
-| ---------------------- | ----------------------------------------------------- | ---------------------- | ----------------------------- |
-| `navigation:navigate`  | `libs/events/src/lib/nav-bus.ts`                      | `[navLink]` directives | host (`setup-shell-nav.ts`)   |
-| `navigation:route`     | `libs/events/src/lib/nav-bus.ts`                      | `[navRoute]` directive | host (`setup-shell-nav.ts`)   |
-| `navigation:registry`  | `libs/events/src/lib/nav-bus.ts`                      | host                   | every remote's `[navLink]`    |
-| `store:selected`       | `libs/events/src/lib/store-bus.ts`                    | explore (`mfe-store-picker`) | checkout (`mfe-checkout`) |
-| `cart:updated`         | `projects/checkout/src/core/data/store/cart-bus.ts`   | checkout (`CartStore`) | checkout (`CartStore`)        |
+| Channel          | Defined in                                            | Emitter                                | Subscriber                              |
+| ---------------- | ----------------------------------------------------- | -------------------------------------- | --------------------------------------- |
+| `nav:navigate`   | `libs/events/src/lib/nav-event-bus.ts`                | `[navigateTo]` + direct emitters       | host (`setupShellNavigation`)           |
+| `store:selected` | `libs/events/src/lib/store-event-bus.ts`              | explore (`mfe-store-picker`)           | checkout (`mfe-checkout`)               |
+| `cart:updated`   | `projects/checkout/src/core/data/store/cart-bus.ts`   | checkout (`CartStore`)                 | checkout (`CartStore`)                  |
 
-Note that `navigation:*` and `store:selected` use the shared
-`@internal/events` library so all participants share the same event
-constants and payload types. `cart:updated` is internal to checkout —
-it lives next to the `CartStore` because no other team has a reason to
-care about the format.
+`nav:navigate` and `store:selected` use the shared `@internal/events`
+library, so all participants import the same `defineChannel<…>(name)`
+handle — one channel name, one payload type, both ends in sync.
+`cart:updated` is internal to checkout: it lives next to the `CartStore`
+because no other team has a reason to care about the format, so it
+talks to the bus directly rather than through the shared library.
 
 ## Shared libraries
 
 Four TypeScript libraries live under `libs/`:
 
-| Package               | Path                | What it provides                                                                    |
-| --------------------- | ------------------- | ----------------------------------------------------------------------------------- |
-| `@internal/events`    | `libs/events/`      | Event-bus helpers, `NavLinkDirective`, `NavRouteDirective`, intent/payload types, `RouteParams` helpers, `store:selected` helpers |
-| `@internal/ui`        | `libs/ui/`          | Shared design-system components (`Button`, `Spinner`)                               |
-| `@internal/logging`   | `libs/logging/`     | `ConsoleLoggerService` for consistent log formatting                                |
-| `@internal/federation`| `libs/federation/`  | `EnvironmentConfig`, `toCdnUrl`, `createSliceLoader` factory                        |
+| Package               | Path                | What it provides                                                                                                                                  |
+| --------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@internal/events`    | `libs/events/`      | `defineChannel` factory, `navigateTo` and `storeSelected` channels, `NavigateToDirective`, `NavContribution` types, `RouteParams`/path/query helpers |
+| `@internal/ui`        | `libs/ui/`          | Shared design-system components (`Button`, `Spinner`)                                                                                             |
+| `@internal/logging`   | `libs/logging/`     | `ConsoleLoggerService` for consistent log formatting                                                                                              |
+| `@internal/federation`| `libs/federation/`  | `EnvironmentConfig`, `toCdnUrl`, `createSliceLoader` factory                                                                                      |
 
 The first three are listed in each app's `sharedMappings` so the host
-and remotes share a single instance — same `NavLinkDirective`, same
-event-bus contract, same `instanceof` identity.
+and remotes share a single instance — same `NavigateToDirective`, same
+channel handles, same `instanceof` identity.
 
 `@internal/federation` is *not* in `sharedMappings`. It is only used at
 bootstrap inside each remote's `main.ts`, so bundling it locally avoids
-load-order puzzles and keeps the registry-setup code in `main.ts`
-self-sufficient.
+load-order puzzles and keeps the slice loader self-sufficient.
 
 ## See also
 

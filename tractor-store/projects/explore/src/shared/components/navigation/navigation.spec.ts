@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { NavigationComponent } from './navigation';
 
@@ -23,8 +23,8 @@ describe('NavigationComponent', () => {
     const fixture = TestBed.createComponent(NavigationComponent);
     fixture.detectChanges();
     const intents = fixture.debugElement
-      .queryAll(By.directive(NavLinkDirective))
-      .map((d) => d.injector.get(NavLinkDirective).navLink());
+      .queryAll(By.directive(NavigateToDirective))
+      .map((d) => d.injector.get(NavigateToDirective).navigateTo());
     expect(intents).toEqual(['explore.products', 'explore.stores']);
   });
 });

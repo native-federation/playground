@@ -1,241 +1,141 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { NativeFederationResult } from '@softarc/native-federation-orchestrator';
-import type { INavRegistry } from '@internal/events';
-import {
-  type BusFakes,
-  fakeBus,
-} from '../../testing/bus.stub';
+import type { NavigatePayload } from '@internal/events';
+import { setupShellNavigation } from './setup-shell-nav';
 import {
   decideContribution,
   exploreContribution,
 } from '../../testing/nav-contribution.fixture';
-import {
-  fakeNf,
-  fakeNfByRemote,
-} from '../../testing/native-federation.stub';
 import { testManifest } from '../../testing/manifest.fixture';
-import {
-  type FakeRouter,
-  fakeRouter,
-} from '../../testing/router.stub';
-import { NavRegistry } from './nav-registry';
-import { setupShellNavigation } from './setup-shell-nav';
+import { fakeNfByRemote } from '../../testing/native-federation.stub';
+import { fakeRouter } from '../../testing/router.stub';
 
 describe('setupShellNavigation', () => {
-  let router: FakeRouter;
-  let registry: NavRegistry;
-  let bus: BusFakes;
-  let publishRegistry: ReturnType<
-    typeof vi.fn<(r: INavRegistry) => Promise<void>>
-  >;
+  let consoleWarn: ReturnType<typeof vi.spyOn>;
+  let consoleError: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    router = fakeRouter();
-    registry = new NavRegistry((url) => router.navigateByUrl(url));
-    bus = fakeBus();
-    publishRegistry = vi.fn(async () => {});
+    consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  afterEach(() => vi.restoreAllMocks());
-
-  it('registers every loaded contribution into the registry', async () => {
-    const nf = fakeNfByRemote({
-      '@tractor-store/explore': { navContribution: exploreContribution },
-      '@tractor-store/decide': { default: decideContribution },
-    });
-
-    await setupShellNavigation({
-      router,
-      registry,
-      nf,
-      manifest: testManifest,
-      onNavigate: bus.onNavigate,
-      onRoute: bus.onRoute,
-      publishRegistry,
-    });
-
-    expect(registry.isAvailable('explore.home')).toBe(true);
-    expect(registry.isAvailable('explore.products')).toBe(true);
-    expect(registry.isAvailable('decide.product')).toBe(true);
+  afterEach(() => {
+    consoleWarn.mockRestore();
+    consoleError.mockRestore();
   });
 
-  it('does not register contributions that failed to load', async () => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const nf = fakeNfByRemote({
-      '@tractor-store/decide': { navContribution: decideContribution },
-      // explore is missing → loadRemoteModule throws
+  const captureOnNavigate = () => {
+    let captured: ((payload: NavigatePayload) => void) | undefined;
+    const onNavigate = vi.fn((handler: (p: NavigatePayload) => void) => {
+      captured = handler;
+      return () => {};
     });
+    return {
+      onNavigate,
+      fire: (payload: NavigatePayload) => captured?.(payload),
+    };
+  };
 
-    await setupShellNavigation({
-      router,
-      registry,
-      nf,
-      manifest: testManifest,
-      onNavigate: bus.onNavigate,
-      onRoute: bus.onRoute,
-      publishRegistry,
-    });
-
-    expect(registry.isAvailable('explore.home')).toBe(false);
-    expect(registry.isAvailable('decide.product')).toBe(true);
-  });
-
-  it('forwards navigate-intent bus events to the registry', async () => {
+  it('registers routes built from all loaded contributions', async () => {
+    const router = fakeRouter();
     const nf = fakeNfByRemote({
       '@tractor-store/explore': { navContribution: exploreContribution },
       '@tractor-store/decide': { navContribution: decideContribution },
     });
+    const { onNavigate } = captureOnNavigate();
+
+    await setupShellNavigation({ router, nf, manifest: testManifest, onNavigate });
+
+    // 2 explore intents + 1 decide intent + 1 wildcard
+    expect(router.routes).toHaveLength(4);
+    expect(router.routes.at(-1)).toEqual({
+      path: '**',
+      redirectTo: 'explore',
+    });
+  });
+
+  it('uses the configured fallbackRedirect', async () => {
+    const router = fakeRouter();
+    const nf = fakeNfByRemote({
+      '@tractor-store/explore': { navContribution: exploreContribution },
+    });
+    const { onNavigate } = captureOnNavigate();
+
     await setupShellNavigation({
       router,
-      registry,
       nf,
-      manifest: testManifest,
-      onNavigate: bus.onNavigate,
-      onRoute: bus.onRoute,
-      publishRegistry,
+      manifest: { '@tractor-store/explore': 'x' },
+      onNavigate,
+      fallbackRedirect: 'somewhere-else',
     });
 
-    bus.emitNavigate({ id: 'decide.product', payload: { id: 'CL-01' } });
-    // navigate is async — let it settle
+    expect(router.routes.at(-1)).toEqual({
+      path: '**',
+      redirectTo: 'somewhere-else',
+    });
+  });
+
+  it('routes nav events through the registry to the router', async () => {
+    const router = fakeRouter();
+    const nf = fakeNfByRemote({
+      '@tractor-store/decide': { navContribution: decideContribution },
+    });
+    const { onNavigate, fire } = captureOnNavigate();
+
+    await setupShellNavigation({
+      router,
+      nf,
+      manifest: { '@tractor-store/decide': 'x' },
+      onNavigate,
+    });
+
+    fire({ id: 'decide.product', payload: { id: 'CL-01' } });
+    // navigate is async; let microtasks drain
     await Promise.resolve();
+
     expect(router.navigateByUrl).toHaveBeenCalledWith('/decide/product/CL-01');
   });
 
-  it('logs (rather than crashing) when an emitted navigate intent is unknown', async () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('logs and swallows errors thrown by the navigator', async () => {
+    const router = fakeRouter();
+    router.navigateByUrl.mockRejectedValueOnce(new Error('boom'));
     const nf = fakeNfByRemote({
       '@tractor-store/explore': { navContribution: exploreContribution },
-      '@tractor-store/decide': { navContribution: decideContribution },
     });
+    const { onNavigate, fire } = captureOnNavigate();
+
     await setupShellNavigation({
       router,
-      registry,
       nf,
-      manifest: testManifest,
-      onNavigate: bus.onNavigate,
-      onRoute: bus.onRoute,
-      publishRegistry,
+      manifest: { '@tractor-store/explore': 'x' },
+      onNavigate,
     });
 
-    bus.emitNavigate({ id: 'unknown.intent' });
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(error).toHaveBeenCalledWith(
-      expect.stringMatching(/navigation:navigate failed for "unknown.intent"/),
+    fire({ id: 'explore.home' });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.stringContaining('explore.home'),
       expect.any(Error),
     );
   });
 
-  it('forwards route bus events to router.navigateByUrl', async () => {
+  it('continues when a remote contribution fails to load', async () => {
+    const router = fakeRouter();
     const nf = fakeNfByRemote({
       '@tractor-store/explore': { navContribution: exploreContribution },
-      '@tractor-store/decide': { navContribution: decideContribution },
+      // decide will throw
     });
-    await setupShellNavigation({
-      router,
-      registry,
-      nf,
-      manifest: testManifest,
-      onNavigate: bus.onNavigate,
-      onRoute: bus.onRoute,
-      publishRegistry,
-    });
-
-    bus.emitRoute({ url: '/explore/products' });
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/explore/products');
-  });
-
-  it('subscribes to bus events before contributions finish loading', async () => {
-    let resolveLoad: (v: unknown) => void = () => {};
-    const slowLoad = new Promise((r) => (resolveLoad = r));
-    const nf: NativeFederationResult = fakeNf(
-      vi.fn(async () => slowLoad) as NativeFederationResult['loadRemoteModule'],
-    );
-
-    const setup = setupShellNavigation({
-      router,
-      registry,
-      nf,
-      manifest: { '@tractor-store/explore': 'x' },
-      onNavigate: bus.onNavigate,
-      onRoute: bus.onRoute,
-      publishRegistry,
-    });
-
-    // The route subscription is wired synchronously before loading completes.
-    bus.emitRoute({ url: '/early' });
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/early');
-
-    resolveLoad({ navContribution: exploreContribution });
-    await setup;
-  });
-
-  it('resets the router config with the remote routes plus a catch-all redirect', async () => {
-    const nf = fakeNfByRemote({
-      '@tractor-store/explore': { navContribution: exploreContribution },
-      '@tractor-store/decide': { navContribution: decideContribution },
-    });
-    await setupShellNavigation({
-      router,
-      registry,
-      nf,
-      manifest: testManifest,
-      onNavigate: bus.onNavigate,
-      onRoute: bus.onRoute,
-      publishRegistry,
-    });
-
-    const paths = router.routes.map((r) => r.path);
-    expect(paths).toEqual([
-      'explore',
-      'explore/products',
-      'decide/product/:id',
-      '**',
-    ]);
-    expect(router.routes.at(-1)).toEqual({ path: '**', redirectTo: 'explore' });
-  });
-
-  it('honours a custom fallbackRedirect', async () => {
-    const nf = fakeNfByRemote({
-      '@tractor-store/explore': { navContribution: exploreContribution },
-      '@tractor-store/decide': { navContribution: decideContribution },
-    });
-    await setupShellNavigation({
-      router,
-      registry,
-      nf,
-      manifest: testManifest,
-      onNavigate: bus.onNavigate,
-      onRoute: bus.onRoute,
-      publishRegistry,
-      fallbackRedirect: 'home',
-    });
-
-    expect(router.routes.at(-1)).toEqual({ path: '**', redirectTo: 'home' });
-  });
-
-  it('publishes the registry after routes are configured', async () => {
-    const order: string[] = [];
-    router.resetConfig = () => order.push('resetConfig');
-    publishRegistry = vi.fn(async () => {
-      order.push('publishRegistry');
-    });
-    const nf = fakeNfByRemote({
-      '@tractor-store/explore': { navContribution: exploreContribution },
-      '@tractor-store/decide': { navContribution: decideContribution },
-    });
+    const { onNavigate } = captureOnNavigate();
 
     await setupShellNavigation({
       router,
-      registry,
       nf,
       manifest: testManifest,
-      onNavigate: bus.onNavigate,
-      onRoute: bus.onRoute,
-      publishRegistry,
+      onNavigate,
     });
 
-    expect(order).toEqual(['resetConfig', 'publishRegistry']);
-    expect(publishRegistry).toHaveBeenCalledWith(registry);
+    // only explore's 2 intents + wildcard
+    expect(router.routes).toHaveLength(3);
+    expect(consoleWarn).toHaveBeenCalled();
   });
 });

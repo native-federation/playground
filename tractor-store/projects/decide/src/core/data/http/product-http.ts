@@ -8,14 +8,6 @@ import type { ProductModel } from '../contracts/models/product.model';
 import { toProductModel } from '../mappers/product.mapper';
 import { productCatalog } from './product-http.fixtures';
 
-const NETWORK_LATENCY_MS = 150;
-
-function fakeNetwork<T>(payload: T): Promise<T> {
-  return new Promise((resolve) =>
-    setTimeout(() => resolve(payload), NETWORK_LATENCY_MS),
-  );
-}
-
 @Injectable({ providedIn: 'root' })
 export class ProductHttp {
   getById(
@@ -25,7 +17,7 @@ export class ProductHttp {
       params: () => id() ?? undefined,
       loader: ({ params }) => {
         const match = productCatalog.find((p) => p.id === params);
-        return fakeNetwork(match ? toProductModel(match) : undefined);
+        return Promise.resolve(match ? toProductModel(match) : undefined);
       },
     });
   }

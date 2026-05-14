@@ -6,14 +6,14 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { ButtonComponent } from '@internal/ui';
 import { VariantHttp } from '../../core/data/http/variant-http';
 import { CartStore } from '../../core/data/store/cart-store';
 
 @Component({
   selector: 'app-add-to-cart',
-  imports: [ButtonComponent, NavLinkDirective],
+  imports: [ButtonComponent, NavigateToDirective],
   templateUrl: './add-to-cart.component.html',
   styleUrl: './add-to-cart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

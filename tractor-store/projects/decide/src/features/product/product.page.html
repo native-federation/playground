@@ -1,6 +1,8 @@
-@if (product(); as p) {
 <mfe-header></mfe-header>
+
 <main class="d_ProductPage">
+  @if (product(); as p) {
+
   <div class="d_ProductPage__details">
     <img
       class="d_ProductPage__productImage"
@@ -33,10 +35,10 @@
     </div>
   </div>
   <mfe-recommendations [attr.skus]="selectedSku()"></mfe-recommendations>
+  } @else if (isLoading()) {
+  <p>Loading…</p>
+  } @else {
+  <p>Product not found.</p>
+  }
 </main>
 <mfe-footer></mfe-footer>
-} @else if (isLoading()) {
-<p>Loading…</p>
-} @else {
-<p>Product not found.</p>
-}

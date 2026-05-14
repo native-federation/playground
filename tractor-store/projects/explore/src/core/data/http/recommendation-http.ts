@@ -8,14 +8,6 @@ import type { RecommendationModel } from '../contracts/models/recommendation.mod
 import { toRecommendationListModel } from '../mappers/recommendation.mapper';
 import { recommendationCatalog } from './recommendation-http.fixtures';
 
-const NETWORK_LATENCY_MS = 150;
-
-function fakeNetwork<T>(payload: T): Promise<T> {
-  return new Promise((resolve) =>
-    setTimeout(() => resolve(payload), NETWORK_LATENCY_MS),
-  );
-}
-
 type Rgb = readonly [number, number, number];
 
 function averageColor(colors: readonly Rgb[]): Rgb {
@@ -67,7 +59,8 @@ export class RecommendationHttp {
   ): ResourceRef<RecommendationModel[] | undefined> {
     return resource<RecommendationModel[], readonly string[]>({
       params: () => seedSkus(),
-      loader: ({ params }) => fakeNetwork(pickRecommendations(params, length)),
+      loader: ({ params }) =>
+        Promise.resolve(pickRecommendations(params, length)),
     });
   }
 }

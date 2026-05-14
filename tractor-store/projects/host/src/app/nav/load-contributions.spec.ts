@@ -1,109 +1,128 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { NavContribution } from '@internal/events';
+import {
+  NAV_CONTRIBUTION_MODULE,
+  loadContributions,
+} from './load-contributions';
 import {
   decideContribution,
   exploreContribution,
 } from '../../testing/nav-contribution.fixture';
-import { fakeNf } from '../../testing/native-federation.stub';
 import { testManifest } from '../../testing/manifest.fixture';
-import {
-  loadContributions,
-  NAV_CONTRIBUTION_MODULE,
-} from './load-contributions';
+import { fakeNfByRemote } from '../../testing/native-federation.stub';
 
 describe('loadContributions', () => {
-  it('loads each remote and returns one LoadedContribution per remote', async () => {
-    const loadRemoteModule = vi
-      .fn()
-      .mockImplementation(async (remoteName: string, exposed: string) => {
-        expect(exposed).toBe(NAV_CONTRIBUTION_MODULE);
-        if (remoteName === '@tractor-store/explore') {
-          return { navContribution: exploreContribution };
-        }
-        return { default: decideContribution };
-      });
+  let consoleWarn: ReturnType<typeof vi.spyOn>;
 
-    const loaded = await loadContributions(
-      fakeNf(loadRemoteModule),
-      testManifest,
-    );
+  beforeEach(() => {
+    consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
 
-    expect(loaded).toHaveLength(2);
-    expect(loaded.map((l) => l.remoteName)).toEqual([
-      '@tractor-store/explore',
-      '@tractor-store/decide',
+  afterEach(() => {
+    consoleWarn.mockRestore();
+  });
+
+  it('loads contributions from every remote in the manifest', async () => {
+    const nf = fakeNfByRemote({
+      '@tractor-store/explore': { navContribution: exploreContribution },
+      '@tractor-store/decide': { navContribution: decideContribution },
+    });
+
+    const loaded = await loadContributions(nf, testManifest);
+
+    expect(loaded).toEqual([
+      {
+        remoteName: '@tractor-store/explore',
+        contribution: exploreContribution,
+      },
+      {
+        remoteName: '@tractor-store/decide',
+        contribution: decideContribution,
+      },
     ]);
+  });
+
+  it('accepts a default export when navContribution is absent', async () => {
+    const nf = fakeNfByRemote({
+      '@tractor-store/explore': { default: exploreContribution },
+      '@tractor-store/decide': { navContribution: decideContribution },
+    });
+
+    const loaded = await loadContributions(nf, testManifest);
+
     expect(loaded[0].contribution).toBe(exploreContribution);
-    expect(loaded[1].contribution).toBe(decideContribution);
   });
 
-  it('accepts both `navContribution` and `default` exports', async () => {
-    const loadRemoteModule = vi
-      .fn()
-      .mockImplementation(async (remoteName: string) =>
-        remoteName === '@tractor-store/explore'
-          ? { navContribution: exploreContribution }
-          : { default: decideContribution },
-      );
+  it('requests the well-known module name', async () => {
+    const loadRemoteModule = vi.fn(async () => ({
+      navContribution: exploreContribution,
+    }));
+    const nf = { loadRemoteModule } as unknown as Parameters<
+      typeof loadContributions
+    >[0];
 
-    const loaded = await loadContributions(
-      fakeNf(loadRemoteModule),
-      testManifest,
-    );
-    expect(loaded.map((l) => l.contribution.source)).toEqual([
+    await loadContributions(nf, {
+      '@tractor-store/explore': 'http://x/remoteEntry.json',
+    });
+
+    expect(loadRemoteModule).toHaveBeenCalledWith(
       '@tractor-store/explore',
-      '@tractor-store/decide',
+      NAV_CONTRIBUTION_MODULE,
+    );
+  });
+
+  it('skips remotes whose load fails and warns', async () => {
+    const nf = fakeNfByRemote({
+      '@tractor-store/explore': { navContribution: exploreContribution },
+      // decide is missing → fakeNfByRemote throws
+    });
+
+    const loaded = await loadContributions(nf, testManifest);
+
+    expect(loaded).toEqual([
+      {
+        remoteName: '@tractor-store/explore',
+        contribution: exploreContribution,
+      },
     ]);
-  });
-
-  it('logs and skips remotes that fail to load and keeps the rest', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const loadRemoteModule = vi
-      .fn()
-      .mockImplementation(async (remoteName: string) => {
-        if (remoteName === '@tractor-store/explore') {
-          throw new Error('boom');
-        }
-        return { navContribution: decideContribution };
-      });
-
-    const loaded = await loadContributions(
-      fakeNf(loadRemoteModule),
-      testManifest,
+    expect(consoleWarn).toHaveBeenCalledWith(
+      expect.stringContaining('@tractor-store/decide'),
+      expect.anything(),
     );
-
-    expect(loaded).toHaveLength(1);
-    expect(loaded[0].remoteName).toBe('@tractor-store/decide');
-    expect(warn).toHaveBeenCalled();
-    expect(warn.mock.calls[0][0]).toMatch(/@tractor-store\/explore/);
-    warn.mockRestore();
   });
 
-  it('rejects remotes whose export is not a valid contribution', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const loadRemoteModule = vi
-      .fn()
-      .mockImplementation(async (remoteName: string) => {
-        if (remoteName === '@tractor-store/explore') {
-          return { navContribution: { source: 'x' } };
-        }
-        return { navContribution: decideContribution };
-      });
+  it('rejects exports that are not a valid NavContribution', async () => {
+    const nf = fakeNfByRemote({
+      '@tractor-store/explore': { navContribution: { not: 'valid' } },
+      '@tractor-store/decide': { navContribution: decideContribution },
+    });
 
-    const loaded = await loadContributions(
-      fakeNf(loadRemoteModule),
-      testManifest,
-    );
+    const loaded = await loadContributions(nf, testManifest);
 
-    expect(loaded).toHaveLength(1);
-    expect(loaded[0].remoteName).toBe('@tractor-store/decide');
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+    expect(loaded.map((l) => l.remoteName)).toEqual(['@tractor-store/decide']);
+    expect(consoleWarn).toHaveBeenCalled();
   });
 
-  it('returns an empty list when the manifest has no remotes', async () => {
-    const loadRemoteModule = vi.fn();
-    const loaded = await loadContributions(fakeNf(loadRemoteModule), {});
+  it('rejects when the contribution has no intents array', async () => {
+    const invalid = {
+      source: '@tractor-store/explore',
+      basePath: 'explore',
+    } as unknown as NavContribution;
+    const nf = fakeNfByRemote({
+      '@tractor-store/explore': { navContribution: invalid },
+    });
+
+    const loaded = await loadContributions(nf, {
+      '@tractor-store/explore': 'http://x/remoteEntry.json',
+    });
+
     expect(loaded).toEqual([]);
-    expect(loadRemoteModule).not.toHaveBeenCalled();
+    expect(consoleWarn).toHaveBeenCalled();
+  });
+
+  it('returns an empty list when the manifest is empty', async () => {
+    const nf = fakeNfByRemote({});
+    const loaded = await loadContributions(nf, {});
+    expect(loaded).toEqual([]);
   });
 });

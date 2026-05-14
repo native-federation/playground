@@ -5,14 +5,14 @@ import {
   computed,
   inject,
 } from '@angular/core';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { TeaserHttp } from '../../core/data/http/teaser-http';
 import { ResourceService } from '../../shared/utils/resource.service';
 import { LOADER } from '../../core/remote-loader';
 
 @Component({
   selector: 'app-home',
-  imports: [NavLinkDirective],
+  imports: [NavigateToDirective],
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

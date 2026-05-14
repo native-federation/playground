@@ -20,25 +20,27 @@ boundary in place:
 - **Custom elements as the integration surface.** Every remote registers
   its UI as `<mfe-*>` web components. Other apps drop the tag into their
   HTML — no Angular type, RxJS Observable, or service crosses the line.
-- **A shared event bus on `window.__NF_REGISTRY__`.** Remotes publish and
-  subscribe to small, stable events instead of calling each other
-  directly. Navigation, store selection, and cart sync all ride on this
-  bus.
+- **A central event bus on `window.__NF_REGISTRY__`.** Remotes publish
+  and subscribe to small, stable, *typed* channels instead of calling
+  each other directly. Navigation, store selection, and cart sync all
+  ride on this bus, and every channel is defined the same way:
+  `defineChannel<Payload>('channel:name')`.
 - **Intent-based navigation.** A button in *decide* that should open the
   cart never types `'/checkout/cart'`. It emits the intent
-  `'checkout.cart'`; the host owns the URL.
+  `'checkout.cart'` via the `[navigateTo]` directive; the host owns the
+  URL.
 
 Each idea is documented in detail under [`docs/`](./docs/) — start there
 if you want the why and how.
 
 ## Documentation
 
-| Document                                  | What's in it                                                                                                  |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| [docs/README.md](./docs/README.md)         | Overview, mental model, and a "where does X live" index. **Start here.**                                      |
-| [docs/architecture.md](./docs/architecture.md) | The host/remote contract and the three decoupling mechanisms (custom elements, event bus, shared libraries).  |
-| [docs/navigation.md](./docs/navigation.md) | The intent-based navigation system — why it is the load-bearing piece of the decoupling and how it works end-to-end. |
-| [docs/features.md](./docs/features.md)     | Catalogue of what each team ships, the events they speak, and the cross-remote dependencies between them.     |
+| Document                                       | What's in it                                                                                                       |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [docs/README.md](./docs/README.md)             | Overview, mental model, and a "where does X live" index. **Start here.**                                           |
+| [docs/architecture.md](./docs/architecture.md) | The host/remote contract and the three decoupling mechanisms (custom elements, the event bus, shared libraries).   |
+| [docs/navigation.md](./docs/navigation.md)     | The intent-based navigation system — how `[navigateTo]` + a host-owned registry replace cross-MFE URL hard-coding. |
+| [docs/features.md](./docs/features.md)         | Catalogue of what each team ships, the events they speak, and the cross-remote dependencies between them.          |
 
 ## Technologies at a glance
 
@@ -49,8 +51,8 @@ if you want the why and how.
 | 🐚 Application shell        | Host app with route-based shell components              |
 | 🧩 Client-side integration  | Custom elements ([@angular/elements]) loaded as remotes |
 | 🧩 Server-side integration  | None (static hosting)                                   |
-| 📣 Communication            | Shared event bus on `window.__NF_REGISTRY__`            |
-| 🗺️ Navigation               | SPA inside host, intent + URL bus across remotes        |
+| 📣 Communication            | Typed event channels on `window.__NF_REGISTRY__`        |
+| 🗺️ Navigation               | SPA inside host, intent IDs across remotes              |
 | 🎨 Styling                  | Self-contained SCSS (one bundle per remote)             |
 | 🍱 Design system            | Shared UI library (`@internal/ui`)                      |
 | 🔮 Discovery                | Runtime manifest (`federation.manifest.json`)           |
@@ -75,8 +77,8 @@ tractor-store/
 │   ├── decide/       # Product detail page
 │   └── checkout/     # Cart, checkout flow, mini-cart, add-to-cart
 ├── libs/
-│   ├── events/       # @internal/events     — event bus, link/route directives, intent types
-│   ├── federation/   # @internal/federation — env config & CDN helpers
+│   ├── events/       # @internal/events     — event channels, NavigateToDirective, intent types, path/route helpers
+│   ├── federation/   # @internal/federation — env config, CDN helper, slice loader factory
 │   ├── logging/      # @internal/logging    — console logger service
 │   └── ui/           # @internal/ui         — buttons, spinner
 └── public/cdn/       # Static fonts and images (served at :3000 in dev)
@@ -157,6 +159,7 @@ Open follow-ups:
 - [ ] Web performance optimisations (preload critical remotes, deeper code splitting).
 - [ ] Error boundaries / fallback UI when a remote fails to load.
 - [ ] Wire a real backend instead of static fixtures.
+- [ ] Revisit `[navigateTo]` accessibility — anchors currently rely on a click handler instead of a real `href`, so middle-click and copy-link do not yet work.
 
 ## About the authors
 

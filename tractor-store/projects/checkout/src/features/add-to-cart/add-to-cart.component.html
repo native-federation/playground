@@ -25,7 +25,7 @@
       aria-live="polite"
     >
       <p>Tractor was added.</p>
-      <a navLink="checkout.cart" class="c_AddToCart__link">View in basket.</a>
+      <a [navigateTo]="'checkout.cart'" class="c_AddToCart__link">View in basket.</a>
     </div>
   </form>
 } @else if (isLoading()) {

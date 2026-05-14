@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavLinkDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/events';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ENV } from '../../../env.config';
 import { testEnv } from '../../../testing/env.fixture';
@@ -38,9 +38,9 @@ describe('CompactHeaderComponent', () => {
   it('points the logo link at the explore home intent', () => {
     const fixture = create();
     const dir = fixture.debugElement
-      .query(By.directive(NavLinkDirective))
-      .injector.get(NavLinkDirective);
-    expect(dir.navLink()).toBe('explore.home');
+      .query(By.directive(NavigateToDirective))
+      .injector.get(NavigateToDirective);
+    expect(dir.navigateTo()).toBe('explore.home');
   });
 
   it('marks the host with the banner role', () => {

@@ -1,74 +1,155 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import type { NavContribution } from '@internal/events';
 import { NavRegistry } from './nav-registry';
+import {
+  decideContribution,
+  exploreContribution,
+} from '../../testing/nav-contribution.fixture';
 
 describe('NavRegistry', () => {
-  let navigator: ReturnType<typeof vi.fn<(url: string) => Promise<boolean>>>;
-  let registry: NavRegistry;
+  const makeRegistry = () => {
+    const navigator = vi.fn(async () => true);
+    const registry = new NavRegistry(navigator);
+    return { navigator, registry };
+  };
 
-  beforeEach(() => {
-    navigator = vi.fn(async () => true);
-    registry = new NavRegistry(navigator);
-  });
+  describe('navigate', () => {
+    it('resolves a routed intent to a URL and forwards it to the navigator', async () => {
+      const { navigator, registry } = makeRegistry();
+      registry.register(exploreContribution);
 
-  it('joins basePath and intent path', () => {
-    registry.register({
-      source: 's',
-      basePath: 'explore',
-      intents: [{ id: 'explore.home', path: '/' }],
+      const ok = await registry.navigate('explore.home');
+
+      expect(ok).toBe(true);
+      expect(navigator).toHaveBeenCalledWith('/explore');
     });
-    expect(registry.resolve('explore.home')).toBe('/explore');
-  });
 
-  it('substitutes :params from payload', () => {
-    registry.register({
-      source: 's',
-      basePath: '',
-      intents: [{ id: 'product.detail', path: '/product/:id' }],
+    it('substitutes path params from the payload', async () => {
+      const { navigator, registry } = makeRegistry();
+      registry.register(decideContribution);
+
+      await registry.navigate('decide.product', { id: 'CL-01' });
+
+      expect(navigator).toHaveBeenCalledWith('/decide/product/CL-01');
     });
-    expect(registry.resolve('product.detail', { id: 'abc' })).toBe(
-      '/product/abc',
-    );
-  });
 
-  it('encodes param values', () => {
-    registry.register({
-      source: 's',
-      basePath: '',
-      intents: [{ id: 'p', path: '/p/:slug' }],
+    it('places non-path payload entries into the query string', async () => {
+      const { navigator, registry } = makeRegistry();
+      registry.register(decideContribution);
+
+      await registry.navigate('decide.product', {
+        id: 'CL-01',
+        size: 'M',
+      });
+
+      expect(navigator).toHaveBeenCalledWith(
+        '/decide/product/CL-01?size=M',
+      );
     });
-    expect(registry.resolve('p', { slug: 'a b/c' })).toBe('/p/a%20b%2Fc');
-  });
 
-  it('throws when a required param is missing', () => {
-    registry.register({
-      source: 's',
-      basePath: '',
-      intents: [{ id: 'p', path: '/p/:id' }],
+    it('returns false and does not navigate for an unknown intent', async () => {
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const { navigator, registry } = makeRegistry();
+      registry.register(exploreContribution);
+
+      const ok = await registry.navigate('nope');
+
+      expect(ok).toBe(false);
+      expect(navigator).not.toHaveBeenCalled();
+      expect(consoleError).toHaveBeenCalled();
+      consoleError.mockRestore();
     });
-    expect(() => registry.resolve('p', {})).toThrow(/missing required param/);
-  });
 
-  it('throws when navigating an unknown intent', () => {
-    expect(() => registry.resolve('nope')).toThrow(/unknown intent/);
-  });
+    it('returns false when a required path param is missing', async () => {
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const { navigator, registry } = makeRegistry();
+      registry.register(decideContribution);
 
-  it('isAvailable returns false before register and true after', () => {
-    expect(registry.isAvailable('late')).toBe(false);
-    registry.register({
-      source: 's',
-      basePath: '',
-      intents: [{ id: 'late', path: '/' }],
+      const ok = await registry.navigate('decide.product', {});
+
+      expect(ok).toBe(false);
+      expect(navigator).not.toHaveBeenCalled();
+      consoleError.mockRestore();
     });
-    expect(registry.isAvailable('late')).toBe(true);
   });
 
-  it('navigate calls navigator with the resolved URL', async () => {
-    registry.register({
-      source: 's',
-      basePath: 'explore',
-      intents: [{ id: 'explore.cat', path: '/products/:category' }],
+  describe('getNavBar', () => {
+    it('builds entries from contributions that declare a navBar', () => {
+      const { registry } = makeRegistry();
+      const contribution: NavContribution = {
+        source: '@x/explore',
+        basePath: 'explore',
+        intents: [
+          { id: 'explore.home', path: '/', element: 'mfe-home' },
+          { id: 'explore.products', path: '/products', element: 'mfe-list' },
+        ],
+        navBar: [
+          { intentId: 'explore.products', label: 'Products', order: 2 },
+          { intentId: 'explore.home', label: 'Home', order: 1 },
+        ],
+      };
+      registry.register(contribution);
+
+      const entries = registry.getNavBar();
+
+      expect(entries).toEqual([
+        {
+          source: '@x/explore',
+          intentId: 'explore.home',
+          label: 'Home',
+          path: '/explore',
+          order: 1,
+        },
+        {
+          source: '@x/explore',
+          intentId: 'explore.products',
+          label: 'Products',
+          path: '/explore/products',
+          order: 2,
+        },
+      ]);
     });
-    await registry.navigate('explore.cat', { category: 'tractors' });
-    expect(navigator).toHaveBeenCalledWith('/explore/products/tractors');
+
+    it('skips navBar entries whose intentId is not declared', () => {
+      const { registry } = makeRegistry();
+      registry.register({
+        source: '@x/explore',
+        basePath: 'explore',
+        intents: [{ id: 'explore.home', path: '/', element: 'mfe-home' }],
+        navBar: [
+          { intentId: 'explore.home', label: 'Home' },
+          { intentId: 'explore.missing', label: 'Missing' },
+        ],
+      });
+
+      const entries = registry.getNavBar();
+
+      expect(entries).toHaveLength(1);
+      expect(entries[0].intentId).toBe('explore.home');
+    });
+
+    it('defaults order to MAX_SAFE_INTEGER when omitted', () => {
+      const { registry } = makeRegistry();
+      registry.register({
+        source: '@x/explore',
+        basePath: 'explore',
+        intents: [{ id: 'a', path: '/a', element: 'mfe-a' }],
+        navBar: [{ intentId: 'a', label: 'A' }],
+      });
+
+      const entries = registry.getNavBar();
+
+      expect(entries[0].order).toBe(Number.MAX_SAFE_INTEGER);
+    });
+
+    it('returns an empty list when no contribution declares a navBar', () => {
+      const { registry } = makeRegistry();
+      registry.register(exploreContribution);
+      expect(registry.getNavBar()).toEqual([]);
+    });
   });
 });

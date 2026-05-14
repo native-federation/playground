@@ -21,7 +21,7 @@ const isNavContribution = (v: unknown): v is NavContribution => {
   );
 };
 
-const loadOne = async (
+const loadContribution = async (
   nf: NativeFederationResult,
   remoteName: string,
 ): Promise<LoadedContribution> => {
@@ -44,7 +44,7 @@ export const loadContributions = async (
 ): Promise<readonly LoadedContribution[]> => {
   const remoteNames = Object.keys(manifest);
   const settled = await Promise.allSettled(
-    remoteNames.map((name) => loadOne(nf, name)),
+    remoteNames.map((name) => loadContribution(nf, name)),
   );
 
   const loaded: LoadedContribution[] = [];
