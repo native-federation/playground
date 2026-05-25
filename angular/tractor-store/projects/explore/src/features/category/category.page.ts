@@ -7,7 +7,7 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { param, RouteParams } from '@internal/events';
+import { param, RouteParams } from '@internal/url';
 import type { ProductModel } from '../../core/data/contracts/models/product.model';
 import { CategoryHttp } from '../../core/data/http/category-http';
 import { ProductTileComponent } from '../../shared/components/product-tile/product-tile';

@@ -21,7 +21,7 @@ export default withNativeFederation({
       }
     ),
   },
-  sharedMappings: ["@internal/events", "@internal/ui"],
+  sharedMappings: ["@internal/event-bus", "@internal/navigation", "@internal/url", "@internal/ui"],
   skip: [
     'rxjs/ajax',
     'rxjs/fetch',

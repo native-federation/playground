@@ -1,4 +1,4 @@
-import { NavPayload } from './nav-types';
+import { NavPayload } from './nav-payload';
 
 const PARAM_RE = /^:([a-zA-Z_$][\w$]*)$/;
 

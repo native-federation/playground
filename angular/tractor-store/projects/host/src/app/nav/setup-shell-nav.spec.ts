@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { NavigatePayload } from '@internal/events';
+import type { NavigatePayload } from '@internal/event-bus';
 import { setupShellNavigation } from './setup-shell-nav';
 import {
   decideContribution,

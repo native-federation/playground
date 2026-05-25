@@ -1,5 +1,5 @@
 @let i = item();
-<a [navigateTo]="'decide.product'" [navParams]="linkParams()" class="c_LineItem__image">
+<a [appNavigateTo]="'decide.product'" [navPayload]="linkParams()" class="c_LineItem__image">
   <img
     [src]="smallSrc()"
     [srcset]="srcset()"
@@ -10,7 +10,7 @@
   />
 </a>
 <div class="c_LineItem__details">
-  <a [navigateTo]="'decide.product'" [navParams]="linkParams()" class="c_LineItem__name">
+  <a [appNavigateTo]="'decide.product'" [navPayload]="linkParams()" class="c_LineItem__name">
     <strong>{{ i.name }}</strong><br />{{ i.sku }}
   </a>
 

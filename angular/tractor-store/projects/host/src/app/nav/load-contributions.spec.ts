@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { NavContribution } from '@internal/events';
+import type { NavContribution } from '@internal/navigation';
 import {
   NAV_CONTRIBUTION_MODULE,
   loadContributions,

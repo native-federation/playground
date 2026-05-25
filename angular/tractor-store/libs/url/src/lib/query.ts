@@ -1,4 +1,4 @@
-import { NavPayload } from './nav-types';
+import { NavPayload } from './nav-payload';
 
 /**
  * Append a `?key=value&key=value` query string to a path. Keys and values are

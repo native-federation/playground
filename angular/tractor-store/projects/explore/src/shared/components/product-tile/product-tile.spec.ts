@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ProductModel } from '../../../core/data/contracts/models/product.model';
 import { ENV } from '../../../env.config';
@@ -49,7 +49,7 @@ describe('ProductTileComponent', () => {
     const dir = fixture.debugElement
       .query(By.directive(NavigateToDirective))
       .injector.get(NavigateToDirective);
-    expect(dir.navigateTo()).toBe('decide.product');
-    expect(dir.navParams()).toEqual({ id: 'CL-01' });
+    expect(dir.appNavigateTo()).toBe('decide.product');
+    expect(dir.navPayload()).toEqual({ id: 'CL-01' });
   });
 });

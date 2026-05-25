@@ -3,7 +3,7 @@ import {
   Component,
   ViewEncapsulation,
 } from '@angular/core';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 
 @Component({
   selector: 'app-navigation',
@@ -14,10 +14,10 @@ import { NavigateToDirective } from '@internal/events';
     <nav class="e_Navigation">
       <ul class="e_Navigation__list">
         <li class="e_Navigation__item">
-          <a [navigateTo]="'explore.products'">Machines</a>
+          <a [appNavigateTo]="'explore.products'">Machines</a>
         </li>
         <li class="e_Navigation__item">
-          <a [navigateTo]="'explore.stores'">Stores</a>
+          <a [appNavigateTo]="'explore.stores'">Stores</a>
         </li>
       </ul>
     </nav>

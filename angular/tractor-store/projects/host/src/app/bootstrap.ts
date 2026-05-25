@@ -36,14 +36,14 @@ const loadGlobalStylesheet = (cdnUrl: string): void => {
 };
 
 export const bootstrap = (
-  nf: NativeFederationResult,
   env: EnvironmentConfig,
+  nf: NativeFederationResult,
   manifest: FederationManifest,
 ) => {
   loadGlobalStylesheet(env.cdnUrl);
   loadRalewayFont(env.cdnUrl);
   loadHelperScript(env.cdnUrl);
-  bootstrapApplication(App, appConfig(nf, env, manifest)).catch((err) =>
+  bootstrapApplication(App, appConfig(env, nf, manifest)).catch((err) =>
     console.error(err),
   );
 };

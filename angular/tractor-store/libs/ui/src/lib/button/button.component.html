@@ -1,8 +1,8 @@
-@if (navigateTo(); as link) {
+@if (appNavigateTo(); as link) {
   <a
     [class]="buttonClass()"
-    [navigateTo]="link"
-    [navParams]="navParams()"
+    [appNavigateTo]="link"
+    [navPayload]="navPayload()"
     [attr.data-id]="dataId()"
     [attr.title]="title()"
   >

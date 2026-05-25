@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { navigateTo, storeSelected } from '@internal/events';
+import { navigateTo, storeSelected } from '@internal/event-bus';
 import { ButtonComponent } from '@internal/ui';
 import { CartStore } from '../../core/data/store/cart-store';
 import { CompactHeaderComponent } from '../../shared/components/compact-header/compact-header';

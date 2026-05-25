@@ -6,7 +6,7 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import type { ProductModel } from '../../../core/data/contracts/models/product.model';
 import { ResourceService } from '../../utils/resource.service';
 import { fmtPrice } from '../../utils/price';
@@ -19,7 +19,7 @@ import { fmtPrice } from '../../utils/price';
   styleUrl: './product-tile.scss',
   template: `
     <li class="e_Product">
-      <a class="e_Product_link" [navigateTo]="product().link.intent" [navParams]="product().link.params ?? {}">
+      <a class="e_Product_link" [appNavigateTo]="product().link.intent" [navPayload]="product().link.params ?? {}">
         <img
           class="e_Product_image"
           [src]="imgSrc()"

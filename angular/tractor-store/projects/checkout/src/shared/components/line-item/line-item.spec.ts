@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CART_STORAGE_KEY,
@@ -95,8 +95,8 @@ describe('LineItemComponent', () => {
       const dir = fixture.debugElement
         .query(By.directive(NavigateToDirective))
         .injector.get(NavigateToDirective);
-      expect(dir.navigateTo()).toBe('decide.product');
-      expect(dir.navParams()).toEqual({ id: 'AU-03', sku: 'AU-03-RD' });
+      expect(dir.appNavigateTo()).toBe('decide.product');
+      expect(dir.navPayload()).toEqual({ id: 'AU-03', sku: 'AU-03-RD' });
     });
 
     it('marks the host with the listitem role', () => {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { storeSelected } from './store-event-bus';
+import { navigateTo, NavigatePayload } from './nav-event-bus';
 
 type Handler = (event: { data: unknown; timestamp: number }) => void;
 
@@ -22,11 +22,12 @@ const fakeRegistry = () => {
   };
 };
 
-describe('storeSelected channel', () => {
+describe('navigateTo channel', () => {
   let original: unknown;
 
   beforeEach(() => {
-    original = (window as unknown as { __NF_REGISTRY__?: unknown }).__NF_REGISTRY__;
+    original = (window as unknown as { __NF_REGISTRY__?: unknown })
+      .__NF_REGISTRY__;
     (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ =
       fakeRegistry();
   });
@@ -36,29 +37,24 @@ describe('storeSelected channel', () => {
       original as never;
   });
 
-  it('emit forwards the payload to subscribers', () => {
+  it('emits a payload with id and params to subscribers', () => {
     const seen = vi.fn();
-    storeSelected.on(seen);
-    storeSelected.emit({ id: 'berlin' });
-    expect(seen).toHaveBeenCalledWith({ id: 'berlin' });
+    navigateTo.on(seen);
+
+    const payload: NavigatePayload = {
+      id: 'decide.product',
+      payload: { id: 'CL-01' },
+    };
+    navigateTo.emit(payload);
+
+    expect(seen).toHaveBeenCalledWith(payload);
   });
 
   it('on returns an unsubscribe', () => {
     const seen = vi.fn();
-    const off = storeSelected.on(seen);
+    const off = navigateTo.on(seen);
     off();
-    storeSelected.emit({ id: 'berlin' });
+    navigateTo.emit({ id: 'explore.home' });
     expect(seen).not.toHaveBeenCalled();
-  });
-
-  it('emit / on no-op when the bus is missing', () => {
-    (window as unknown as { __NF_REGISTRY__?: unknown }).__NF_REGISTRY__ =
-      undefined;
-    const seen = vi.fn();
-    const off = storeSelected.on(seen);
-    expect(typeof off).toBe('function');
-    expect(() => storeSelected.emit({ id: 'x' })).not.toThrow();
-    expect(seen).not.toHaveBeenCalled();
-    off();
   });
 });

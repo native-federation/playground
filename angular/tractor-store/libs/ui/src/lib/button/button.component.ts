@@ -6,7 +6,8 @@ import {
   computed,
   input,
 } from '@angular/core';
-import { NavigateToDirective, NavPayload } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
+import { NavPayload } from '@internal/url';
 
 export type ButtonVariant = 'primary' | 'secondary';
 export type ButtonSize = 'small' | 'normal';
@@ -18,6 +19,9 @@ export type ButtonSize = 'small' | 'normal';
   styleUrl: './button.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
+  host: {
+    '(click)': 'onHostClick($event)',
+  },
 })
 export class ButtonComponent {
   readonly type = input<'button' | 'submit' | 'reset' | null>(null);
@@ -29,8 +33,8 @@ export class ButtonComponent {
   readonly dataId = input<string | null>(null);
   readonly title = input<string | null>(null);
   readonly extraClass = input<string>('');
-  readonly navigateTo = input<string | null>(null);
-  readonly navParams = input<NavPayload>({});
+  readonly appNavigateTo = input<string | null>(null);
+  readonly navPayload = input<NavPayload>({});
 
   readonly buttonClass = computed(() => {
     const classes = [
@@ -42,4 +46,13 @@ export class ButtonComponent {
     if (this.extraClass()) classes.push(this.extraClass());
     return classes.join(' ');
   });
+
+  // The real <button type="submit"> lives in this component's shadow root, so
+  // browsers don't associate it with the <form> in the host's shadow root.
+  // Forward the click as a programmatic submit on the enclosing form.
+  onHostClick(event: Event): void {
+    if (this.type() !== 'submit' || this.disabled()) return;
+    const host = event.currentTarget as HTMLElement;
+    host.closest('form')?.requestSubmit();
+  }
 }

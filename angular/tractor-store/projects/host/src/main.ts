@@ -17,9 +17,9 @@ declare global {
 
 (function (): void {
   const registry = createRegistry({
-    maxStreams: 10,
-    maxEvents: 10,
-    removePercentage: 0.5,
+    maxStreams: 20,
+    maxEvents: 1,
+    removePercentage: 0.25,
   });
   window.__NF_REGISTRY__ = Object.freeze(registry());
 })();
@@ -39,7 +39,7 @@ Promise.all([
       logLevel: 'debug',
     });
     return import('./app/bootstrap').then((m) =>
-      m.bootstrap(nf, env, manifest),
+      m.bootstrap(env, nf, manifest),
     );
   })
   .catch((err) => {

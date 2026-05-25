@@ -24,7 +24,7 @@ Promise.all([
       hostRemoteEntry: './remoteEntry.json',
       logLevel: 'debug',
     });
-    const loadRemoteSlice = createSliceLoader(nf, env, manifest);
+    const loadRemoteSlice = createSliceLoader(env, nf, manifest);
     const product = await import('./features/product/bootstrap');
     await product.bootstrap(env, loadRemoteSlice);
   })

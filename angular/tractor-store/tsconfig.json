@@ -5,8 +5,8 @@
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
     "paths": {
-      "@internal/events": [
-        "./libs/events/src/public-api.ts"
+      "@internal/event-bus": [
+        "./libs/event-bus/src/public-api.ts"
       ],
       "@internal/federation": [
         "./libs/federation/src/public-api.ts"
@@ -14,8 +14,14 @@
       "@internal/logging": [
         "./libs/logging/src/public-api.ts"
       ],
+      "@internal/navigation": [
+        "./libs/navigation/src/public-api.ts"
+      ],
       "@internal/ui": [
         "./libs/ui/src/public-api.ts"
+      ],
+      "@internal/url": [
+        "./libs/url/src/public-api.ts"
       ]
     },
     "strict": true,
@@ -64,10 +70,22 @@
       "path": "./projects/checkout/tsconfig.spec.json"
     },
     {
-      "path": "./libs/events/tsconfig.lib.json"
+      "path": "./libs/event-bus/tsconfig.lib.json"
     },
     {
-      "path": "./libs/events/tsconfig.spec.json"
+      "path": "./libs/event-bus/tsconfig.spec.json"
+    },
+    {
+      "path": "./libs/navigation/tsconfig.lib.json"
+    },
+    {
+      "path": "./libs/navigation/tsconfig.spec.json"
+    },
+    {
+      "path": "./libs/url/tsconfig.lib.json"
+    },
+    {
+      "path": "./libs/url/tsconfig.spec.json"
     },
     {
       "path": "./libs/ui/tsconfig.lib.json"

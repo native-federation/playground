@@ -7,7 +7,11 @@ export interface NavigatePayload {
 
 export const navigateTo = defineChannel<NavigatePayload>('nav:navigate');
 
-// Usage:
-//   cartItemAdded.emit({ sku: 'ABC-1', qty: 2 });
-//   const unsubscribe = cartItemAdded.on((p) => console.log(p.sku, p.qty));
-//   unsubscribe();
+export interface NavIntentEntry {
+  readonly basePath: string;
+  readonly path: string;
+}
+
+export type NavIntentMap = ReadonlyMap<string, NavIntentEntry>;
+
+export const navIntents = defineChannel<NavIntentMap>('nav:intents');

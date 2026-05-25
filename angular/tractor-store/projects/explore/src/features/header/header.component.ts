@@ -5,7 +5,7 @@ import {
   ViewEncapsulation,
   inject,
 } from '@angular/core';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import { NavigationComponent } from '../../shared/components/navigation/navigation';
 import { ResourceService } from '../../shared/utils/resource.service';
 import { LOADER } from '../../core/remote-loader';

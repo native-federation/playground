@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ENV } from '../../../env.config';
 import { testEnv } from '../../../testing/env.fixture';
@@ -40,7 +40,7 @@ describe('CompactHeaderComponent', () => {
     const dir = fixture.debugElement
       .query(By.directive(NavigateToDirective))
       .injector.get(NavigateToDirective);
-    expect(dir.navigateTo()).toBe('explore.home');
+    expect(dir.appNavigateTo()).toBe('explore.home');
   });
 
   it('marks the host with the banner role', () => {

@@ -1,7 +1,7 @@
 <mfe-header></mfe-header>
 <main class="e_HomePage">
   @for (t of teasers(); track t.title) {
-  <a class="e_HomePage__categoryLink" [navigateTo]="t.link.intent" [navParams]="t.link.params ?? {}">
+  <a class="e_HomePage__categoryLink" [appNavigateTo]="t.link.intent" [navPayload]="t.link.params ?? {}">
     <img
       [src]="t.src"
       [srcset]="t.srcset"

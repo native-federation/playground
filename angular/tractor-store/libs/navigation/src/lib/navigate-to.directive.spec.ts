@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NavigateToDirective } from './navigate-to.directive';
-import type { NavigatePayload } from './nav-event-bus';
+import type { NavigatePayload } from '@internal/event-bus';
 
 type Handler = (event: { data: unknown; timestamp: number }) => void;
 

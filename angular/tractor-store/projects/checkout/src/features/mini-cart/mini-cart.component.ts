@@ -6,12 +6,12 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ButtonComponent } from '@internal/ui';
+import { NavigateToDirective } from '@internal/navigation';
 import { CartStore } from '../../core/data/store/cart-store';
 
 @Component({
   selector: 'app-mini-cart',
-  imports: [ButtonComponent],
+  imports: [NavigateToDirective],
   templateUrl: './mini-cart.component.html',
   styleUrl: './mini-cart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,17 +30,26 @@ export class MiniCartComponent {
 
   constructor() {
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let rafId = 0;
     effect((onCleanup) => {
       const q = this.quantity();
       const prev = this.lastQuantity;
       this.lastQuantity = q;
       if (prev !== null && q > prev) {
-        this.highlight.set(true);
+        // Force CSS animation restart even when adds land inside the 600ms
+        // window: drop the class, wait two frames so the browser paints
+        // without it, then re-apply.
+        this.highlight.set(false);
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          rafId = requestAnimationFrame(() => this.highlight.set(true));
+        });
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => this.highlight.set(false), 600);
       }
       onCleanup(() => {
         if (timer) clearTimeout(timer);
+        cancelAnimationFrame(rafId);
       });
     });
   }

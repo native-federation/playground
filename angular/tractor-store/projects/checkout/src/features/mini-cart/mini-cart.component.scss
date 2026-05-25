@@ -1,8 +1,15 @@
+@use '../../../../../libs/ui/src/lib/button/button-styles';
+
 :host {
   position: relative;
   display: inline-block;
   margin-right: 1.5rem;
   padding: 1.5rem;
+}
+
+svg {
+  --minicart-translate: -2px;
+  transform: translateY(var(--minicart-translate));
 }
 
 .c_MiniCart__quantity {
@@ -30,9 +37,13 @@
   transform: scale(0);
 }
 
-:host ::ng-deep .c_MiniCart__button svg {
-  --minicart-translate: -2px;
-  transform: translateY(var(--minicart-translate));
+:host(.c_MiniCart--highlight) svg {
+  animation: bounce 0.2s ease-out;
+}
+
+:host(.c_MiniCart--highlight) svg g {
+  transform-origin: center 7px;
+  animation: shake 0.2s infinite ease-in-out;
 }
 
 @keyframes bounce {

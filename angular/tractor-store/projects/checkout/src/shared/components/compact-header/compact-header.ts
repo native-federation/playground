@@ -4,7 +4,7 @@ import {
   ViewEncapsulation,
   inject,
 } from '@angular/core';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import { ResourceService } from '../../utils/resource.service';
 
 @Component({
@@ -12,7 +12,7 @@ import { ResourceService } from '../../utils/resource.service';
   imports: [NavigateToDirective],
   template: `
     <div class="c_CompactHeader__inner">
-      <a class="c_CompactHeader__link" [navigateTo]="'explore.home'">
+      <a class="c_CompactHeader__link" [appNavigateTo]="'explore.home'">
         <img
           class="c_CompactHeader__logo"
           [src]="logoUrl"

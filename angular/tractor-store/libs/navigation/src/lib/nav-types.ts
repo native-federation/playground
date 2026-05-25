@@ -1,6 +1,6 @@
-export type NavPayload = Readonly<Record<string, string>>;
+import type { NavPayload } from '@internal/url';
 
-/** A request to navigate to an intent — what a `[navigateTo]` author writes. */
+/** A request to navigate to an intent — what a `NavigateToDirective` author writes. */
 export interface NavTarget {
   readonly intent: string;
   readonly params?: NavPayload;

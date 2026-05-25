@@ -33,8 +33,8 @@ export function toCdnUrl(path: string, cdnUrl: string): string {
 }
 
 export const createSliceLoader = (
-  nf: NativeFederationResult,
   env: EnvironmentConfig,
+  nf: NativeFederationResult,
   manifest: FederationManifest,
 ): LoadRemoteSlice => {
   const envForRemote = (remoteName: string): EnvironmentConfig => {

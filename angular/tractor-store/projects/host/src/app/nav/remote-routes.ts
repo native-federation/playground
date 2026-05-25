@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { LoadedContribution } from './load-contributions';
-import { toRoutePath } from '@internal/events';
+import { RemoteRouteContribution } from './load-contributions';
+import { toRoutePath } from '@internal/url';
 
 const loadRemoteShell = () =>
   import('../loader/remote-shell.component').then(
@@ -15,7 +15,7 @@ const loadRemoteShell = () =>
  * skipped — they exist purely so other apps can deep-link into them.
  */
 export const buildRemoteRoutes = (
-  loaded: readonly LoadedContribution[],
+  loaded: readonly RemoteRouteContribution[],
 ): Routes => {
   const routes: Routes = [];
   for (const { contribution } of loaded) {

@@ -3,9 +3,9 @@ import {
   FederationManifest,
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
-import { navigateTo, NavigatePayload } from '@internal/events';
+import { navIntents, navigateTo, NavigatePayload } from '@internal/event-bus';
 import { loadContributions } from './load-contributions';
-import { NavBarEntry, NavRegistry } from './nav-registry';
+import { NavRegistry } from './nav-registry';
 import { buildRemoteRoutes } from './remote-routes';
 
 export interface ShellRouter {
@@ -27,7 +27,7 @@ export const setupShellNavigation = async ({
   router,
   nf,
   manifest,
-  onNavigate = (handler) => navigateTo.on(handler),
+  onNavigate = (handler): (() => void) => navigateTo.on(handler),
   fallbackRedirect = 'explore',
 }: SetupShellNavigationDeps): Promise<void> => {
   const loaded = await loadContributions(nf, manifest);
@@ -36,6 +36,7 @@ export const setupShellNavigation = async ({
   for (const { contribution } of loaded) {
     registry.register(contribution);
   }
+  navIntents.emit(registry.getIntents());
 
   onNavigate(({ id, payload }) => {
     void registry.navigate(id, payload).catch((err) => {

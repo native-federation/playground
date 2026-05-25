@@ -6,7 +6,7 @@ import {
   computed,
   inject,
 } from '@angular/core';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import { TeaserHttp } from '../../core/data/http/teaser-http';
 import { ResourceService } from '../../shared/utils/resource.service';
 import { LOADER } from '../../core/remote-loader';

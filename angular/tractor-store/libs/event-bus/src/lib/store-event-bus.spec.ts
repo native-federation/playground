@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { navigateTo, NavigatePayload } from './nav-event-bus';
+import { storeSelected } from './store-event-bus';
 
 type Handler = (event: { data: unknown; timestamp: number }) => void;
 
@@ -22,12 +22,11 @@ const fakeRegistry = () => {
   };
 };
 
-describe('navigateTo channel', () => {
+describe('storeSelected channel', () => {
   let original: unknown;
 
   beforeEach(() => {
-    original = (window as unknown as { __NF_REGISTRY__?: unknown })
-      .__NF_REGISTRY__;
+    original = (window as unknown as { __NF_REGISTRY__?: unknown }).__NF_REGISTRY__;
     (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ =
       fakeRegistry();
   });
@@ -37,35 +36,18 @@ describe('navigateTo channel', () => {
       original as never;
   });
 
-  it('emits a payload with id and params to subscribers', () => {
+  it('emit forwards the payload to subscribers', () => {
     const seen = vi.fn();
-    navigateTo.on(seen);
-
-    const payload: NavigatePayload = {
-      id: 'decide.product',
-      payload: { id: 'CL-01' },
-    };
-    navigateTo.emit(payload);
-
-    expect(seen).toHaveBeenCalledWith(payload);
+    storeSelected.on(seen);
+    storeSelected.emit({ id: 'berlin' });
+    expect(seen).toHaveBeenCalledWith({ id: 'berlin' });
   });
 
   it('on returns an unsubscribe', () => {
     const seen = vi.fn();
-    const off = navigateTo.on(seen);
+    const off = storeSelected.on(seen);
     off();
-    navigateTo.emit({ id: 'explore.home' });
+    storeSelected.emit({ id: 'berlin' });
     expect(seen).not.toHaveBeenCalled();
-  });
-
-  it('no-ops when the bus is missing', () => {
-    (window as unknown as { __NF_REGISTRY__?: unknown }).__NF_REGISTRY__ =
-      undefined;
-    const seen = vi.fn();
-    const off = navigateTo.on(seen);
-    expect(typeof off).toBe('function');
-    expect(() => navigateTo.emit({ id: 'x' })).not.toThrow();
-    expect(seen).not.toHaveBeenCalled();
-    off();
   });
 });

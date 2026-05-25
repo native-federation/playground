@@ -11,9 +11,9 @@ import {
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest, Subscription } from 'rxjs';
-import { SpinnerComponent } from '@internal/ui';
-import { RouteParams, sameRouteParams } from '@internal/events';
 import { LOAD_REMOTE_SLICE } from '../env.config';
+import { RouteParams, sameRouteParams } from '@internal/url';
+import { SpinnerComponent } from '@internal/ui';
 
 interface SliceRouteData {
   readonly remoteName: string;
@@ -62,12 +62,9 @@ export class RemoteShellComponent implements AfterViewInit, OnDestroy {
       await this.loadRemoteSlice(remoteName, element);
 
       const el = document.createElement(element) as RemoteElement;
+      this.assignRouteParams(el);
       this.hostRef().nativeElement.appendChild(el);
 
-      // paramMap and queryParamMap emit synchronously on subscribe, so this
-      // also drives the initial assignment. We forward all params under a
-      // single `routeParams` property to avoid colliding with HTMLElement
-      // intrinsics (`id`, `style`, `hidden`, …).
       this.paramSub = combineLatest([
         this.route.paramMap,
         this.route.queryParamMap,

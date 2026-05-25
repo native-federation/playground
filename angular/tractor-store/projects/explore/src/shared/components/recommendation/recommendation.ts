@@ -6,7 +6,7 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import type { RecommendationModel } from '../../../core/data/contracts/models/recommendation.model';
 import { ResourceService } from '../../utils/resource.service';
 
@@ -20,8 +20,8 @@ import { ResourceService } from '../../utils/resource.service';
     <li class="e_Recommendation">
       <a
         class="e_Recommendation_link"
-        [navigateTo]="item().link.intent"
-        [navParams]="item().link.params ?? {}"
+        [appNavigateTo]="item().link.intent"
+        [navPayload]="item().link.params ?? {}"
       >
         <img
           class="e_Recommendation_image"

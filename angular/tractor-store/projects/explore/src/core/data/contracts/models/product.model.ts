@@ -1,4 +1,4 @@
-import type { NavTarget } from '@internal/events';
+import type { NavTarget } from '@internal/navigation';
 
 export interface ProductModel {
   id: string;

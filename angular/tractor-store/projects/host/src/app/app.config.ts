@@ -14,15 +14,15 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideShellNav } from './nav/provide-shell-nav';
 
 export const appConfig = (
-  nf: NativeFederationResult,
   env: EnvironmentConfig,
+  nf: NativeFederationResult,
   manifest: FederationManifest,
 ): ApplicationConfig => ({
   providers: [
     { provide: ENV, useValue: env },
     {
       provide: LOAD_REMOTE_SLICE,
-      useValue: createSliceLoader(nf, env, manifest),
+      useValue: createSliceLoader(env, nf, manifest),
     },
     provideHttpClient(withFetch()),
     provideZonelessChangeDetection(),

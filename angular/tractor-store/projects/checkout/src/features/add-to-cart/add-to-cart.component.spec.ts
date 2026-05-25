@@ -74,9 +74,14 @@ describe('AddToCartComponent', () => {
   it('adds to the cart and shows confirmation on submit', async () => {
     const fixture = await create('AU-03-RD');
     const cart = TestBed.inject(CartStore);
-    fixture.componentInstance.onSubmit(new Event('submit'));
+    fixture.componentInstance.onSubmit();
     fixture.detectChanges();
     expect(cart.lineItems()).toEqual([{ sku: 'AU-03-RD', quantity: 1 }]);
     expect(fixture.componentInstance.confirmed()).toBe(true);
+  });
+
+  it('binds the sku input into the reactive form control', async () => {
+    const fixture = await create('CL-01-GR');
+    expect(fixture.componentInstance.form.controls.sku.value).toBe('CL-01-GR');
   });
 });

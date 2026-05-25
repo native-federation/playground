@@ -5,7 +5,7 @@ import {
   computed,
   input,
 } from '@angular/core';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 
 @Component({
   selector: 'app-variant-option',
@@ -16,7 +16,7 @@ import { NavigateToDirective } from '@internal/events';
       @if (selected()) {
         <strong>{{ name() }}</strong>
       } @else {
-        <a [navigateTo]="'decide.product'" [navParams]="linkParams()">{{ name() }}</a>
+        <a [appNavigateTo]="'decide.product'" [navPayload]="linkParams()">{{ name() }}</a>
       }
     </li>
   `,

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CART_EVENTS, emitCartUpdated, onCartUpdated } from './cart-bus';
+import { CART_STORAGE_KEY, cartUpdated } from './cart-bus';
 
 type Handler = (event: { data: unknown; timestamp: number }) => void;
 
@@ -15,17 +15,14 @@ const fakeBus = () => {
         listeners.set(type, next);
       };
     },
-    onReady: () => () => {},
     emit: (type: string, data: unknown) => {
       for (const cb of listeners.get(type) ?? [])
         cb({ data, timestamp: Date.now() });
     },
-    register: async () => {},
-    clear: () => listeners.clear(),
   };
 };
 
-describe('cart-bus', () => {
+describe('cartUpdated channel', () => {
   let original: unknown;
 
   beforeEach(() => {
@@ -36,39 +33,53 @@ describe('cart-bus', () => {
   });
 
   afterEach(() => {
-    (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ =
-      original;
+    (window as unknown as { __NF_REGISTRY__?: unknown }).__NF_REGISTRY__ =
+      original as never;
   });
 
-  it('exposes a stable event name', () => {
-    expect(CART_EVENTS.updated).toBe('cart:updated');
-  });
-
-  it('emitCartUpdated forwards the payload through the bus', () => {
+  it('emit forwards the payload to subscribers', () => {
     const seen = vi.fn();
-    onCartUpdated(seen);
-    emitCartUpdated({ items: [{ sku: 'AU-03-RD', quantity: 1 }] });
+    cartUpdated.on(seen);
+    cartUpdated.emit({ items: [{ sku: 'AU-03-RD', quantity: 1 }] });
     expect(seen).toHaveBeenCalledWith({
       items: [{ sku: 'AU-03-RD', quantity: 1 }],
     });
   });
 
-  it('onCartUpdated returns an unsubscribe', () => {
+  it('on returns an unsubscribe', () => {
     const seen = vi.fn();
-    const off = onCartUpdated(seen);
+    const off = cartUpdated.on(seen);
     off();
-    emitCartUpdated({ items: [] });
+    cartUpdated.emit({ items: [] });
     expect(seen).not.toHaveBeenCalled();
   });
 
-  it('emit / on no-op when the bus is missing', () => {
-    (window as unknown as { __NF_REGISTRY__?: unknown }).__NF_REGISTRY__ =
-      undefined;
+  it('bridges cross-tab storage events into the channel', () => {
     const seen = vi.fn();
-    const off = onCartUpdated(seen);
-    expect(typeof off).toBe('function');
-    expect(() => emitCartUpdated({ items: [] })).not.toThrow();
+    cartUpdated.on(seen);
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key: CART_STORAGE_KEY,
+        newValue: 'AU-05-ZH_3|CL-01-GR_1',
+      }),
+    );
+    expect(seen).toHaveBeenCalledWith({
+      items: [
+        { sku: 'AU-05-ZH', quantity: 3 },
+        { sku: 'CL-01-GR', quantity: 1 },
+      ],
+    });
+  });
+
+  it('ignores storage events for unrelated keys', () => {
+    const seen = vi.fn();
+    cartUpdated.on(seen);
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key: 'some-other-key',
+        newValue: 'whatever',
+      }),
+    );
     expect(seen).not.toHaveBeenCalled();
-    off();
   });
 });

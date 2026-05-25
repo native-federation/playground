@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { VariantOption } from './variant-option';
 
@@ -82,8 +82,8 @@ describe('VariantOption', () => {
     const dir = fixture.debugElement
       .query(By.directive(NavigateToDirective))
       .injector.get(NavigateToDirective);
-    expect(dir.navigateTo()).toBe('decide.product');
-    expect(dir.navParams()).toEqual({ id: 'CL-01', sku: 'CL-01-GR' });
+    expect(dir.appNavigateTo()).toBe('decide.product');
+    expect(dir.navPayload()).toEqual({ id: 'CL-01', sku: 'CL-01-GR' });
   });
 
   it('linkParams reflects current id and sku inputs', () => {
@@ -102,6 +102,6 @@ describe('VariantOption', () => {
     const dir = fixture.debugElement
       .query(By.directive(NavigateToDirective))
       .injector.get(NavigateToDirective);
-    expect(dir.navParams()).toEqual({ id: 'AU-02', sku: 'AU-02-OG' });
+    expect(dir.navPayload()).toEqual({ id: 'AU-02', sku: 'AU-02-OG' });
   });
 });

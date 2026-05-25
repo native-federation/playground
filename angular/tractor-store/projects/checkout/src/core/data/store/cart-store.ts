@@ -1,31 +1,16 @@
 import { computed, Injectable, signal } from '@angular/core';
 import type { CartLineItemModel } from '../contracts/models/cart-line-item.model';
-import { emitCartUpdated, onCartUpdated } from './cart-bus';
+import {
+  CART_STORAGE_KEY,
+  cartUpdated,
+  parseCart,
+  serializeCart,
+} from './cart-bus';
 
-export const CART_STORAGE_KEY = 'c_cart';
-const ITEM_SEP = '|';
-const QTY_SEP = '_';
+export { CART_STORAGE_KEY } from './cart-bus';
 
 function hasWindow(): boolean {
   return typeof window !== 'undefined';
-}
-
-function parse(raw: string | null): CartLineItemModel[] {
-  if (!raw) return [];
-  return raw
-    .split(ITEM_SEP)
-    .filter((entry) => entry.length > 0)
-    .map((entry) => {
-      const [sku, quantity] = entry.split(QTY_SEP);
-      return { sku, quantity: parseInt(quantity, 10) || 0 };
-    })
-    .filter((item) => item.sku && item.quantity > 0);
-}
-
-function serialize(items: readonly CartLineItemModel[]): string {
-  return items
-    .map((item) => `${item.sku}${QTY_SEP}${item.quantity}`)
-    .join(ITEM_SEP);
 }
 
 @Injectable({ providedIn: 'root' })
@@ -41,10 +26,7 @@ export class CartStore {
   );
 
   constructor() {
-    if (hasWindow()) {
-      window.addEventListener('storage', this.onStorage);
-    }
-    onCartUpdated(({ items }) => this._lineItems.set([...items]));
+    cartUpdated.on(({ items }) => this._lineItems.set([...items]));
   }
 
   add(sku: string): void {
@@ -71,25 +53,20 @@ export class CartStore {
     this._lineItems.set(items);
     if (hasWindow()) {
       try {
-        window.localStorage.setItem(CART_STORAGE_KEY, serialize(items));
+        window.localStorage.setItem(CART_STORAGE_KEY, serializeCart(items));
       } catch {
         /* storage full or unavailable – ignore */
       }
     }
-    emitCartUpdated({ items });
+    cartUpdated.emit({ items });
   }
 
   private readFromStorage(): CartLineItemModel[] {
     if (!hasWindow()) return [];
     try {
-      return parse(window.localStorage.getItem(CART_STORAGE_KEY));
+      return parseCart(window.localStorage.getItem(CART_STORAGE_KEY));
     } catch {
       return [];
     }
   }
-
-  private readonly onStorage = (event: StorageEvent): void => {
-    if (event.key !== CART_STORAGE_KEY) return;
-    this._lineItems.set(parse(event.newValue));
-  };
 }

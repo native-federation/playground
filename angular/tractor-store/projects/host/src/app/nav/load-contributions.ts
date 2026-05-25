@@ -2,11 +2,11 @@ import {
   FederationManifest,
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
-import { NavContribution } from '@internal/events';
+import { NavContribution } from '@internal/navigation';
 
 export const NAV_CONTRIBUTION_MODULE = 'nav-contribution';
 
-export interface LoadedContribution {
+export interface RemoteRouteContribution {
   readonly remoteName: string;
   readonly contribution: NavContribution;
 }
@@ -24,7 +24,7 @@ const isNavContribution = (v: unknown): v is NavContribution => {
 const loadContribution = async (
   nf: NativeFederationResult,
   remoteName: string,
-): Promise<LoadedContribution> => {
+): Promise<RemoteRouteContribution> => {
   const mod = await nf.loadRemoteModule<{
     navContribution?: NavContribution;
     default?: NavContribution;
@@ -41,17 +41,17 @@ const loadContribution = async (
 export const loadContributions = async (
   nf: NativeFederationResult,
   manifest: FederationManifest,
-): Promise<readonly LoadedContribution[]> => {
+): Promise<readonly RemoteRouteContribution[]> => {
   const remoteNames = Object.keys(manifest);
   const settled = await Promise.allSettled(
     remoteNames.map((name) => loadContribution(nf, name)),
   );
 
-  const loaded: LoadedContribution[] = [];
+  const remoteRouteContributions: RemoteRouteContribution[] = [];
   for (let i = 0; i < settled.length; i += 1) {
     const result = settled[i];
     if (result.status === 'fulfilled') {
-      loaded.push(result.value);
+      remoteRouteContributions.push(result.value);
     } else {
       console.warn(
         `[nav] failed to load contribution from "${remoteNames[i]}":`,
@@ -59,5 +59,5 @@ export const loadContributions = async (
       );
     }
   }
-  return loaded;
+  return remoteRouteContributions;
 };

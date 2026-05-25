@@ -4,7 +4,7 @@ import {
   ViewEncapsulation,
   input,
 } from '@angular/core';
-import { NavigateToDirective, NavTarget } from '@internal/events';
+import { NavigateToDirective, NavTarget } from '@internal/navigation';
 
 export interface FilterItem {
   link: NavTarget;
@@ -26,7 +26,7 @@ export interface FilterItem {
           @if (f.active) {
             <li class="e_Filter__filter--active">{{ f.name }}</li>
           } @else {
-            <li><a [navigateTo]="f.link.intent" [navParams]="f.link.params ?? {}">{{ f.name }}</a></li>
+            <li><a [appNavigateTo]="f.link.intent" [navPayload]="f.link.params ?? {}">{{ f.name }}</a></li>
           }
         }
       </ul>

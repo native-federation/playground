@@ -7,7 +7,7 @@ import {
   input,
   output,
 } from '@angular/core';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import { ButtonComponent } from '@internal/ui';
 import { CartStore } from '../../../core/data/store/cart-store';
 import { ResourceService } from '../../utils/resource.service';

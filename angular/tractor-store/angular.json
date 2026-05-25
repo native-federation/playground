@@ -51,7 +51,10 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "buildTarget": "host:esbuild:development"
+            "buildTarget": "host:esbuild:development",
+            "setupFiles": [
+              "libs/event-bus/src/testing/install-registry-stub.ts"
+            ]
           }
         },
         "esbuild": {
@@ -169,7 +172,10 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "buildTarget": "explore:esbuild:development"
+            "buildTarget": "explore:esbuild:development",
+            "setupFiles": [
+              "libs/event-bus/src/testing/install-registry-stub.ts"
+            ]
           }
         },
         "esbuild": {
@@ -397,7 +403,10 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "buildTarget": "checkout:esbuild:development"
+            "buildTarget": "checkout:esbuild:development",
+            "setupFiles": [
+              "libs/event-bus/src/testing/install-registry-stub.ts"
+            ]
           }
         },
         "esbuild": {
@@ -460,20 +469,20 @@
         }
       }
     },
-    "events": {
+    "event-bus": {
       "projectType": "library",
-      "root": "libs/events",
-      "sourceRoot": "libs/events/src",
+      "root": "libs/event-bus",
+      "sourceRoot": "libs/event-bus/src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular/build:ng-packagr",
           "configurations": {
             "production": {
-              "tsConfig": "libs/events/tsconfig.lib.prod.json"
+              "tsConfig": "libs/event-bus/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "libs/events/tsconfig.lib.json"
+              "tsConfig": "libs/event-bus/tsconfig.lib.json"
             }
           },
           "defaultConfiguration": "production"
@@ -481,7 +490,65 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "tsConfig": "libs/events/tsconfig.spec.json"
+            "tsConfig": "libs/event-bus/tsconfig.spec.json",
+            "setupFiles": [
+              "libs/event-bus/src/testing/install-registry-stub.ts"
+            ]
+          }
+        }
+      }
+    },
+    "navigation": {
+      "projectType": "library",
+      "root": "libs/navigation",
+      "sourceRoot": "libs/navigation/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "libs/navigation/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "libs/navigation/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "libs/navigation/tsconfig.spec.json",
+            "setupFiles": [
+              "libs/event-bus/src/testing/install-registry-stub.ts"
+            ]
+          }
+        }
+      }
+    },
+    "url": {
+      "projectType": "library",
+      "root": "libs/url",
+      "sourceRoot": "libs/url/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "libs/url/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "libs/url/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "libs/url/tsconfig.spec.json"
           }
         }
       }

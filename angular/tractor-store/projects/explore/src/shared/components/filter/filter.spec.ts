@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@internal/events';
+import { NavigateToDirective } from '@internal/navigation';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FilterComponent, type FilterItem } from './filter';
 
@@ -55,7 +55,7 @@ describe('FilterComponent', () => {
     const fixture = create();
     const links = fixture.debugElement.queryAll(By.directive(NavigateToDirective));
     expect(links.length).toBe(2);
-    const intents = links.map((l) => l.injector.get(NavigateToDirective).navigateTo());
+    const intents = links.map((l) => l.injector.get(NavigateToDirective).appNavigateTo());
     expect(intents).toEqual(['explore.products', 'explore.products.category']);
   });
 
@@ -64,6 +64,6 @@ describe('FilterComponent', () => {
     const link = fixture.debugElement
       .queryAll(By.directive(NavigateToDirective))[0]
       .injector.get(NavigateToDirective);
-    expect(link.navParams()).toEqual({});
+    expect(link.navPayload()).toEqual({});
   });
 });

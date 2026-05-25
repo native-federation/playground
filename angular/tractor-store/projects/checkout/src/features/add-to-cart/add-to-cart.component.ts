@@ -3,18 +3,24 @@ import {
   Component,
   ViewEncapsulation,
   computed,
+  effect,
   inject,
   input,
   signal,
 } from '@angular/core';
-import { NavigateToDirective } from '@internal/events';
+import {
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { NavigateToDirective } from '@internal/navigation';
 import { ButtonComponent } from '@internal/ui';
 import { VariantHttp } from '../../core/data/http/variant-http';
 import { CartStore } from '../../core/data/store/cart-store';
 
 @Component({
   selector: 'app-add-to-cart',
-  imports: [ButtonComponent, NavigateToDirective],
+  imports: [ButtonComponent, NavigateToDirective, ReactiveFormsModule],
   templateUrl: './add-to-cart.component.html',
   styleUrl: './add-to-cart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,8 +30,13 @@ import { CartStore } from '../../core/data/store/cart-store';
 export class AddToCartComponent {
   private readonly cart = inject(CartStore);
   private readonly variantHttp = inject(VariantHttp);
+  private readonly fb = inject(NonNullableFormBuilder);
 
   readonly sku = input.required<string>();
+
+  readonly form = this.fb.group({
+    sku: this.fb.control('', Validators.required),
+  });
 
   private readonly variantResource = this.variantHttp.getBySku(this.sku);
   readonly variant = this.variantResource.value;
@@ -33,10 +44,14 @@ export class AddToCartComponent {
   readonly outOfStock = computed(() => (this.variant()?.inventory ?? 0) === 0);
   readonly confirmed = signal(false);
 
-  onSubmit(event: Event): void {
-    event.preventDefault();
-    if (this.outOfStock()) return;
-    this.cart.add(this.sku());
+  constructor() {
+    effect(() => this.form.controls.sku.setValue(this.sku()));
+  }
+
+  onSubmit(): void {
+    if (this.outOfStock() || this.form.invalid) return;
+    const { sku } = this.form.getRawValue();
+    this.cart.add(sku);
     this.confirmed.set(true);
   }
 }

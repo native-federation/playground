@@ -1,4 +1,4 @@
-import type { NavContribution } from '@internal/events';
+import type { NavContribution } from '@internal/navigation';
 
 export const exploreContribution: NavContribution = {
   source: '@tractor-store/explore',

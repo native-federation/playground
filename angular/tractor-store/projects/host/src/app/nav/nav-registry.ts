@@ -1,11 +1,11 @@
+import { NavContribution } from '@internal/navigation';
 import {
-  NavContribution,
   NavPayload,
   appendQueryString,
   joinPath,
   resolveTemplate,
   splitIntentParams,
-} from '@internal/events';
+} from '@internal/url';
 
 export interface NavBarEntry {
   readonly source: string;
@@ -37,11 +37,21 @@ export class NavRegistry {
   register(contribution: NavContribution): void {
     this.contributions.set(contribution.source, contribution);
     for (const intent of contribution.intents) {
-      this.intents.set(intent.id, {
+      const fullId = `${contribution.basePath}.${intent.id}`;
+      if (this.intents.has(fullId)) {
+        console.warn(
+          `[nav] duplicate intent id "${fullId}" — later contribution from "${contribution.source}" overwrites the earlier one`,
+        );
+      }
+      this.intents.set(fullId, {
         basePath: contribution.basePath,
         path: intent.path,
       });
     }
+  }
+
+  getIntents(): ReadonlyMap<string, ResolvedIntent> {
+    return this.intents;
   }
 
   async navigate(id: string, payload: NavPayload = {}): Promise<boolean> {
@@ -65,7 +75,7 @@ export class NavRegistry {
         if (!intent) continue;
         entries.push({
           source: contribution.source,
-          intentId: entry.intentId,
+          intentId: `${contribution.basePath}.${entry.intentId}`,
           label: entry.label,
           path: joinPath(contribution.basePath, intent.path),
           order: entry.order ?? Number.MAX_SAFE_INTEGER,

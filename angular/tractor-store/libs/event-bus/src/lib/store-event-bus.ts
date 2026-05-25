@@ -1,4 +1,4 @@
-import { getEventBus, defineChannel } from './event-bus-setup';
+import { defineChannel } from './event-bus-setup';
 
 export type StoreSelectedPayload = {
   readonly id: string;

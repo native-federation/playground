@@ -10,8 +10,8 @@
   <p class="c_CartPage__total">Total: {{ total() }} Ø</p>
 
   <div class="c_CartPage__buttons">
-    <ts-button variant="primary" [navigateTo]="'checkout.checkout'">Checkout</ts-button>
-    <ts-button variant="secondary" [navigateTo]="'explore.home'">Continue Shopping</ts-button>
+    <ts-button variant="primary" [appNavigateTo]="'checkout.checkout'">Checkout</ts-button>
+    <ts-button variant="secondary" [appNavigateTo]="'explore.home'">Continue Shopping</ts-button>
   </div>
 
   <mfe-recommendations [attr.skus]="skusCsv()"></mfe-recommendations>
