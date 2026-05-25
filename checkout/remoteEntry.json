@@ -1,0 +1,248 @@
+{
+  "name": "@tractor-store/checkout",
+  "shared": [
+    {
+      "packageName": "@angular/common",
+      "outFileName": "_angular_common.qVV3Y7I8eT.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_common"
+    },
+    {
+      "packageName": "@angular/common/http",
+      "outFileName": "_angular_common_http.2yT34PGAI_.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_common"
+    },
+    {
+      "packageName": "@angular/elements",
+      "outFileName": "_angular_elements.EM0KSOA-Jy.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_elements"
+    },
+    {
+      "packageName": "@angular/forms",
+      "outFileName": "_angular_forms.B7rT7mBomR.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_forms"
+    },
+    {
+      "packageName": "@angular/platform-browser",
+      "outFileName": "_angular_platform_browser.iyDyEhQtJG.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_platform_browser"
+    },
+    {
+      "packageName": "rxjs",
+      "outFileName": "rxjs.AtwZG3E3Kk.js",
+      "requiredVersion": "~7.8.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "7.8.2",
+      "bundle": "browser-rxjs"
+    },
+    {
+      "packageName": "rxjs/operators",
+      "outFileName": "rxjs_operators.lL0oPlLuIO.js",
+      "requiredVersion": "~7.8.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "7.8.2",
+      "bundle": "browser-rxjs"
+    },
+    {
+      "packageName": "tslib",
+      "outFileName": "tslib.DG4QNzSC4F.js",
+      "requiredVersion": "^2.3.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "2.8.1",
+      "bundle": "browser-tslib"
+    },
+    {
+      "packageName": "@angular/core",
+      "outFileName": "_angular_core.VDm2Fx-68P.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/event-dispatch-contract.min.js",
+      "outFileName": "_angular_core_event_dispatch_contract_min_js.wNVIpR1aI_.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/primitives/di",
+      "outFileName": "_angular_core_primitives_di.6Wmc-ZlrCG.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/primitives/event-dispatch",
+      "outFileName": "_angular_core_primitives_event_dispatch.7et_3npzvT.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/primitives/signals",
+      "outFileName": "_angular_core_primitives_signals.oQHGN6SaM2.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/rxjs-interop",
+      "outFileName": "_angular_core_rxjs_interop.BTKAdYYJFS.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@ng-internal/ui",
+      "outFileName": "_ng_internal_ui-MOK2X4T3.js",
+      "requiredVersion": "~0.0.1",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "0.0.1"
+    },
+    {
+      "packageName": "@ng-internal/navigation",
+      "outFileName": "_ng_internal_navigation-OWHOFU3J.js",
+      "requiredVersion": "~0.0.1",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "0.0.1"
+    },
+    {
+      "packageName": "@ng-internal/url",
+      "outFileName": "_ng_internal_url-M3FP4EGB.js",
+      "requiredVersion": "~0.0.1",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "0.0.1"
+    },
+    {
+      "packageName": "@ng-internal/event-bus",
+      "outFileName": "_ng_internal_event_bus-537AN7RR.js",
+      "requiredVersion": "~0.0.1",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "0.0.1"
+    }
+  ],
+  "exposes": [
+    {
+      "key": "mfe-cart",
+      "outFileName": "mfe-cart-KG6MZ3YX.js"
+    },
+    {
+      "key": "mfe-checkout",
+      "outFileName": "mfe-checkout-KDY3KLUC.js"
+    },
+    {
+      "key": "mfe-thanks",
+      "outFileName": "mfe-thanks-THN3X5WG.js"
+    },
+    {
+      "key": "mfe-mini-cart",
+      "outFileName": "mfe-mini-cart-2FWAVWEC.js"
+    },
+    {
+      "key": "mfe-add-to-cart",
+      "outFileName": "mfe-add-to-cart-Y6FCHO4O.js"
+    },
+    {
+      "key": "nav-contribution",
+      "outFileName": "nav-contribution-Y3U46EMY.js"
+    }
+  ],
+  "chunks": {
+    "browser-angular_common": [
+      "chunk-7WCF54EH.js"
+    ],
+    "browser-rxjs": [
+      "chunk-64WOUHHJ.js"
+    ],
+    "browser-angular_core": [
+      "chunk-VIIDHZJL.js",
+      "chunk-ABVK3W5E.js",
+      "chunk-RNDMTYF5.js",
+      "chunk-VSPXQRTJ.js",
+      "chunk-2VMXMS7J.js"
+    ],
+    "mapping-or-exposed": [
+      "chunk-HAURFVXL.js",
+      "chunk-IXVRQ3XI.js",
+      "chunk-DDWWMX3L.js",
+      "chunk-SA4XMAC3.js",
+      "chunk-2VMXMS7J.js"
+    ]
+  },
+  "integrity": {
+    "_angular_common.qVV3Y7I8eT.js": "sha384-rn3VD8mtZgp9wElbG9GHGpsH64DVqJLawEfgZFtqi/QarzyPjKMrFSYSw7wQyj0J",
+    "_angular_common_http.2yT34PGAI_.js": "sha384-Jtw5frQ524KtOQOsumFY5rJr4Y2+Jk5un4pvmuB8oTkU/PNHP5xw2TkF6r4kiUbv",
+    "chunk-7WCF54EH.js": "sha384-6tQ5bAd+3CzAG+4M4Lp7/+/cqz7xqjgW5y4063fNKEk8gSgzIZhHJnA97uZnEa1K",
+    "_angular_elements.EM0KSOA-Jy.js": "sha384-u1iMWZd/YZf2+tbkQtCTETSK/4IY+ai/KGAduukSpjGPqdUNTm70XFaxz80z5BQX",
+    "_angular_forms.B7rT7mBomR.js": "sha384-Wo3KjTs9PxfJbdnBknz+M0i1Sw3APzdFKBMAORd0wujqYkWUv1DZl14ql1Vu7RGv",
+    "_angular_platform_browser.iyDyEhQtJG.js": "sha384-QvnA2pwHTi/3hWKAJFszTPyHzOcQeulRBIVXeT7tvyWQXTQNsQ/i0YYEnR59S6bK",
+    "rxjs.AtwZG3E3Kk.js": "sha384-L6FQSdrrrGYaYs9+9CcMQJm6XdJmHdC5KI8LUqjCjiOy/P0uaipzfuDlZmgLD0EI",
+    "rxjs_operators.lL0oPlLuIO.js": "sha384-S9xR7Nx4g21P4vTeYNmL6c6r0DEhogAK05d1cDszxASo5/DkMsaNNFhzhBsGJISj",
+    "chunk-64WOUHHJ.js": "sha384-hTdulOFDbDpZPDXTPSqo9asD5kf/Rb2nqqOwqK/IzWWXyf8kf0+N94FSvSjPLKtF",
+    "tslib.DG4QNzSC4F.js": "sha384-us48hLnAuTVi42myNvtbK0UsmSvbAjKfiZP4HjtL9tB6FogW0rizxqZPIRAbidzm",
+    "_angular_core.VDm2Fx-68P.js": "sha384-q1hFq0SB7MCi0so+u0NxqmCcwZyeCpIjhuV67AXkvqUZP+e8qwzq4lWJTBNGLJdH",
+    "_angular_core_event_dispatch_contract_min_js.wNVIpR1aI_.js": "sha384-5wVWeVYtx1cBT1jKmN8rQ7UM9OvfVXX8EiLwaa0Ske0MZEGspZWPPZzpPCmI7TvV",
+    "_angular_core_primitives_di.6Wmc-ZlrCG.js": "sha384-OzUOevbv4jp3Ev+7+6BUFJhuRFOuj2dC+dJ0EiAmGQUz65hrmBfROimNLpoEhBza",
+    "_angular_core_primitives_event_dispatch.7et_3npzvT.js": "sha384-Xe9ToNCM+/eBS8SMA6icyy5pW/ZR5Z2TWu2mqMOR11+10iZBPh6zn/RDrA6Vit6j",
+    "chunk-VIIDHZJL.js": "sha384-URjKrXlWpqNAPeaaBwKw4UxLqDyEvnvcu8L4Mub+HM9rJsLMmjMCSsnc4fS2RkAu",
+    "_angular_core_primitives_signals.oQHGN6SaM2.js": "sha384-/k3sZogjVxDHTYvU6SXJquTDeFDsNn4AlH8q5ouOOm5AiibhJa5KtkaVFFdxRH+B",
+    "_angular_core_rxjs_interop.BTKAdYYJFS.js": "sha384-u3ix5+sQkoCiEN7jzbkWrRBan9B3Cs2TJ1CWFELQ3l6nJBJLsMRL/vQj9HrhMxA5",
+    "chunk-ABVK3W5E.js": "sha384-ojoaGNgHkLIA7aFeuZmJN4IIjOBq+YAicBEBvaG4IJpIKJI014l1bDDPaJorFZ2N",
+    "chunk-RNDMTYF5.js": "sha384-NqrNliSICtrBx1Leomx1YYwlKC74/lfE8+q9dwDFG/umw+ug59XrZRCByoxscJT4",
+    "chunk-VSPXQRTJ.js": "sha384-aS2LIt3G7w0Ykj30NpRYWKSxmTBmj0M8AxhwgqiT7iNc2chmNWHYpEPZvCFCImxT",
+    "chunk-2VMXMS7J.js": "sha384-MbmUQ39oLPov5C9InEUR8yVadKAjZyiGDT3KYnTOmh2QKqme4N8P2KbWMIWeLdA6",
+    "_ng_internal_ui-MOK2X4T3.js": "sha384-glgEfsvlDHnOVswentnzAhsfRmGs/gqQpH8Gv0uiqCW4Q4/OJpHXiN4fWOjB3j3J",
+    "_ng_internal_navigation-OWHOFU3J.js": "sha384-pDsF9OtGr8Gge3jMutXuLu4e2In15E66jxpB7tPyk1BWIGUzLunqomZ//ZWd8/IY",
+    "_ng_internal_url-M3FP4EGB.js": "sha384-zCStSbNHKB7JrqDdJP0JOaWJQeQvZJG4D3ohz2BZ9zH2S5djt4JKrX8KLGBs6v1o",
+    "_ng_internal_event_bus-537AN7RR.js": "sha384-AyZ2NnUEPoWCSnCBLX1TPcllA+8Z90xB8g6VDm4WFRTRDyCVHGchCJ3wYsR8MOrF",
+    "mfe-cart-KG6MZ3YX.js": "sha384-sZqdoQkDSTM9kDP+4z8hfApcq2mKPBrOWB8YhsKXdP1BFLZV00zA63O4tQWVKWlI",
+    "mfe-checkout-KDY3KLUC.js": "sha384-2y+q4m98yeB4weo7REDUUKwdDcXAICatk40HdK4JTm5s1o3HyyeOKYNKkyX75U6m",
+    "mfe-thanks-THN3X5WG.js": "sha384-JHjz87uw70/vRD1oaQxTyEyi4Lly9KAWy3k/KDyQyYz5sxFQpSOXemffbT+KQeAZ",
+    "mfe-mini-cart-2FWAVWEC.js": "sha384-Syh4P5SzEEselBBDfi+4D9fIdLnDqwhpTVSgbahK6rPUn8iHpCh6Vge6fksaOMpX",
+    "mfe-add-to-cart-Y6FCHO4O.js": "sha384-4yi5TN5gJIuKKv99ZibNY6i+LA0P6ZSVY+A8GCB5LWp9l7OH8KTFu3d4dP8DRAWZ",
+    "nav-contribution-Y3U46EMY.js": "sha384-bJHvIkBpPLDd9EADMbOFyE8jGAmgzpj2btSDlVzrfFCt3Bm6qEeUxsxZ6jNEQcKE",
+    "chunk-HAURFVXL.js": "sha384-ijCh9YcKYcx1eQWhGHJDJXyJWWRwzIQLAb4jGjJwj5/PuPvgqVeo/weHXV9tBIBT",
+    "chunk-IXVRQ3XI.js": "sha384-isAK0+MzGJzJndw+laXhLYBADqNo/BxIg/IbapvKoCllwjUl+Yy2Wh0MFt0wZPqX",
+    "chunk-DDWWMX3L.js": "sha384-y5fRkstpEzberTAn+YJ/+etSy+OTbP3qN2ikAAfvOx7ru7ZA7+HhLk7xEl7usven",
+    "chunk-SA4XMAC3.js": "sha384-nFOHlB1YFi/1qDCcMbTVX5eeurKr4kHbZmv9Ik6GzP7VaycBlENjZhyrt6s5+7Dx"
+  }
+}

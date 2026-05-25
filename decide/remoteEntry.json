@@ -1,0 +1,202 @@
+{
+  "name": "@tractor-store/decide",
+  "shared": [
+    {
+      "packageName": "@angular/common",
+      "outFileName": "_angular_common.A4GfHcWJqQ.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_common"
+    },
+    {
+      "packageName": "@angular/common/http",
+      "outFileName": "_angular_common_http.M8BsFD2LkP.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_common"
+    },
+    {
+      "packageName": "@angular/elements",
+      "outFileName": "_angular_elements.INBQ2pHjJT.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_elements"
+    },
+    {
+      "packageName": "@angular/platform-browser",
+      "outFileName": "_angular_platform_browser.ACOmPr8gSt.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_platform_browser"
+    },
+    {
+      "packageName": "rxjs",
+      "outFileName": "rxjs.eR0JZMqZ-h.js",
+      "requiredVersion": "~7.8.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "7.8.2",
+      "bundle": "browser-rxjs"
+    },
+    {
+      "packageName": "rxjs/operators",
+      "outFileName": "rxjs_operators.cWD-c6Y-fm.js",
+      "requiredVersion": "~7.8.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "7.8.2",
+      "bundle": "browser-rxjs"
+    },
+    {
+      "packageName": "tslib",
+      "outFileName": "tslib.i2pblFcRZM.js",
+      "requiredVersion": "^2.3.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "2.8.1",
+      "bundle": "browser-tslib"
+    },
+    {
+      "packageName": "@angular/core",
+      "outFileName": "_angular_core.7sz9bcfMrw.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/event-dispatch-contract.min.js",
+      "outFileName": "_angular_core_event_dispatch_contract_min_js.yWHcBmm8p4.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/primitives/di",
+      "outFileName": "_angular_core_primitives_di.y0UoLORjO1.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/primitives/event-dispatch",
+      "outFileName": "_angular_core_primitives_event_dispatch.b-h9NRCgsN.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/primitives/signals",
+      "outFileName": "_angular_core_primitives_signals.ZeE9b5ucSg.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@angular/core/rxjs-interop",
+      "outFileName": "_angular_core_rxjs_interop.iy470hxir7.js",
+      "requiredVersion": "^21.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "21.2.14",
+      "bundle": "browser-angular_core"
+    },
+    {
+      "packageName": "@ng-internal/url",
+      "outFileName": "_ng_internal_url-25LQ75X6.js",
+      "requiredVersion": "~0.0.1",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "0.0.1"
+    },
+    {
+      "packageName": "@ng-internal/navigation",
+      "outFileName": "_ng_internal_navigation-PO74EY6Y.js",
+      "requiredVersion": "~0.0.1",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "0.0.1"
+    },
+    {
+      "packageName": "@ng-internal/event-bus",
+      "outFileName": "_ng_internal_event_bus-T3PFMJ5X.js",
+      "requiredVersion": "~0.0.1",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "0.0.1"
+    }
+  ],
+  "exposes": [
+    {
+      "key": "mfe-product",
+      "outFileName": "mfe-product-2NWHGIJ4.js"
+    },
+    {
+      "key": "nav-contribution",
+      "outFileName": "nav-contribution-URY657DC.js"
+    }
+  ],
+  "chunks": {
+    "browser-angular_common": [
+      "chunk-7WCF54EH.js"
+    ],
+    "browser-rxjs": [
+      "chunk-64WOUHHJ.js"
+    ],
+    "browser-angular_core": [
+      "chunk-VIIDHZJL.js",
+      "chunk-ABVK3W5E.js",
+      "chunk-RNDMTYF5.js",
+      "chunk-VSPXQRTJ.js",
+      "chunk-2VMXMS7J.js"
+    ],
+    "mapping-or-exposed": [
+      "chunk-DUTPQ56Q.js"
+    ]
+  },
+  "integrity": {
+    "_angular_common.A4GfHcWJqQ.js": "sha384-rn3VD8mtZgp9wElbG9GHGpsH64DVqJLawEfgZFtqi/QarzyPjKMrFSYSw7wQyj0J",
+    "_angular_common_http.M8BsFD2LkP.js": "sha384-Jtw5frQ524KtOQOsumFY5rJr4Y2+Jk5un4pvmuB8oTkU/PNHP5xw2TkF6r4kiUbv",
+    "chunk-7WCF54EH.js": "sha384-6tQ5bAd+3CzAG+4M4Lp7/+/cqz7xqjgW5y4063fNKEk8gSgzIZhHJnA97uZnEa1K",
+    "_angular_elements.INBQ2pHjJT.js": "sha384-u1iMWZd/YZf2+tbkQtCTETSK/4IY+ai/KGAduukSpjGPqdUNTm70XFaxz80z5BQX",
+    "_angular_platform_browser.ACOmPr8gSt.js": "sha384-QvnA2pwHTi/3hWKAJFszTPyHzOcQeulRBIVXeT7tvyWQXTQNsQ/i0YYEnR59S6bK",
+    "rxjs.eR0JZMqZ-h.js": "sha384-L6FQSdrrrGYaYs9+9CcMQJm6XdJmHdC5KI8LUqjCjiOy/P0uaipzfuDlZmgLD0EI",
+    "rxjs_operators.cWD-c6Y-fm.js": "sha384-S9xR7Nx4g21P4vTeYNmL6c6r0DEhogAK05d1cDszxASo5/DkMsaNNFhzhBsGJISj",
+    "chunk-64WOUHHJ.js": "sha384-hTdulOFDbDpZPDXTPSqo9asD5kf/Rb2nqqOwqK/IzWWXyf8kf0+N94FSvSjPLKtF",
+    "tslib.i2pblFcRZM.js": "sha384-us48hLnAuTVi42myNvtbK0UsmSvbAjKfiZP4HjtL9tB6FogW0rizxqZPIRAbidzm",
+    "_angular_core.7sz9bcfMrw.js": "sha384-q1hFq0SB7MCi0so+u0NxqmCcwZyeCpIjhuV67AXkvqUZP+e8qwzq4lWJTBNGLJdH",
+    "_angular_core_event_dispatch_contract_min_js.yWHcBmm8p4.js": "sha384-5wVWeVYtx1cBT1jKmN8rQ7UM9OvfVXX8EiLwaa0Ske0MZEGspZWPPZzpPCmI7TvV",
+    "_angular_core_primitives_di.y0UoLORjO1.js": "sha384-OzUOevbv4jp3Ev+7+6BUFJhuRFOuj2dC+dJ0EiAmGQUz65hrmBfROimNLpoEhBza",
+    "_angular_core_primitives_event_dispatch.b-h9NRCgsN.js": "sha384-Xe9ToNCM+/eBS8SMA6icyy5pW/ZR5Z2TWu2mqMOR11+10iZBPh6zn/RDrA6Vit6j",
+    "chunk-VIIDHZJL.js": "sha384-URjKrXlWpqNAPeaaBwKw4UxLqDyEvnvcu8L4Mub+HM9rJsLMmjMCSsnc4fS2RkAu",
+    "_angular_core_primitives_signals.ZeE9b5ucSg.js": "sha384-/k3sZogjVxDHTYvU6SXJquTDeFDsNn4AlH8q5ouOOm5AiibhJa5KtkaVFFdxRH+B",
+    "_angular_core_rxjs_interop.iy470hxir7.js": "sha384-u3ix5+sQkoCiEN7jzbkWrRBan9B3Cs2TJ1CWFELQ3l6nJBJLsMRL/vQj9HrhMxA5",
+    "chunk-ABVK3W5E.js": "sha384-ojoaGNgHkLIA7aFeuZmJN4IIjOBq+YAicBEBvaG4IJpIKJI014l1bDDPaJorFZ2N",
+    "chunk-RNDMTYF5.js": "sha384-NqrNliSICtrBx1Leomx1YYwlKC74/lfE8+q9dwDFG/umw+ug59XrZRCByoxscJT4",
+    "chunk-VSPXQRTJ.js": "sha384-aS2LIt3G7w0Ykj30NpRYWKSxmTBmj0M8AxhwgqiT7iNc2chmNWHYpEPZvCFCImxT",
+    "chunk-2VMXMS7J.js": "sha384-IiJwn+tZf8TQkKyCcaAtb9JW90aZbS2eLcLYxvXmc4DKIkLJGSPoVR4c+hMZ/hi2",
+    "_ng_internal_url-25LQ75X6.js": "sha384-8zb1x6m4HZb6LhpuUWtjc6bNaTyIRDuJ6D+lyK0gJNJqthFQOi9dwociprgQyzP6",
+    "_ng_internal_navigation-PO74EY6Y.js": "sha384-MNjbUcH5rwAO40igbUfXL8UejyIJ0S2Cj6xqsqcWcgg+NFGLln0PJ3lGRCDD2v//",
+    "_ng_internal_event_bus-T3PFMJ5X.js": "sha384-GEaq0dAByDUztioZmAVTNqL9kTsrwVB05N3ZilFx55ErnGp4D9TFUTeKvnG7BBoe",
+    "mfe-product-2NWHGIJ4.js": "sha384-kt0iESqssMp6J94VB2JS9MfswcdawNQl3bNonF6Vu9xKXSmf9FPvYYtdHTvx492I",
+    "nav-contribution-URY657DC.js": "sha384-dl7mQmKoNv7yNIEVoDVxJYej0xGruZAb6mHK5wZv4x9bFBY2t/no407NfTOIcpDm",
+    "chunk-DUTPQ56Q.js": "sha384-SpzTuAJud/ZE8zVnFna/JoIhDjbzSJ59AxOF8OdnMIGPDdXfV9Sr2GCgojwClU3D"
+  }
+}

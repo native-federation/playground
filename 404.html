@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-beasties-container>
+  <head>
+    <meta charset="utf-8">
+    <title>Tractor Store</title>
+    <base href="/playground/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+      .app-boot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        min-height: 100vh;
+        color: #ff5a55;
+        font-family: system-ui, sans-serif;
+      }
+      .app-boot__circle {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(255, 90, 85, 0.15);
+        border-top-color: #ff5a55;
+        border-radius: 50%;
+        animation: app-boot-spin 0.8s linear infinite;
+      }
+      .app-boot__label {
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.85;
+      }
+      @keyframes app-boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .app-boot__circle {
+          animation-duration: 2.4s;
+        }
+      }
+    </style>
+  <link rel="stylesheet" href="styles-5INURTSO.css"></head>
+  <body>
+		
+<script type="esms-options">{"shimMode":true}</script>
+
+    <app-root>
+      <div class="app-boot" role="status" aria-label="Loading…">
+        <span class="app-boot__circle" aria-hidden="true"></span>
+        <span class="app-boot__label">Loading…</span>
+      </div>
+    </app-root>
+  <link rel="modulepreload" href="chunk-2NFLSA4Y.js"><script type="module" src="polyfills-KA7GOD24.js"></script><script type="module-shim" src="main-QXMGWQBV.js"></script></body>
+</html>
