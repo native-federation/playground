@@ -23,6 +23,7 @@ const EMPTY_MAP: NavIntentMap = new Map();
     '[attr.href]': 'hrefAttr()',
     '(click)': 'onClick($event)',
     '[style.cursor]': '"pointer"',
+    '[style.display]': 'displayStyle()',
   },
 })
 export class NavigateToDirective {
@@ -33,7 +34,11 @@ export class NavigateToDirective {
   private readonly isAnchor =
     inject(ElementRef<HTMLElement>).nativeElement.tagName === 'A';
 
-  private readonly resolvedUrl = computed<string | null>(() => {
+  protected readonly displayStyle = computed<string | null>(() =>
+    this.intents().has(this.appNavigateTo()) ? null : 'none',
+  );
+
+  private tryResolveUrl(): string | null {
     const entry = this.intents().get(this.appNavigateTo());
     if (!entry) return null;
     try {
@@ -44,10 +49,10 @@ export class NavigateToDirective {
     } catch {
       return null;
     }
-  });
+  }
 
   protected readonly hrefAttr = computed<string | null>(() =>
-    this.isAnchor ? this.resolvedUrl() : null,
+    this.isAnchor ? this.tryResolveUrl() : null,
   );
 
   constructor() {
@@ -72,15 +77,21 @@ export class NavigateToDirective {
         return;
       }
     }
-    if (this.resolvedUrl() === null) {
+    const intentId = this.appNavigateTo();
+    const entry = this.intents().get(intentId);
+    if (!entry) return;
+    try {
+      resolveTemplate(entry.path, this.navPayload());
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[nav] [appNavigateTo]="${intentId}" cannot navigate: ${reason}`,
+      );
       return;
     }
     if (this.isAnchor) {
       event.preventDefault();
     }
-    navigateChannel.emit({
-      id: this.appNavigateTo(),
-      payload: this.navPayload(),
-    });
+    navigateChannel.emit({ id: intentId, payload: this.navPayload() });
   }
 }

@@ -58,11 +58,15 @@ describe('NavRegistry', () => {
 
       expect(ok).toBe(false);
       expect(navigator).not.toHaveBeenCalled();
-      expect(consoleError).toHaveBeenCalled();
+      expect(consoleError).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /\[nav\] cannot navigate to intent "nope".*not available/,
+        ),
+      );
       consoleError.mockRestore();
     });
 
-    it('returns false when a required path param is missing', async () => {
+    it('returns false and names the missing param when a required path param is absent', async () => {
       const consoleError = vi
         .spyOn(console, 'error')
         .mockImplementation(() => {});
@@ -73,6 +77,11 @@ describe('NavRegistry', () => {
 
       expect(ok).toBe(false);
       expect(navigator).not.toHaveBeenCalled();
+      expect(consoleError).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /\[nav\] cannot navigate to intent "decide\.product".*missing required param "\{id\}"/,
+        ),
+      );
       consoleError.mockRestore();
     });
   });

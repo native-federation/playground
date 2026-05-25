@@ -1,5 +1,6 @@
 import {
   navIntents,
+  type NavIntentEntry,
   type NavIntentMap,
 } from '@react-internal/event-bus';
 import {
@@ -33,6 +34,9 @@ export const subscribeNavIntents = (listener: () => void): (() => void) => {
 
 export const getNavIntents = (): NavIntentMap => currentMap;
 
+export const getNavIntent = (intent: string): NavIntentEntry | undefined =>
+  currentMap.get(intent);
+
 export const resolveIntent = (
   intent: string,
   params?: NavPayload,
@@ -44,4 +48,19 @@ export const resolveIntent = (
   } catch {
     return undefined;
   }
+};
+
+/**
+ * Like `resolveIntent` but throws the underlying `resolveTemplate` error when
+ * the intent is known but a required `{param}` is missing. Returns `undefined`
+ * only when the intent itself isn't in the map. Intended for call sites that
+ * want to surface "you forgot a param" failures (e.g. a click handler).
+ */
+export const tryResolveIntent = (
+  intent: string,
+  params?: NavPayload,
+): string | undefined => {
+  const entry = currentMap.get(intent);
+  if (!entry) return undefined;
+  return joinPath(entry.basePath, resolveTemplate(entry.path, params ?? {}));
 };

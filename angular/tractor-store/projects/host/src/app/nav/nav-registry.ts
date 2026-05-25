@@ -55,11 +55,12 @@ export class NavRegistry {
   }
 
   async navigate(id: string, payload: NavPayload = {}): Promise<boolean> {
-    const url = this.resolve(id, payload);
-    if (!url) {
-      console.error(
-        `[nav] cannot navigate to unknown or unresolvable intent "${id}"`,
-      );
+    let url: string;
+    try {
+      url = this.resolve(id, payload);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      console.error(`[nav] cannot navigate to intent "${id}": ${reason}`);
       return false;
     }
     return this.navigator(url);
@@ -86,22 +87,20 @@ export class NavRegistry {
     return entries;
   }
 
-  private resolve(id: string, payload: NavPayload): string | undefined {
+  private resolve(id: string, payload: NavPayload): string {
     const intent = this.intents.get(id);
-    if (!intent) return undefined;
-    try {
-      const path = joinPath(
-        intent.basePath,
-        resolveTemplate(intent.path, payload),
-      );
-      const consumed = new Set(splitIntentParams(intent.path));
-      const queryParams: Record<string, string> = {};
-      for (const [key, value] of Object.entries(payload)) {
-        if (!consumed.has(key)) queryParams[key] = value;
-      }
-      return appendQueryString(path, queryParams);
-    } catch {
-      return undefined;
+    if (!intent) {
+      throw new Error(`intent "${id}" is not available.`);
     }
+    const path = joinPath(
+      intent.basePath,
+      resolveTemplate(intent.path, payload),
+    );
+    const consumed = new Set(splitIntentParams(intent.path));
+    const queryParams: Record<string, string> = {};
+    for (const [key, value] of Object.entries(payload)) {
+      if (!consumed.has(key)) queryParams[key] = value;
+    }
+    return appendQueryString(path, queryParams);
   }
 }

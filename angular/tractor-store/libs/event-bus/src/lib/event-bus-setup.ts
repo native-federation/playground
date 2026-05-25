@@ -6,10 +6,24 @@ declare global {
   }
 }
 
+export interface ChannelOnOptions {
+  /**
+   * Replay the last N events to a new subscriber. Defaults to 1 in the
+   * underlying registry — i.e. a late subscriber asynchronously receives the
+   * most recently emitted value. Pass `0` to opt out.
+   */
+  readonly replay?: number;
+}
+
 export interface ChannelHandle<TPayload> {
   readonly name: string;
   emit(payload: TPayload): void;
-  on(handler: (payload: TPayload) => void): () => void;
+  /** Produce the next value from the previous one (or `undefined` if none). */
+  update(reducer: (last: TPayload | undefined) => TPayload): void;
+  on(
+    handler: (payload: TPayload) => void,
+    opts?: ChannelOnOptions,
+  ): () => void;
 }
 
 const requireBus = (channelName: string): NFEventRegistry => {
@@ -32,7 +46,13 @@ export const defineChannel = <TPayload>(
   return Object.freeze({
     name,
     emit: (payload: TPayload) => requireBus(name).emit<TPayload>(name, payload),
-    on: (handler: (payload: TPayload) => void) =>
-      requireBus(name).on<TPayload>(name, (event) => handler(event.data)),
+    update: (reducer: (last: TPayload | undefined) => TPayload) =>
+      requireBus(name).update<TPayload>(name, reducer),
+    on: (handler: (payload: TPayload) => void, opts?: ChannelOnOptions) =>
+      requireBus(name).on<TPayload>(
+        name,
+        (event) => handler(event.data),
+        opts,
+      ),
   });
 };

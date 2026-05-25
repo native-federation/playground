@@ -7,9 +7,11 @@ import {
 import { navigateTo } from '@react-internal/event-bus';
 import type { NavPayload } from '@react-internal/url';
 import {
+  getNavIntent,
   getNavIntents,
   resolveIntent,
   subscribeNavIntents,
+  tryResolveIntent,
 } from './nav-resolver';
 
 export interface NavigateLinkProps
@@ -25,6 +27,12 @@ export interface NavigateLinkProps
  * screen-reader-announced as a link, and supports modifier-click /
  * right-click → "Copy link address". On plain left-click we preventDefault
  * and emit `nav:navigate`; the host's NavRegistry drives the SPA router.
+ *
+ * Renders nothing until the intent shows up in the bus snapshot — intents can
+ * be contributed later (lazy remotes), so a missing entry is not an error,
+ * just "not ready yet". When the entry IS available but a required `{param}`
+ * is missing on click, we log a `console.warn` naming the intent and reason
+ * and stay a no-op rather than emitting a doomed navigation event.
  */
 export function NavigateLink({
   intent,
@@ -32,10 +40,10 @@ export function NavigateLink({
   children,
   ...rest
 }: NavigateLinkProps) {
-  // Re-render when the host (re)publishes the intent map. Without the
-  // subscription, the first render sees an empty map and the href would
-  // stick at "#".
+  // Re-render when the host (re)publishes the intent map.
   useSyncExternalStore(subscribeNavIntents, getNavIntents, getNavIntents);
+
+  if (!getNavIntent(intent)) return null;
 
   const href = resolveIntent(intent, params) ?? '#';
   const onClick = (event: MouseEvent<HTMLAnchorElement>): void => {
@@ -43,6 +51,15 @@ export function NavigateLink({
     if (event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
+    try {
+      tryResolveIntent(intent, params);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[nav] <NavigateLink intent="${intent}"> cannot navigate: ${reason}`,
+      );
+      return;
+    }
     navigateTo.emit({ id: intent, payload: params ?? {} });
   };
   return (
