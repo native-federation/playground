@@ -3,7 +3,9 @@ allowBuilds:
   esbuild: true
   lmdb: true
   msgpackr-extract: true
-nodeLinker: 'hoisted'
+# Deliberately left on pnpm's default `isolated` linker, which symlinks every
+# dependency. That layout is what regressed in angular-adapter#130, and the
+# hoisted one is still covered by angular/nx and angular/simple/ng21.
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - "@angular-architects/*"
