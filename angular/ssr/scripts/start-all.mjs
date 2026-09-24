@@ -45,8 +45,8 @@ process.on('SIGTERM', () => shutdown(0));
 // The adapter ships a Node `--import` preload that registers the federation
 // loader before any '@angular/*' is evaluated, so we launch the untouched CLI
 // entry (`server.mjs`) directly — no generated wrapper. See the adapter's
-// `@angular-architects/native-federation-v4/node-preload`.
-const REGISTER = '@angular-architects/native-federation-v4/node-preload';
+// `@angular-architects/native-federation/node-preload`.
+const REGISTER = '@angular-architects/native-federation/node-preload';
 
 function start({ name, port }, color) {
   const entry = `dist/${name}/server/server.mjs`;

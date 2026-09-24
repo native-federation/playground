@@ -8,5 +8,8 @@ allowBuilds:
 nodeLinker: 'hoisted'
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
+  - "@angular/*"
+  - "@angular-devkit/*"
+  - "@schematics/angular"
   - "@angular-architects/*"
   - "@softarc/*"

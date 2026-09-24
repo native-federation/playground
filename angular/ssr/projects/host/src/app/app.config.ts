@@ -1,5 +1,5 @@
 import { ApplicationConfig, mergeApplicationConfig } from '@angular/core';
-import { loadRemoteModule } from '@angular-architects/native-federation-v4';
+import { loadRemoteModule } from '@angular-architects/native-federation';
 
 import { commonConfig } from './app.config.common';
 import { LOAD_REMOTE_MODULE, LoadRemoteModule } from './load-remote-module.token';

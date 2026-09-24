@@ -1,4 +1,4 @@
-import {withNativeFederation, shareAll} from '@angular-architects/native-federation-v4/config';
+import {withNativeFederation, shareAll} from '@angular-architects/native-federation/config';
 
 export default withNativeFederation({
 
@@ -36,6 +36,7 @@ export default withNativeFederation({
   // https://shorturl.at/jmzH0
 
   features: {
-    ignoreUnusedDeps: true
+    ignoreUnusedDeps: true,
+    denseExternals: true
   }
 });

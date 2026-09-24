@@ -18,7 +18,7 @@ app.use(cors());
 
 // Readiness probe: reports the federation loader's startup status, published on
 // `globalThis.__NF_FEDERATION_STATUS__` by the
-// `@angular-architects/native-federation-v4/node-preload` preload. Returns 503 when a
+// `@angular-architects/native-federation/node-preload` preload. Returns 503 when a
 // remote failed to register at boot, so an orchestrator's readiness check keeps this
 // instance out of rotation instead of letting it serve empty federated regions. Read
 // by literal key on purpose — importing the preload module would re-run its init.
