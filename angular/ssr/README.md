@@ -30,7 +30,7 @@ This launches all three dev servers and exits them together on `Ctrl+C`. Like
 > app. Use it as a production readiness probe; gate dev startup on the remotes'
 > `remoteEntry.json` instead (which is what `start:dev` does).
 
-> **Requires the dev-SSR fix in `@angular-architects/native-federation-v4`.** A
+> **Requires the dev-SSR fix in `@angular-architects/native-federation`.** A
 > version that injects the dev host-instance bridge into a *remote* without the
 > lazy/bounded init deadlocks the remote's SSR dev server (every request hangs).
 > This example assumes a build with that fix; if a fresh `npm install` pins an
@@ -101,7 +101,7 @@ servers **in the order they must boot** and exits them all together on `Ctrl+C`:
 | mfe2 (remote) | http://localhost:4202 |
 
 Each server is launched through the SSR preload
-(`node --import @angular-architects/native-federation-v4/node-preload dist/<app>/server/server.mjs`),
+(`node --import @angular-architects/native-federation/node-preload dist/<app>/server/server.mjs`),
 which registers the federation loader before Angular evaluates. The `serve:ssr:*` npm
 scripts (and `start:ssr`) already include this flag.
 

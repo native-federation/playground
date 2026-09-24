@@ -8,5 +8,8 @@ allowBuilds:
 # hoisted one is still covered by angular/nx and angular/simple/ng21.
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
+  - "@angular/*"
+  - "@angular-devkit/*"
+  - "@schematics/angular"
   - "@angular-architects/*"
   - "@softarc/*"

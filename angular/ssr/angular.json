@@ -14,7 +14,7 @@
 			"prefix": "app",
 			"architect": {
 				"build": {
-					"builder": "@angular-architects/native-federation-v4:build",
+					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"ssr": true
 					},
@@ -30,7 +30,7 @@
 					"defaultConfiguration": "production"
 				},
 				"serve": {
-					"builder": "@angular-architects/native-federation-v4:build",
+					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"target": "host:serve-original:development",
 						"rebuildDelay": 500,
@@ -189,7 +189,7 @@
 			"prefix": "app",
 			"architect": {
 				"build": {
-					"builder": "@angular-architects/native-federation-v4:build",
+					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"ssr": true
 					},
@@ -205,7 +205,7 @@
 					"defaultConfiguration": "production"
 				},
 				"serve": {
-					"builder": "@angular-architects/native-federation-v4:build",
+					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"target": "mfe1:serve-original:development",
 						"rebuildDelay": 500,
@@ -293,7 +293,7 @@
 			"prefix": "app",
 			"architect": {
 				"build": {
-					"builder": "@angular-architects/native-federation-v4:build",
+					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"ssr": true
 					},
@@ -309,7 +309,7 @@
 					"defaultConfiguration": "production"
 				},
 				"serve": {
-					"builder": "@angular-architects/native-federation-v4:build",
+					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"target": "mfe2:serve-original:development",
 						"rebuildDelay": 500,

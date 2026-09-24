@@ -5,6 +5,7 @@
     "types": []
   },
   "files": [
+    "../../libs/internal/src/logging/index.ts",
     "src/bootstrap.ts"
   ],
   "include": [
