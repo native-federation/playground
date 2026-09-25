@@ -9,7 +9,7 @@
     "preview": "node preview.mjs"
   },
   "dependencies": {
-    "@softarc/native-federation-orchestrator": "^4.2.0",
+    "@softarc/native-federation-orchestrator": "^4.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
