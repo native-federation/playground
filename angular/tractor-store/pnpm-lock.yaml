@@ -61,8 +61,8 @@ importers:
         specifier: ~4.7.0
         version: 4.7.0
       '@softarc/native-federation-orchestrator':
-        specifier: ^4.6.0
-        version: 4.6.0
+        specifier: ~4.7.0
+        version: 4.7.0
       concurrently:
         specifier: ^9.2.0
         version: 9.2.4
@@ -1927,8 +1927,12 @@ packages:
     resolution: {integrity: sha512-IOD+T+S5LyVVuLAtLq/5k+WxnT9UpJecyDPvIT+AWug+mZJkd+HKVVHryenNJBaW29tIxNfoDuVFPEsZ4UKcNw==}
     engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
 
-  '@softarc/native-federation-orchestrator@4.6.0':
-    resolution: {integrity: sha512-8529SINGc3zBdKZcyUsP9vGj4EFjUOljy+43qfwzYSgC3FwkHcAjddf/p86t8kI9CmCp0JGeLkM1IjJ7xahVXQ==}
+  '@softarc/native-federation-orchestrator@4.6.1':
+    resolution: {integrity: sha512-n5XZvWCFPeLvZ5y42fH79X9L1MG+BMBLlbhKOxIVXbju+52BAQL6D+NoYOuOPTwtX5wFafwhzAs15bkggF3VSw==}
+    engines: {node: '>=24.16.0'}
+
+  '@softarc/native-federation-orchestrator@4.7.0':
+    resolution: {integrity: sha512-aIRYUSECaNxoGW+bfJJ5zesmIQ5NbAPzrYZgIGvNJXkpWcZgZvadZ7oQtox0D6qeD4q8IS9ovu9MtplyOTGfUw==}
     engines: {node: '>=24.16.0'}
 
   '@softarc/native-federation@4.7.0':
@@ -3801,7 +3805,7 @@ snapshots:
       '@angular/build': 22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/animations@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.1.2)(istanbul-lib-instrument@6.0.3)(jiti@2.7.0)(less@4.8.1)(ng-packagr@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(tslib@2.8.1)(typescript@6.0.3))(postcss@8.5.25)(rollup@4.62.4)(terser@5.46.2)(tslib@2.8.1)(typescript@6.0.3)(vitest@4.1.10(@types/node@26.1.2)(jsdom@28.1.0)(vite@8.3.0(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(less@4.8.1)(sass-embedded@1.104.1)(sass@1.104.1)(terser@5.46.2)))
       '@chialab/esbuild-plugin-commonjs': 0.19.1
       '@softarc/native-federation': 4.7.0
-      '@softarc/native-federation-orchestrator': 4.6.0
+      '@softarc/native-federation-orchestrator': 4.6.1
       es-module-shims: 2.8.4
       esbuild: 0.28.1
       jsonc-parser: 3.3.1
@@ -5154,7 +5158,11 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@softarc/native-federation-orchestrator@4.6.0':
+  '@softarc/native-federation-orchestrator@4.6.1':
+    dependencies:
+      semver: 7.8.5
+
+  '@softarc/native-federation-orchestrator@4.7.0':
     dependencies:
       semver: 7.8.5
 

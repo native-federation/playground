@@ -4,4 +4,4 @@ packages:
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
-  - '@softarc/native-federation-esbuild@4.0.0'
+  - "@softarc/native-federation*"

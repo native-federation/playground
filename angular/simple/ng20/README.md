@@ -1,14 +1,17 @@
-# Vanilla native federation test
+# Native Federation v20 remote (mfe4)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.11.
+A standalone Angular 20 workspace serving one remote, `mfe4`, built with
+`@angular-architects/native-federation-v4@~20.4.3`.
 
-## Development server
+Mirrors `../ng21` (`mfe5`, adapter v21.2.x) so the v22 host in `..` can load remotes from three
+adapter generations side by side. Dependencies are isolated on the `ng20` share scope, so its
+Angular 20 copies never negotiate against the host's Angular 22.
 
-To start a local development server, run:
+## Run
 
 ```bash
-npm install
-npm run start
+pnpm install
+pnpm start          # serves mfe4 on http://localhost:4204
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/` or `http://localhost:4200/mfe3`. The application will automatically reload whenever you modify any of the source files.
+Then start the host in `..` and open `http://localhost:4200/mfe4`.

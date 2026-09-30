@@ -33,7 +33,7 @@
   "packageManager": "npm@11.6.2",
   "dependencies": {
     "@angular-architects/native-federation": "~22.2.0",
-    "@softarc/native-federation-orchestrator": "^4.6.0",
+    "@softarc/native-federation-orchestrator": "~4.7.0",
     "@angular/animations": "~22.2.0",
     "@angular/common": "~22.2.0",
     "@angular/compiler": "~22.2.0",
