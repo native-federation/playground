@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@angular-architects/native-federation-v4": "~20.4.3",
-    "@softarc/native-federation": "~4.7.0",
+    "@softarc/native-federation": "~4.7.1",
     "@softarc/native-federation-orchestrator": "~4.7.0",
     "@angular/build": "^20.3.32",
     "@angular-devkit/build-angular": "^20.3.32",

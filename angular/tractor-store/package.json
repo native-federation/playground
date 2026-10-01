@@ -32,11 +32,11 @@
     }
   },
   "devDependencies": {
-    "@angular-architects/native-federation": "~22.2.0",
+    "@angular-architects/native-federation": "~22.2.1",
     "@angular/build": "~22.2.0",
     "@angular/cli": "~22.2.0",
     "@angular/compiler-cli": "~22.2.0",
-    "@softarc/native-federation": "~4.7.0",
+    "@softarc/native-federation": "~4.7.1",
     "@softarc/native-federation-orchestrator": "~4.7.0",
     "concurrently": "^9.2.0",
     "http-server": "^14.1.1",
