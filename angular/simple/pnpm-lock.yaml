@@ -43,8 +43,8 @@ importers:
         version: 0.15.1
     devDependencies:
       '@angular-architects/native-federation':
-        specifier: ~22.2.1
-        version: 22.2.1(@angular/build@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4)(postcss@8.5.28)(tslib@2.8.1)(typescript@6.0.3))(chokidar@5.0.0)
+        specifier: ~22.2.2
+        version: 22.2.2(@angular/build@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4)(postcss@8.5.28)(tslib@2.8.1)(typescript@6.0.3))(chokidar@5.0.0)
       '@angular/build':
         specifier: ~22.2.0
         version: 22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4)(postcss@8.5.28)(tslib@2.8.1)(typescript@6.0.3)
@@ -94,8 +94,8 @@ packages:
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
 
-  '@angular-architects/native-federation@22.2.1':
-    resolution: {integrity: sha512-O1YnJxVtLRKGeNqz9XvRhdgB7UueqMDVD88u546pKZHRcSAb9DjOpOt01s6whe5hBz3sIrPFFGHTGBQySd9HOA==}
+  '@angular-architects/native-federation@22.2.2':
+    resolution: {integrity: sha512-/NRFpdJlHAELIzt/8D+cjTGgjqcpw3qS6OJlHzSCY6PelV981a5sG4vk3wBIvSYqxKF1QzYEOXGXw/ioJhRlNA==}
     peerDependencies:
       '@angular/build': ~22.2.0
 
@@ -2715,7 +2715,7 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
 
-  '@angular-architects/native-federation@22.2.1(@angular/build@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4)(postcss@8.5.28)(tslib@2.8.1)(typescript@6.0.3))(chokidar@5.0.0)':
+  '@angular-architects/native-federation@22.2.2(@angular/build@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4)(postcss@8.5.28)(tslib@2.8.1)(typescript@6.0.3))(chokidar@5.0.0)':
     dependencies:
       '@angular-devkit/architect': 0.2202.0(chokidar@5.0.0)
       '@angular-devkit/core': 22.2.0(chokidar@5.0.0)
@@ -2728,6 +2728,7 @@ snapshots:
       esbuild: 0.28.2
       jsonc-parser: 3.3.1
       mrmime: 2.0.1
+      tinyglobby: 0.2.17
       watchpack: 2.5.2
     transitivePeerDependencies:
       - chokidar
