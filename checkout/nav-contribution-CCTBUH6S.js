@@ -1,0 +1,1 @@
+import"@nf-internal/chunk-XVXQO5AC";var t={source:"@tractor-store/checkout",basePath:"checkout",intents:[{id:"cart",path:"/cart",element:"mfe-cart"},{id:"checkout",path:"/checkout",element:"mfe-checkout"},{id:"thanks",path:"/thanks",element:"mfe-thanks"}]};export{t as navContribution};
