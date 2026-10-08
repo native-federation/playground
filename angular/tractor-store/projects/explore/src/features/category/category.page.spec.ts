@@ -3,8 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CategoryHttp } from '../../core/data/http/category-http';
-import { LOADER } from '../../core/remote-loader';
-import { ENV } from '../../env.config';
+import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
 import { categoryFixture } from '../../testing/category.fixture';
 import { testEnv } from '../../testing/env.fixture';
 import { fakeCategoryHttp } from '../../testing/list-http.stub';
@@ -19,8 +18,8 @@ describe('CategoryPage', () => {
       imports: [CategoryPage],
       providers: [
         provideRouter([]),
-        { provide: ENV, useValue: testEnv },
-        { provide: LOADER, useValue: loader },
+        provideEnv(testEnv),
+        { provide: LOAD_REMOTE, useValue: loader },
         { provide: CategoryHttp, useValue: fakeCategoryHttp(categoryFixture) },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -60,7 +59,11 @@ describe('CategoryPage', () => {
 
   it('builds the filter list with All + every category, marking the active one', () => {
     const filters = create({ category: 'classic' }).componentInstance.filters();
-    expect(filters.map((f) => f.name)).toEqual(['All', 'Classics', 'Autonomous']);
+    expect(filters.map((f) => f.name)).toEqual([
+      'All',
+      'Classics',
+      'Autonomous',
+    ]);
     expect(filters.map((f) => f.active)).toEqual([false, true, false]);
   });
 
@@ -71,8 +74,9 @@ describe('CategoryPage', () => {
   });
 
   it('renders a product tile per product and a filter component', () => {
-    const el: ShadowRoot = (create({ category: 'classic' })
-      .nativeElement as HTMLElement).shadowRoot!;
+    const el: ShadowRoot = (
+      create({ category: 'classic' }).nativeElement as HTMLElement
+    ).shadowRoot!;
     expect(el.querySelectorAll('app-product-tile').length).toBe(2);
     expect(el.querySelector('app-filter')).not.toBeNull();
     expect(el.querySelector('h2')?.textContent).toBe('Classics');
@@ -98,8 +102,11 @@ describe('CategoryPage', () => {
       imports: [CategoryPage],
       providers: [
         provideRouter([]),
-        { provide: ENV, useValue: testEnv },
-        { provide: LOADER, useValue: vi.fn().mockResolvedValue(undefined) },
+        provideEnv(testEnv),
+        {
+          provide: LOAD_REMOTE,
+          useValue: vi.fn().mockResolvedValue(undefined),
+        },
         { provide: CategoryHttp, useValue: fakeCategoryHttp([]) },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],

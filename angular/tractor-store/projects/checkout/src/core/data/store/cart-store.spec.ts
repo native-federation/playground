@@ -1,50 +1,18 @@
 import { TestBed } from '@angular/core/testing';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CART_STORAGE_KEY } from './cart-bus';
 import { CartStore } from './cart-store';
+import { installFakeRegistry } from '@tractor-store/shared/testing';
 
 const CART_UPDATED = 'cart:updated';
 
-type Listener = (event: { data: unknown; timestamp: number }) => void;
-
-const fakeBus = () => {
-  const listeners = new Map<string, Listener[]>();
-  return {
-    on: (type: string, cb: Listener) => {
-      const arr = listeners.get(type) ?? [];
-      arr.push(cb);
-      listeners.set(type, arr);
-      return () => {
-        const next = (listeners.get(type) ?? []).filter((h) => h !== cb);
-        listeners.set(type, next);
-      };
-    },
-    onReady: () => () => {},
-    emit: (type: string, data: unknown) => {
-      for (const cb of listeners.get(type) ?? [])
-        cb({ data, timestamp: Date.now() });
-    },
-    register: async () => {},
-    clear: () => listeners.clear(),
-  };
-};
-
 describe('CartStore', () => {
-  let original: unknown;
-  let bus: ReturnType<typeof fakeBus>;
+  let bus: ReturnType<typeof installFakeRegistry>;
 
   beforeEach(() => {
     window.localStorage.clear();
     TestBed.resetTestingModule();
-    original = (window as unknown as { __NF_REGISTRY__?: unknown })
-      .__NF_REGISTRY__;
-    bus = fakeBus();
-    (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ = bus;
-  });
-
-  afterEach(() => {
-    (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ =
-      original;
+    bus = installFakeRegistry();
   });
 
   function create(): CartStore {
@@ -116,7 +84,7 @@ describe('CartStore', () => {
     expect(store.lineItems()).toEqual([{ sku: 'AU-05-ZH', quantity: 3 }]);
   });
 
-  it('syncs from a storage event fired by another tab via the bridge', () => {
+  it('syncs from a storage event fired by another tab', () => {
     const store = create();
     window.dispatchEvent(
       new StorageEvent('storage', {
@@ -125,5 +93,24 @@ describe('CartStore', () => {
       }),
     );
     expect(store.lineItems()).toEqual([{ sku: 'AU-05-ZH', quantity: 3 }]);
+  });
+
+  it('ignores storage events for other keys', () => {
+    const store = create();
+    window.dispatchEvent(
+      new StorageEvent('storage', { key: 'other', newValue: 'AU-05-ZH_3' }),
+    );
+    expect(store.lineItems()).toEqual([]);
+  });
+
+  it('does not mutate the previous line items when adding', () => {
+    const store = create();
+    store.add('AU-05-ZH');
+    const before = store.lineItems();
+    const firstItem = before[0];
+    store.add('AU-05-ZH');
+    expect(firstItem.quantity).toBe(1);
+    expect(store.lineItems()).not.toBe(before);
+    expect(store.lineItems()[0].quantity).toBe(2);
   });
 });

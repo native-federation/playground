@@ -1,61 +1,24 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  CART_STORAGE_KEY,
-  CartStore,
-} from '../../core/data/store/cart-store';
-import { ENV } from '../../env.config';
-import { LOADER } from '../../core/remote-loader';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { CART_STORAGE_KEY, CartStore } from '../../core/data/store/cart-store';
+import { provideEnv, LOAD_REMOTE } from '@tractor-store/shared';
 import { CheckoutPage } from './checkout.page';
+import { installFakeRegistry } from '@tractor-store/shared/testing';
 
 const envFixture = {
   production: false,
   apiUrl: '',
-  scope: 'checkout',
   cdnUrl: '',
 };
 
-type Listener = (data: unknown) => void;
-
-const fakeBus = () => {
-  const listeners = new Map<string, Listener[]>();
-  return {
-    on: (type: string, cb: Listener) => {
-      const arr = listeners.get(type) ?? [];
-      arr.push(cb);
-      listeners.set(type, arr);
-      return () => {
-        const next = (listeners.get(type) ?? []).filter((h) => h !== cb);
-        listeners.set(type, next);
-      };
-    },
-    onReady: () => () => {},
-    emit: (type: string, data: unknown) => {
-      for (const cb of listeners.get(type) ?? [])
-        cb({ data, timestamp: Date.now() });
-    },
-    register: async () => {},
-    clear: () => listeners.clear(),
-  };
-};
-
 describe('CheckoutPage', () => {
-  let original: unknown;
-  let bus: ReturnType<typeof fakeBus>;
+  let bus: ReturnType<typeof installFakeRegistry>;
 
   beforeEach(() => {
     window.localStorage.clear();
     TestBed.resetTestingModule();
-    original = (window as unknown as { __NF_REGISTRY__?: unknown })
-      .__NF_REGISTRY__;
-    bus = fakeBus();
-    (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ = bus;
-  });
-
-  afterEach(() => {
-    (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ =
-      original;
+    bus = installFakeRegistry();
   });
 
   it('creates', async () => {
@@ -63,8 +26,8 @@ describe('CheckoutPage', () => {
       imports: [CheckoutPage],
       providers: [
         provideRouter([]),
-        { provide: LOADER, useValue: () => Promise.resolve() },
-        { provide: ENV, useValue: envFixture },
+        { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
+        provideEnv(envFixture),
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(CheckoutPage);
@@ -78,8 +41,8 @@ describe('CheckoutPage', () => {
       imports: [CheckoutPage],
       providers: [
         provideRouter([]),
-        { provide: LOADER, useValue: () => Promise.resolve() },
-        { provide: ENV, useValue: envFixture },
+        { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
+        provideEnv(envFixture),
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(CheckoutPage);
@@ -98,8 +61,8 @@ describe('CheckoutPage', () => {
       imports: [CheckoutPage],
       providers: [
         provideRouter([]),
-        { provide: LOADER, useValue: () => Promise.resolve() },
-        { provide: ENV, useValue: envFixture },
+        { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
+        provideEnv(envFixture),
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(CheckoutPage);

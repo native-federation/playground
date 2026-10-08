@@ -8,14 +8,13 @@ import {
   inject,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { ButtonComponent } from '@ng-internal/ui';
-import { LOADER } from '../../core/remote-loader';
+import { RemoteElementDirective, ButtonComponent } from '@tractor-store/shared';
 
 type ConfettiFn = (options: Record<string, unknown>) => void;
 
 @Component({
   selector: 'app-thanks',
-  imports: [ButtonComponent],
+  imports: [RemoteElementDirective, ButtonComponent],
   templateUrl: './thanks.page.html',
   styleUrl: './thanks.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,11 +24,8 @@ type ConfettiFn = (options: Record<string, unknown>) => void;
 })
 export class ThanksPage {
   private readonly platformId = inject(PLATFORM_ID);
-  private loader = inject(LOADER);
 
   constructor() {
-    void this.loader('@tractor-store/explore', 'mfe-header');
-    void this.loader('@tractor-store/explore', 'mfe-footer');
     afterNextRender(() => {
       if (!isPlatformBrowser(this.platformId)) return;
       const url = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/+esm';

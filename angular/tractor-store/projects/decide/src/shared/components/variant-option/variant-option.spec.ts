@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NavigateToDirective } from '@tractor-store/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { VariantOption } from './variant-option';
 
@@ -42,8 +42,8 @@ describe('VariantOption', () => {
   }
 
   it('renders a navigable link with the variant name when not selected', () => {
-    const el: ShadowRoot = (create({ selected: false }).nativeElement as HTMLElement)
-      .shadowRoot!;
+    const el: HTMLElement = create({ selected: false })
+      .nativeElement as HTMLElement;
     const link = el.querySelector('a');
     expect(link).toBeTruthy();
     expect(el.querySelector('strong')).toBeFalsy();
@@ -51,8 +51,8 @@ describe('VariantOption', () => {
   });
 
   it('renders a strong tag (no link) when selected', () => {
-    const el: ShadowRoot = (create({ selected: true }).nativeElement as HTMLElement)
-      .shadowRoot!;
+    const el: HTMLElement = create({ selected: true })
+      .nativeElement as HTMLElement;
     expect(el.querySelector('strong')?.textContent).toContain('Scarlet Dynamo');
     expect(el.querySelector('a')).toBeFalsy();
   });
@@ -67,13 +67,13 @@ describe('VariantOption', () => {
 
     expect(fixture.componentInstance.selected()).toBe(false);
     expect(
-      (fixture.nativeElement as HTMLElement).shadowRoot!.querySelector('a'),
+      (fixture.nativeElement as HTMLElement).querySelector('a'),
     ).toBeTruthy();
   });
 
   it('exposes the color through the --variant-color custom property', () => {
     const fixture = create({ color: '#123456' });
-    const li = (fixture.nativeElement as HTMLElement).shadowRoot!.querySelector(
+    const li = (fixture.nativeElement as HTMLElement).querySelector(
       'li',
     ) as HTMLElement;
     expect(li.style.getPropertyValue('--variant-color')).toBe('#123456');

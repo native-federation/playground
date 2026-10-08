@@ -39,7 +39,7 @@ if you want the why and how.
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | [docs/README.md](./docs/README.md)             | Overview, mental model, and a "where does X live" index. **Start here.**                                           |
 | [docs/architecture.md](./docs/architecture.md) | The host/remote contract, the three decoupling mechanisms (custom elements, event bus, intent navigation), and the shared-libraries policy. |
-| [docs/navigation.md](./docs/navigation.md)     | The intent-based navigation system — how `[appNavigateTo]` + a host-owned registry replace cross-MFE URL hard-coding. |
+| [docs/navigation.md](./docs/navigation.md)     | The intent-based navigation system — how `[appNavigateTo]` + a host-owned intent map replace cross-MFE URL hard-coding. |
 | [docs/features.md](./docs/features.md)         | Catalogue of what each team ships, the events they speak, and the cross-remote dependencies between them.          |
 
 ## Technologies at a glance
@@ -54,7 +54,7 @@ if you want the why and how.
 | 📣 Communication            | Typed event channels on `window.__NF_REGISTRY__`        |
 | 🗺️ Navigation               | SPA inside host, intent IDs across remotes              |
 | 🎨 Styling                  | Self-contained SCSS (one bundle per remote)             |
-| 🍱 Design system            | Shared UI library (`@ng-internal/ui`)                   |
+| 🍱 Design system            | Shared library (`@tractor-store/shared`)                |
 | 🔮 Discovery                | Runtime manifest (`federation.manifest.json`)           |
 | 🚚 Deployment               | Static (GitHub Pages, GitHub Actions)                   |
 | 👩‍💻 Local development        | [angular-cli], [concurrently], [http-server]            |
@@ -67,7 +67,7 @@ if you want the why and how.
 
 ## Project structure
 
-The workspace contains four Angular applications and six libraries:
+The workspace contains four Angular applications and one shared library:
 
 ```
 tractor-store/
@@ -77,12 +77,13 @@ tractor-store/
 │   ├── decide/       # Product detail page
 │   └── checkout/     # Cart, checkout flow, mini-cart, add-to-cart
 ├── libs/
-│   ├── event-bus/    # @ng-internal/event-bus  — defineChannel factory, nav/store channels
-│   ├── navigation/   # @ng-internal/navigation — NavigateToDirective, NavContribution types
-│   ├── url/          # @ng-internal/url        — RouteParams, path-template, query helpers
-│   ├── federation/   # @ng-internal/federation — env config, CDN helper, slice loader factory
-│   ├── logging/      # @ng-internal/logging    — console logger service
-│   └── ui/           # @ng-internal/ui         — buttons, spinner
+│   └── shared/src/   # @tractor-store/shared
+│       ├── bus/        # defineChannel / defineResource, nav + store channels
+│       ├── nav/        # NavigateToDirective, NavContribution, intent → URL, RouteParams
+│       ├── federation/ # ENV, LOAD_REMOTE, defineRemoteApp, [mfeRemote] directive
+│       ├── ui/         # Button, Spinner, CDN image loader
+│       ├── start/      # @tractor-store/start — startFederation() used by every main.ts
+│       └── testing/    # @tractor-store/shared/testing — fake event bus for specs
 └── public/cdn/       # Static fonts and images (served at :3000 in dev)
 ```
 
@@ -115,7 +116,7 @@ pnpm start:all
 Open <http://localhost:4200> to see the integrated application. Each
 remote can also be opened standalone on its own port — Native Federation
 will load the sibling fragments it needs from the URLs declared in that
-remote's `public/env.config.json`.
+remote's `public/federation.manifest.json`.
 
 You can also serve a single app:
 
@@ -129,7 +130,7 @@ Unit and component tests are written with [Vitest] using `jsdom`. Run the
 full suite per project:
 
 ```bash
-pnpm ng test host --watch=false
+pnpm ng test host --watch=false     # or explore / decide / checkout / shared
 ```
 
 [Vitest]: https://vitest.dev/
@@ -143,8 +144,8 @@ on every push to `main` that touches `angular/tractor-store/**`. The workflow:
 1. Builds the four apps with the appropriate `--base-href`.
 2. Assembles a single `_site/` directory with `host` at the root and the
    remotes under `/explore`, `/decide`, `/checkout`.
-3. Rewrites the `env.config.json` files so each app discovers its
-   siblings via the deployed base path.
+3. Rewrites the `env.config.json` and `federation.manifest.json` files
+   so each app discovers its siblings via the deployed base path.
 4. Pushes the result to the `gh-pages` branch.
 
 Trigger a deploy manually from the **Actions** tab via _Run workflow_.

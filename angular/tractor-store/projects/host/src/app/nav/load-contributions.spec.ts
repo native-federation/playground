@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { NavContribution } from '@ng-internal/navigation';
+import type { NavContribution } from '@tractor-store/shared';
 import {
   NAV_CONTRIBUTION_MODULE,
   loadContributions,
@@ -105,7 +105,6 @@ describe('loadContributions', () => {
 
   it('rejects when the contribution has no intents array', async () => {
     const invalid = {
-      source: '@tractor-store/explore',
       basePath: 'explore',
     } as unknown as NavContribution;
     const nf = fakeNfByRemote({

@@ -1,15 +1,10 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ViewEncapsulation,
-} from '@angular/core';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { NavigateToDirective } from '@tractor-store/shared';
 
 @Component({
   selector: 'app-navigation',
   imports: [NavigateToDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.ShadowDom,
   template: `
     <nav class="e_Navigation">
       <ul class="e_Navigation__list">

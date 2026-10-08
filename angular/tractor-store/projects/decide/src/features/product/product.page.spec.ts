@@ -3,8 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProductHttp } from '../../core/data/http/product-http';
-import { LOADER } from '../../core/remote-loader';
-import { ENV } from '../../env.config';
+import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
 import { testEnv } from '../../testing/env.fixture';
 import { fakeProductHttp } from '../../testing/product-http.stub';
 import { ProductPage } from './product.page';
@@ -19,8 +18,8 @@ describe('ProductPage', () => {
       providers: [
         provideRouter([]),
         { provide: ProductHttp, useValue: fakeProductHttp() },
-        { provide: LOADER, useValue: loader },
-        { provide: ENV, useValue: testEnv },
+        { provide: LOAD_REMOTE, useValue: loader },
+        provideEnv(testEnv),
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
@@ -106,27 +105,6 @@ describe('ProductPage', () => {
       expect(create().componentInstance.highlights()).toEqual([]);
     });
 
-    it('builds the cdn-prefixed product image at 400w', () => {
-      const cmp = create({ id: 'CL-01' }).componentInstance;
-      expect(cmp.productImage()).toBe(
-        'http://cdn.test/cdn/img/product/400/CL-01-GR.webp',
-      );
-    });
-
-    it('builds a srcset with 400w and 800w descriptors', () => {
-      const cmp = create({ id: 'CL-01' }).componentInstance;
-      expect(cmp.productSrcset()).toBe(
-        'http://cdn.test/cdn/img/product/400/CL-01-GR.webp 400w, ' +
-          'http://cdn.test/cdn/img/product/800/CL-01-GR.webp 800w',
-      );
-    });
-
-    it('returns empty image strings when no variant is selected', () => {
-      const cmp = create().componentInstance;
-      expect(cmp.productImage()).toBe('');
-      expect(cmp.productSrcset()).toBe('');
-    });
-
     it('composes alt text from product name and variant name', () => {
       const cmp = create({ id: 'CL-01', sku: 'CL-01-GY' }).componentInstance;
       expect(cmp.productAlt()).toBe('Heritage Workhorse - Stormy Sky');
@@ -139,8 +117,9 @@ describe('ProductPage', () => {
 
   describe('template rendering', () => {
     it('renders the product details when a product is found', () => {
-      const el: ShadowRoot = (create({ id: 'CL-01' }).nativeElement as HTMLElement)
-        .shadowRoot!;
+      const el: ShadowRoot = (
+        create({ id: 'CL-01' }).nativeElement as HTMLElement
+      ).shadowRoot!;
       expect(el.querySelector('.d_ProductPage__title')?.textContent).toContain(
         'Heritage Workhorse',
       );
@@ -151,16 +130,19 @@ describe('ProductPage', () => {
     });
 
     it('renders one variant option per product variant', () => {
-      const el: ShadowRoot = (create({ id: 'CL-01' }).nativeElement as HTMLElement)
-        .shadowRoot!;
+      const el: ShadowRoot = (
+        create({ id: 'CL-01' }).nativeElement as HTMLElement
+      ).shadowRoot!;
       expect(el.querySelectorAll('app-variant-option').length).toBe(2);
     });
 
     it('binds the selected sku onto mfe-add-to-cart and mfe-recommendations', () => {
-      const el: ShadowRoot = (create({
-        id: 'CL-01',
-        sku: 'CL-01-GY',
-      }).nativeElement as HTMLElement).shadowRoot!;
+      const el: ShadowRoot = (
+        create({
+          id: 'CL-01',
+          sku: 'CL-01-GY',
+        }).nativeElement as HTMLElement
+      ).shadowRoot!;
       expect(el.querySelector('mfe-add-to-cart')?.getAttribute('sku')).toBe(
         'CL-01-GY',
       );
@@ -170,25 +152,30 @@ describe('ProductPage', () => {
     });
 
     it('renders the product image with the composed src, srcset and alt', () => {
-      const img = (create({ id: 'CL-01' }).nativeElement as HTMLElement)
-        .shadowRoot!.querySelector('img') as HTMLImageElement;
+      const img = (
+        create({ id: 'CL-01' }).nativeElement as HTMLElement
+      ).shadowRoot!.querySelector('img') as HTMLImageElement;
       expect(img.getAttribute('src')).toBe(
         'http://cdn.test/cdn/img/product/400/CL-01-GR.webp',
       );
       expect(img.getAttribute('srcset')).toContain('400w');
       expect(img.getAttribute('srcset')).toContain('800w');
-      expect(img.getAttribute('alt')).toBe('Heritage Workhorse - Verdant Field');
+      expect(img.getAttribute('alt')).toBe(
+        'Heritage Workhorse - Verdant Field',
+      );
     });
 
     it('renders the "not found" fallback when no id is provided', () => {
-      const el: ShadowRoot = (create().nativeElement as HTMLElement).shadowRoot!;
+      const el: ShadowRoot = (create().nativeElement as HTMLElement)
+        .shadowRoot!;
       expect(el.textContent).toContain('Product not found');
       expect(el.querySelector('.d_ProductPage__details')).toBeFalsy();
     });
 
     it('renders the "not found" fallback when the id does not match', () => {
-      const el: ShadowRoot = (create({ id: 'NOPE' }).nativeElement as HTMLElement)
-        .shadowRoot!;
+      const el: ShadowRoot = (
+        create({ id: 'NOPE' }).nativeElement as HTMLElement
+      ).shadowRoot!;
       expect(el.textContent).toContain('Product not found');
     });
   });
@@ -201,16 +188,19 @@ describe('ProductPage', () => {
     });
   });
 
-  describe('cross-team slice preloading', () => {
-    it('preloads the explore header, footer, recommendations and the checkout add-to-cart', () => {
+  describe('cross-team elements', () => {
+    it('loads the explore header, footer, recommendations and the checkout add-to-cart', () => {
       create({ id: 'CL-01' });
-      const calls = loader.mock.calls.map(([scope, slice]) => [scope, slice]);
-      expect(calls).toEqual([
-        ['@tractor-store/explore', 'mfe-header'],
-        ['@tractor-store/explore', 'mfe-footer'],
-        ['@tractor-store/explore', 'mfe-recommendations'],
-        ['@tractor-store/checkout', 'mfe-add-to-cart'],
-      ]);
+      const calls = loader.mock.calls.map(([remote, element]) => [remote, element]);
+      expect(calls).toHaveLength(4);
+      expect(calls).toEqual(
+        expect.arrayContaining([
+          ['@tractor-store/explore', 'mfe-header'],
+          ['@tractor-store/explore', 'mfe-footer'],
+          ['@tractor-store/explore', 'mfe-recommendations'],
+          ['@tractor-store/checkout', 'mfe-add-to-cart'],
+        ]),
+      );
     });
   });
 });

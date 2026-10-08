@@ -1,10 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NavigateToDirective, provideEnv } from '@tractor-store/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ProductModel } from '../../../core/data/contracts/models/product.model';
-import { ENV } from '../../../env.config';
 import { testEnv } from '../../../testing/env.fixture';
 import { productFixture } from '../../../testing/product.fixture';
 import { ProductTileComponent } from './product-tile';
@@ -13,7 +12,7 @@ describe('ProductTileComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ProductTileComponent],
-      providers: [provideRouter([]), { provide: ENV, useValue: testEnv }],
+      providers: [provideRouter([]), provideEnv(testEnv)],
     }).compileComponents();
   });
 
@@ -25,7 +24,7 @@ describe('ProductTileComponent', () => {
   }
 
   it('renders the product name and formatted price', () => {
-    const el: ShadowRoot = (create().nativeElement as HTMLElement).shadowRoot!;
+    const el: HTMLElement = create().nativeElement as HTMLElement;
     expect(el.querySelector('.e_Product_name')?.textContent).toContain(
       'Heritage Workhorse',
     );
@@ -35,7 +34,7 @@ describe('ProductTileComponent', () => {
   });
 
   it('builds the cdn-prefixed src and srcset from the [size] template', () => {
-    const img = (create().nativeElement as HTMLElement).shadowRoot!.querySelector(
+    const img = (create().nativeElement as HTMLElement).querySelector(
       'img',
     ) as HTMLImageElement;
     expect(img.getAttribute('src')).toBe('http://cdn.test/img/200/CL-01.webp');

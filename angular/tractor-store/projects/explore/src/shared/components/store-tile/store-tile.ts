@@ -1,25 +1,17 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ViewEncapsulation,
-  computed,
-  inject,
-  input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import type { StoreModel } from '../../../core/data/contracts/models/store.model';
-import { ResourceService } from '../../utils/resource.service';
 
 @Component({
   selector: 'app-store-tile',
+  imports: [NgOptimizedImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.ShadowDom,
   template: `
     <li class="e_Store">
       <div class="e_Store_content">
         <img
           class="e_Store_image"
-          [src]="imgSrc()"
-          [srcset]="imgSrcset()"
+          [ngSrc]="store().image"
           width="200"
           height="200"
           alt=""
@@ -53,11 +45,5 @@ import { ResourceService } from '../../utils/resource.service';
   ],
 })
 export class StoreTileComponent {
-  private readonly image = inject(ResourceService);
-
   readonly store = input.required<StoreModel>();
-  readonly imgSrc = computed(() => this.image.imgSrc(this.store().image, 200));
-  readonly imgSrcset = computed(() =>
-    this.image.imgSrcset(this.store().image, [200, 400]),
-  );
 }

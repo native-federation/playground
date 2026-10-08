@@ -1,21 +1,19 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ViewEncapsulation,
-  inject,
-} from '@angular/core';
-import { NavigateToDirective } from '@ng-internal/navigation';
-import { ResourceService } from '../../utils/resource.service';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { NavigateToDirective } from '@tractor-store/shared';
 
 @Component({
   selector: 'app-compact-header',
-  imports: [NavigateToDirective],
+  imports: [NgOptimizedImage, NavigateToDirective],
   template: `
     <div class="c_CompactHeader__inner">
       <a class="c_CompactHeader__link" [appNavigateTo]="'explore.home'">
         <img
           class="c_CompactHeader__logo"
-          [src]="logoUrl"
+          ngSrc="/cdn/img/logo.svg"
+          width="700"
+          height="200"
+          disableOptimizedSrcset
           alt="Micro Frontends - Tractor Store"
         />
       </a>
@@ -23,10 +21,6 @@ import { ResourceService } from '../../utils/resource.service';
   `,
   styleUrl: './compact-header.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.ShadowDom,
   host: { class: 'c_CompactHeader', role: 'banner' },
 })
-export class CompactHeaderComponent {
-  private readonly image = inject(ResourceService);
-  readonly logoUrl = this.image.cdnUrl('/cdn/img/logo.svg');
-}
+export class CompactHeaderComponent {}

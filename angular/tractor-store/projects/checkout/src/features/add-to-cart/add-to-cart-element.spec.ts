@@ -24,21 +24,21 @@ describe('AddToCartElement', () => {
   it('does not render the inner component when sku is missing', async () => {
     const fixture = await create();
     expect(
-      fixture.nativeElement.querySelector('app-add-to-cart'),
+      fixture.nativeElement.shadowRoot.querySelector('app-add-to-cart'),
     ).toBeNull();
   });
 
   it('does not render the inner component when sku is empty', async () => {
     const fixture = await create('');
     expect(
-      fixture.nativeElement.querySelector('app-add-to-cart'),
+      fixture.nativeElement.shadowRoot.querySelector('app-add-to-cart'),
     ).toBeNull();
   });
 
   it('renders the inner component once a sku is provided', async () => {
     const fixture = await create('AU-03-RD');
     expect(
-      fixture.nativeElement.querySelector('app-add-to-cart'),
+      fixture.nativeElement.shadowRoot.querySelector('app-add-to-cart'),
     ).not.toBeNull();
   });
 });

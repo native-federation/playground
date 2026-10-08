@@ -2,21 +2,29 @@ import {
   ChangeDetectionStrategy,
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
-  DestroyRef,
   ViewEncapsulation,
   inject,
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { navigateTo, storeSelected } from '@ng-internal/event-bus';
-import { ButtonComponent } from '@ng-internal/ui';
+import {
+  RemoteElementDirective,
+  ButtonComponent,
+  listenTo,
+  navigateTo,
+  storeSelected,
+} from '@tractor-store/shared';
 import { CartStore } from '../../core/data/store/cart-store';
 import { CompactHeaderComponent } from '../../shared/components/compact-header/compact-header';
-import { LOADER } from '../../core/remote-loader';
 
 @Component({
   selector: 'app-checkout',
-  imports: [ButtonComponent, CompactHeaderComponent, ReactiveFormsModule],
+  imports: [
+    RemoteElementDirective,
+    ButtonComponent,
+    CompactHeaderComponent,
+    ReactiveFormsModule,
+  ],
   templateUrl: './checkout.page.html',
   styleUrl: './checkout.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,14 +35,9 @@ import { LOADER } from '../../core/remote-loader';
 export class CheckoutPage {
   private readonly fb = inject(FormBuilder);
   private readonly cart = inject(CartStore);
-  private loader = inject(LOADER);
 
   constructor() {
-    void this.loader('@tractor-store/explore', 'mfe-store-picker');
-    void this.loader('@tractor-store/explore', 'mfe-footer');
-
-    const off = storeSelected.on(({ id }) => this.applyStoreId(id));
-    inject(DestroyRef).onDestroy(off);
+    listenTo(storeSelected, ({ id }) => this.applyStoreId(id));
   }
 
   readonly storeId = signal<string>('');

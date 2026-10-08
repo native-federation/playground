@@ -1,34 +1,5 @@
-import { createSliceLoader } from '@ng-internal/federation';
-import {
-  initFederation,
-  NativeFederationResult,
-} from '@softarc/native-federation-orchestrator';
-import {
-  useShimImportMap,
-  consoleLogger,
-  globalThisStorageEntry,
-} from '@softarc/native-federation-orchestrator/options';
+import { startFederation } from '@tractor-store/start';
 
-let showErrors = false;
-
-Promise.all([
-  fetch('./env.config.json').then((resp) => resp.json()),
-  fetch('./federation.manifest.json').then((resp) => resp.json()),
-])
-  .then(async ([env, manifest]) => {
-    showErrors = !env.production;
-    const nf: NativeFederationResult = await initFederation(manifest, {
-      ...useShimImportMap({ shimMode: true }),
-      logger: consoleLogger,
-      storage: globalThisStorageEntry,
-      hostRemoteEntry: './remoteEntry.json',
-      logLevel: 'debug',
-    });
-    const loadRemoteSlice = createSliceLoader(env, nf, manifest);
-    const home = await import('./features/home/bootstrap');
-    await home.bootstrap(env, loadRemoteSlice);
-  })
-  .catch((err) => {
-    console.error('Failed to load app!');
-    if (showErrors) console.error(err);
-  });
+void startFederation(({ env, loadRemote }) =>
+  import('./features/home/bootstrap').then((m) => m.bootstrap(env, loadRemote)),
+);

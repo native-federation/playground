@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ENV } from '../../env.config';
+import { provideEnv } from '@tractor-store/shared';
 import { testEnv } from '../../testing/env.fixture';
 import { FooterComponent } from './footer.component';
 
@@ -8,14 +8,16 @@ describe('FooterComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FooterComponent],
-      providers: [{ provide: ENV, useValue: testEnv }],
+      providers: [provideEnv(testEnv)],
     }).compileComponents();
   });
 
   it('renders the cdn-prefixed neuland logo with descriptive alt text', () => {
     const fixture = TestBed.createComponent(FooterComponent);
     fixture.detectChanges();
-    const img = (fixture.nativeElement as HTMLElement).shadowRoot!.querySelector(
+    const img = (
+      fixture.nativeElement as HTMLElement
+    ).shadowRoot!.querySelector(
       '.e_Footer__initiative img',
     ) as HTMLImageElement;
     expect(img.getAttribute('src')).toBe(
@@ -28,8 +30,8 @@ describe('FooterComponent', () => {
     const fixture = TestBed.createComponent(FooterComponent);
     fixture.detectChanges();
     expect(
-      (fixture.nativeElement as HTMLElement).shadowRoot!
-        .querySelector('footer')
+      (fixture.nativeElement as HTMLElement)
+        .shadowRoot!.querySelector('footer')
         ?.getAttribute('data-boundary'),
     ).toBe('explore');
   });

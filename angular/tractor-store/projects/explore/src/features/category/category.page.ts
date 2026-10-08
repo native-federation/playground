@@ -7,7 +7,11 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { param, RouteParams } from '@ng-internal/url';
+import {
+  RemoteElementDirective,
+  param,
+  RouteParams,
+} from '@tractor-store/shared';
 import type { ProductModel } from '../../core/data/contracts/models/product.model';
 import { CategoryHttp } from '../../core/data/http/category-http';
 import { ProductTileComponent } from '../../shared/components/product-tile/product-tile';
@@ -15,11 +19,10 @@ import {
   FilterComponent,
   FilterItem,
 } from '../../shared/components/filter/filter';
-import { LOADER } from '../../core/remote-loader';
 
 @Component({
   selector: 'app-category',
-  imports: [ProductTileComponent, FilterComponent],
+  imports: [RemoteElementDirective, ProductTileComponent, FilterComponent],
   templateUrl: './category.page.html',
   styleUrl: './category.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,12 +32,6 @@ import { LOADER } from '../../core/remote-loader';
 })
 export class CategoryPage {
   private readonly categoryHttp = inject(CategoryHttp);
-  private readonly loader = inject(LOADER);
-
-  constructor() {
-    void this.loader('@tractor-store/explore', 'mfe-header');
-    void this.loader('@tractor-store/explore', 'mfe-footer');
-  }
 
   readonly routeParams = input<RouteParams>({});
 

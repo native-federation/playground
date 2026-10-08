@@ -3,8 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TeaserHttp } from '../../core/data/http/teaser-http';
-import { LOADER } from '../../core/remote-loader';
-import { ENV } from '../../env.config';
+import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
 import { testEnv } from '../../testing/env.fixture';
 import { fakeListHttp } from '../../testing/list-http.stub';
 import { teaserFixture } from '../../testing/teaser.fixture';
@@ -19,8 +18,8 @@ describe('HomePage', () => {
       imports: [HomePage],
       providers: [
         provideRouter([]),
-        { provide: ENV, useValue: testEnv },
-        { provide: LOADER, useValue: loader },
+        provideEnv(testEnv),
+        { provide: LOAD_REMOTE, useValue: loader },
         { provide: TeaserHttp, useValue: fakeListHttp(teaserFixture) },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -30,9 +29,9 @@ describe('HomePage', () => {
   it('renders one link per teaser with title and cdn-prefixed image', () => {
     const fixture = TestBed.createComponent(HomePage);
     fixture.detectChanges();
-    const links = (fixture.nativeElement as HTMLElement).shadowRoot!.querySelectorAll(
-      '.e_HomePage__categoryLink',
-    );
+    const links = (
+      fixture.nativeElement as HTMLElement
+    ).shadowRoot!.querySelectorAll('.e_HomePage__categoryLink');
     expect(links.length).toBe(2);
     expect(links[0].textContent).toContain('Classic Tractors');
 
@@ -52,8 +51,11 @@ describe('HomePage', () => {
       imports: [HomePage],
       providers: [
         provideRouter([]),
-        { provide: ENV, useValue: testEnv },
-        { provide: LOADER, useValue: vi.fn().mockResolvedValue(undefined) },
+        provideEnv(testEnv),
+        {
+          provide: LOAD_REMOTE,
+          useValue: vi.fn().mockResolvedValue(undefined),
+        },
         { provide: TeaserHttp, useValue: fakeListHttp(undefined) },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -89,9 +91,9 @@ describe('HomePage', () => {
   it('passes the configured seed skus to the recommendations slice', () => {
     const fixture = TestBed.createComponent(HomePage);
     fixture.detectChanges();
-    const reco = (fixture.nativeElement as HTMLElement).shadowRoot!.querySelector(
-      'mfe-recommendations',
-    ) as HTMLElement;
+    const reco = (
+      fixture.nativeElement as HTMLElement
+    ).shadowRoot!.querySelector('mfe-recommendations') as HTMLElement;
     expect((reco as unknown as { skus: string[] }).skus).toEqual([
       'CL-01-GY',
       'AU-07-MT',
@@ -102,9 +104,7 @@ describe('HomePage', () => {
     const fixture = TestBed.createComponent(HomePage);
     fixture.detectChanges();
     expect(
-      (fixture.nativeElement as HTMLElement).getAttribute(
-        'data-boundary-page',
-      ),
+      (fixture.nativeElement as HTMLElement).getAttribute('data-boundary-page'),
     ).toBe('explore');
   });
 });

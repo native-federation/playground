@@ -1,17 +1,4 @@
-import { createCustomElement } from '@angular/elements';
-import { ensureSharedInjector } from '../../core/shared-injector';
-import type { LoadRemoteSlice } from '../../core/remote-loader';
-import { EnvironmentConfig } from '../../env.config';
+import { remoteApp } from '../../core/remote-app';
 import { StoresPage } from './stores.page';
 
-const TAG = 'mfe-stores';
-
-export async function bootstrap(
-  env: EnvironmentConfig,
-  loadRemoteSlice: LoadRemoteSlice,
-): Promise<void> {
-  const injector = await ensureSharedInjector(env, loadRemoteSlice);
-  if (!customElements.get(TAG)) {
-    customElements.define(TAG, createCustomElement(StoresPage, { injector }));
-  }
-}
+export const bootstrap = remoteApp.expose('mfe-stores', StoresPage);

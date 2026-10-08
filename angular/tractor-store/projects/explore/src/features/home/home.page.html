@@ -1,18 +1,21 @@
-<mfe-header></mfe-header>
+<mfe-header mfeRemote="@tractor-store/explore"></mfe-header>
 <main class="e_HomePage">
   @for (t of teasers(); track t.title) {
   <a class="e_HomePage__categoryLink" [appNavigateTo]="t.link.intent" [navPayload]="t.link.params ?? {}">
     <img
-      [src]="t.src"
-      [srcset]="t.srcset"
+      [ngSrc]="t.image"
+      ngSrcset="500w, 1000w"
       sizes="100vw, (min-width: 500px) 50vw"
+      width="500"
+      height="280"
+      [loaderParams]="{ size: 500 }"
       alt=""
     />
     {{ t.title }}
   </a>
   }
   <div class="e_HomePage__recommendations">
-    <mfe-recommendations [skus]="seedSkus"></mfe-recommendations>
+    <mfe-recommendations mfeRemote="@tractor-store/explore" [skus]="seedSkus"></mfe-recommendations>
   </div>
 </main>
-<mfe-footer></mfe-footer>
+<mfe-footer mfeRemote="@tractor-store/explore"></mfe-footer>

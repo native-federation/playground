@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ViewEncapsulation,
+  input,
+} from '@angular/core';
 import { AddToCartComponent } from './add-to-cart.component';
 
 // Custom-element entrypoint for AddToCartComponent. The inner component has a
@@ -15,6 +20,7 @@ import { AddToCartComponent } from './add-to-cart.component';
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.ShadowDom,
   host: { style: 'display: contents' },
 })
 export class AddToCartElement {

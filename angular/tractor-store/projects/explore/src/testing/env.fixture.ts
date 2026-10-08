@@ -1,8 +1,7 @@
-import type { EnvironmentConfig } from '../env.config';
+import type { EnvironmentConfig } from '@tractor-store/shared';
 
 export const testEnv: EnvironmentConfig = {
   production: false,
   apiUrl: '',
-  scope: '',
   cdnUrl: 'http://cdn.test',
 };

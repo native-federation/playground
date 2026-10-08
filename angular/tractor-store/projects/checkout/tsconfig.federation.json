@@ -4,16 +4,9 @@
     "outDir": "../../out-tsc/app",
     "types": []
   },
-  "files": [
-    "src/main.ts"
-  ],
   "include": [
     "src/**/*.ts",
-    "../../libs/ui/src/public-api.ts",
-    "../../libs/event-bus/src/public-api.ts",
-    "../../libs/navigation/src/public-api.ts",
-    "../../libs/url/src/public-api.ts",
-    "../../libs/federation/src/public-api.ts"
+    "../../libs/shared/src/public-api.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts"

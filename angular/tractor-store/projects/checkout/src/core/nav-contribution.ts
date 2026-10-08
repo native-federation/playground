@@ -1,7 +1,6 @@
-import { NavContribution } from '@ng-internal/navigation';
+import { NavContribution } from '@tractor-store/shared';
 
 export const navContribution: NavContribution = {
-  source: '@tractor-store/checkout',
   basePath: 'checkout',
   intents: [
     { id: 'cart', path: '/cart', element: 'mfe-cart' },

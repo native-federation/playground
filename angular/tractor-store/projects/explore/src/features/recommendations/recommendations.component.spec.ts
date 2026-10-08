@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { RecommendationHttp } from '../../core/data/http/recommendation-http';
-import { ENV } from '../../env.config';
+import { provideEnv } from '@tractor-store/shared';
 import { testEnv } from '../../testing/env.fixture';
 import { recommendationFixture } from '../../testing/recommendation.fixture';
 import { fakeRecommendationHttp } from '../../testing/recommendation-http.stub';
@@ -17,7 +17,7 @@ describe('RecommendationsComponent', () => {
       imports: [RecommendationsComponent],
       providers: [
         provideRouter([]),
-        { provide: ENV, useValue: testEnv },
+        provideEnv(testEnv),
         { provide: RecommendationHttp, useValue: http },
       ],
     }).compileComponents();
@@ -38,11 +38,7 @@ describe('RecommendationsComponent', () => {
 
     it('parses a comma-separated string from an HTML attribute', () => {
       create('CL-01-GY, AU-07-MT , CL-02-RD');
-      expect(http.lastSeedSkus()).toEqual([
-        'CL-01-GY',
-        'AU-07-MT',
-        'CL-02-RD',
-      ]);
+      expect(http.lastSeedSkus()).toEqual(['CL-01-GY', 'AU-07-MT', 'CL-02-RD']);
     });
 
     it('drops empty entries from the comma-separated string', () => {
@@ -74,7 +70,7 @@ describe('RecommendationsComponent', () => {
         imports: [RecommendationsComponent],
         providers: [
           provideRouter([]),
-          { provide: ENV, useValue: testEnv },
+          provideEnv(testEnv),
           { provide: RecommendationHttp, useValue: fakeRecommendationHttp([]) },
         ],
       });
@@ -91,8 +87,8 @@ describe('RecommendationsComponent', () => {
     it('marks the panel with the explore boundary attribute', () => {
       const fixture = create(['CL-01-GY']);
       expect(
-        (fixture.nativeElement as HTMLElement).shadowRoot!
-          .querySelector('.e_Recommendations')
+        (fixture.nativeElement as HTMLElement)
+          .shadowRoot!.querySelector('.e_Recommendations')
           ?.getAttribute('data-boundary'),
       ).toBe('explore');
     });

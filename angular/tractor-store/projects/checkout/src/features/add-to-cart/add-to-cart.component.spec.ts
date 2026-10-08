@@ -1,48 +1,18 @@
 import { ComponentRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { VariantHttp } from '../../core/data/http/variant-http';
 import { CartStore } from '../../core/data/store/cart-store';
 import { fakeVariantHttp } from '../../testing/variant-http.stub';
 import { AddToCartComponent } from './add-to-cart.component';
-
-type Listener = (data: unknown) => void;
-
-const fakeBus = () => {
-  const listeners = new Map<string, Listener[]>();
-  return {
-    on: (type: string, cb: Listener) => {
-      const arr = listeners.get(type) ?? [];
-      arr.push(cb);
-      listeners.set(type, arr);
-      return () => {};
-    },
-    onReady: () => () => {},
-    emit: (type: string, data: unknown) => {
-      for (const cb of listeners.get(type) ?? [])
-        cb({ data, timestamp: Date.now() });
-    },
-    register: async () => {},
-    clear: () => listeners.clear(),
-  };
-};
+import { installFakeRegistry } from '@tractor-store/shared/testing';
 
 describe('AddToCartComponent', () => {
-  let original: unknown;
-
   beforeEach(() => {
     window.localStorage.clear();
     TestBed.resetTestingModule();
-    original = (window as unknown as { __NF_REGISTRY__?: unknown })
-      .__NF_REGISTRY__;
-    (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ =
-      fakeBus();
-  });
-
-  afterEach(() => {
-    (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ =
-      original;
+    installFakeRegistry();
   });
 
   async function create(sku: string) {

@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NavigateToDirective, provideEnv } from '@tractor-store/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ENV } from '../../../env.config';
 import { testEnv } from '../../../testing/env.fixture';
 import { recommendationFixture } from '../../../testing/recommendation.fixture';
 import { RecommendationComponent } from './recommendation';
@@ -12,7 +11,7 @@ describe('RecommendationComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RecommendationComponent],
-      providers: [provideRouter([]), { provide: ENV, useValue: testEnv }],
+      providers: [provideRouter([]), provideEnv(testEnv)],
     }).compileComponents();
   });
 
@@ -25,14 +24,14 @@ describe('RecommendationComponent', () => {
 
   it('renders the recommendation name', () => {
     expect(
-      (create().nativeElement as HTMLElement).shadowRoot!.querySelector(
+      (create().nativeElement as HTMLElement).querySelector(
         '.e_Recommendation_name',
       )?.textContent,
     ).toContain('TerraFirma Silver');
   });
 
   it('builds cdn-prefixed src and srcset from the [size] template', () => {
-    const img = (create().nativeElement as HTMLElement).shadowRoot!.querySelector(
+    const img = (create().nativeElement as HTMLElement).querySelector(
       'img',
     ) as HTMLImageElement;
     expect(img.getAttribute('src')).toBe(

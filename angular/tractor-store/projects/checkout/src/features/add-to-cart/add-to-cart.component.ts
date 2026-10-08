@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ViewEncapsulation,
   computed,
   effect,
   inject,
@@ -13,8 +12,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { NavigateToDirective } from '@ng-internal/navigation';
-import { ButtonComponent } from '@ng-internal/ui';
+import { NavigateToDirective, ButtonComponent } from '@tractor-store/shared';
 import { VariantHttp } from '../../core/data/http/variant-http';
 import { CartStore } from '../../core/data/store/cart-store';
 
@@ -24,7 +22,6 @@ import { CartStore } from '../../core/data/store/cart-store';
   templateUrl: './add-to-cart.component.html',
   styleUrl: './add-to-cart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.ShadowDom,
   host: { 'data-boundary': 'checkout' },
 })
 export class AddToCartComponent {

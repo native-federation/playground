@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { RemoteRouteContribution } from './load-contributions';
-import { toRoutePath } from '@ng-internal/url';
+import { toRoutePath } from '@tractor-store/shared';
 
 const loadRemoteShell = () =>
   import('../loader/remote-shell.component').then(
@@ -18,8 +18,7 @@ export const buildRemoteRoutes = (
   loaded: readonly RemoteRouteContribution[],
 ): Routes => {
   const routes: Routes = [];
-  for (const { contribution } of loaded) {
-    const remoteName = contribution.source;
+  for (const { remoteName, contribution } of loaded) {
     const routedIntents = contribution.intents.filter(
       (i) => typeof i.element === 'string',
     );

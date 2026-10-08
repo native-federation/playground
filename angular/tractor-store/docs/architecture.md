@@ -4,7 +4,7 @@ This document explains the contract between the host and the remotes —
 what each side owns, where the boundary sits, and how the three
 decoupling mechanisms (custom elements, the event bus, intent-based
 navigation) make runtime composition possible without coupling the apps
-together. A short note on shared libraries closes it out.
+together. A short note on the shared library closes it out.
 
 ## Why decoupling matters
 
@@ -35,7 +35,7 @@ flowchart TD
         HA["Owns the URL<br/>(Angular Router)"]
         HB["Owns page chrome<br/>(layout, error UI)"]
         HC["Loads remotes via<br/>Native Federation"]
-        HD["Holds the<br/>NavRegistry"]
+        HD["Holds the<br/>intent map"]
     end
 
     subgraph RemoteSide["REMOTE (×3)"]
@@ -80,73 +80,86 @@ A remote does not ship Angular components for the host to import. It
 ships **custom elements** (web components) registered under stable
 `mfe-*` tags via `@angular/elements`.
 
-A typical feature bootstrap
-(`projects/explore/src/features/header/bootstrap.ts:9`):
+Each remote declares its Angular application once, and every feature
+bootstrap is a single line:
 
 ```ts
-const TAG = "mfe-header";
+// projects/explore/src/core/remote-app.ts
+export const remoteApp = defineRemoteApp();
 
-export async function bootstrap(env, loadRemoteSlice) {
-  const injector = await ensureSharedInjector(env, loadRemoteSlice);
-  if (!customElements.get(TAG)) {
-    customElements.define(TAG, createCustomElement(HeaderComponent, { injector }));
-  }
-}
+// projects/explore/src/features/header/bootstrap.ts
+export const bootstrap = remoteApp.expose('mfe-header', HeaderComponent);
 ```
 
 The browser's standard custom-element machinery does the integration.
-Three consequences worth calling out:
+Four consequences worth calling out:
 
 - **Plain HTML is the contract.** A consumer drops `<mfe-cart>` in a
   template; nothing else is required. No Angular type, RxJS Observable,
   or service interface crosses the boundary.
-- **One Angular per remote.** `ensureSharedInjector`
-  (`projects/<remote>/src/core/shared-injector.ts`) lazily creates a
-  single Angular `Injector` and reuses it for every feature in the same
-  remote. When the host mounts `<mfe-home>` and `<mfe-header>` from
-  explore, they share `HttpClient`, stores, and other DI-provided
-  services — but nothing leaks across remotes.
-- **Bootstrap is idempotent.** A `customElements.get(TAG)` guard inside
-  each `bootstrap()` plus a matching check inside `createSliceLoader`
-  (`libs/federation/src/lib/federation.ts:50`) make it safe to request
+- **One Angular per remote.** `defineRemoteApp`
+  (`libs/shared/src/federation/remote-app.ts`) lazily creates a single
+  Angular application on the first `expose`d bootstrap and reuses its
+  injector for every feature in the same remote. When the host mounts
+  `<mfe-home>` and `<mfe-header>` from explore, they share
+  `HttpClient`, stores, and other DI-provided services — but nothing
+  leaks across remotes. The cache lives in the `defineRemoteApp`
+  closure, not at module level, because the shared library is a
+  single instance used by all remotes.
+- **Bootstrap is idempotent.** A `customElements.get(tag)` guard inside
+  `expose` plus a matching check inside `createRemoteLoader`
+  (`libs/shared/src/start/remote-loader.ts`) make it safe to request
   the same fragment from many places. Only the first call defines the
   element; subsequent calls are no-ops.
+- **Shadow DOM at the boundary only.** The exposed root components
+  (the `mfe-*` pages and fragments, including the `AddToCartElement`
+  wrapper) use `ViewEncapsulation.ShadowDom`. Internal components
+  (`Button`, `Spinner`, tiles, line items, …) keep Angular's default
+  emulated encapsulation; Angular copies their styles into the root's
+  shadow root.
 
 > Cam Jackson, _martinfowler.com_: "_Each micro frontend is to define
 > an HTML custom element for the container to instantiate, instead of
 > defining a global function for the container to call._"
 
-#### Loading a fragment: `LoadRemoteSlice`
+#### Loading a fragment: `LoadRemote`
 
 Every app receives the same closure for loading remote fragments
-(`libs/federation/src/lib/federation.ts:35`):
+(`libs/shared/src/federation/remote-loader.ts`,
+`libs/shared/src/start/remote-loader.ts`):
 
 ```ts
-export type LoadRemoteSlice = (remoteName: string, exposedModule: string) => Promise<void>;
+export type LoadRemote = (remoteName: string, element: string) => Promise<void>;
 
-export const createSliceLoader = (env, nf, manifest): LoadRemoteSlice => {
-  const loadRemoteSlice: LoadRemoteSlice = async (remoteName, exposedModule) => {
-    if (customElements.get(exposedModule)) return; // already defined
-    const mod = await nf.loadRemoteModule(remoteName, exposedModule);
-    await mod.bootstrap(envForRemote(remoteName), loadRemoteSlice);
+export const createRemoteLoader = (env: EnvironmentConfig, nf: NativeFederationResult): LoadRemote => {
+  // Passes itself to the remote so that remote can load further remotes.
+  const loadRemote: LoadRemote = async (remoteName, element) => {
+    if (customElements.get(element)) return;
+    const mod = await nf.loadRemoteModule<RemoteElementModule>(remoteName, element);
+    await mod.bootstrap(env, loadRemote);
   };
-  return loadRemoteSlice;
+  return loadRemote;
 };
 ```
 
-The host wires this closure into DI under `LOAD_REMOTE_SLICE`
-(`projects/host/src/app/env.config.ts:6`); inside each remote the same
-closure flows through as the `LOADER` token
-(`projects/<remote>/src/core/remote-loader.ts`). A component that needs
-to embed a foreign fragment simply asks for it and the closure takes
-care of the federation module load, the bootstrap, and the
-deduplication.
+The closure lives in DI under the `LOAD_REMOTE` token
+(`libs/shared/src/federation/remote-loader.ts`): the host provides it
+in `projects/host/src/app/app.config.ts`, and `defineRemoteApp`
+provides it inside each remote. Components never call it by hand.
+They put the `RemoteElementDirective`
+(`libs/shared/src/federation/remote-element.directive.ts`) on the tag
+they want to embed, and the directive loads that element from the
+named remote:
+
+```html
+<mfe-header mfeRemote="@tractor-store/explore"></mfe-header>
+```
 
 The loader passes _itself_ into the remote's bootstrap as the second
 argument. That detail is how cross-remote loads work even when the
-host is not in the picture: an explore feature mounting
-`<mfe-mini-cart>` (from checkout) can call `loader('@tractor-store/checkout', 'mfe-mini-cart')`
-and recursion gets it done.
+host is not in the picture: explore's header can contain
+`<mfe-mini-cart mfeRemote="@tractor-store/checkout">` and recursion
+gets it done.
 
 #### Why a single `routeParams` property and not attributes
 
@@ -156,7 +169,7 @@ its own attribute or property it would silently collide with
 intrinsics — set `<mfe-cart id="abc">` and Angular would happily read
 `''` because the DOM already owns `id`. Instead, all params land under
 one well-known property (`routeParams`), and the remote reads them
-through helpers in `libs/url/src/lib/route-params.ts` (`param`,
+through helpers in `libs/shared/src/nav/route-params.ts` (`param`,
 `requiredParam`, `paramList`). Clean separation, zero collisions.
 
 #### How a route activation lands a custom element on the page
@@ -166,82 +179,99 @@ sequenceDiagram
     participant U as User
     participant R as Angular Router (host)
     participant S as RemoteShellComponent
-    participant L as createSliceLoader
+    participant L as createRemoteLoader
     participant B as remote bootstrap()
     participant E as Custom element
 
     U->>R: navigate to /explore/products/tractors
-    R->>S: load lazy route, attach data {remoteName, element: 'mfe-category'}
-    S->>L: loadRemoteSlice('@tractor-store/explore', 'mfe-category')
-    L->>B: nf.loadRemoteModule(...) → bootstrap(env, loadRemoteSlice)
+    R->>S: load lazy route, bind inputs {remoteName, element: 'mfe-category'}
+    S->>L: loadRemote('@tractor-store/explore', 'mfe-category')
+    L->>B: nf.loadRemoteModule(...) → bootstrap(env, loadRemote)
     B->>B: customElements.define('mfe-category', …)
     L-->>S: resolved
     S->>E: document.createElement('mfe-category')
     S->>E: el.routeParams = { category: 'tractors' }
-    Note over S,E: paramMap subscription keeps<br/>routeParams live as URL changes
+    Note over S,E: an effect keeps routeParams<br/>live as the URL changes
 ```
 
 `RemoteShellComponent` (`projects/host/src/app/loader/remote-shell.component.ts`)
-follows exactly this script: it reads `{ remoteName, element }` from
-the route data, calls the loader, creates the element, and pipes
-`paramMap` + `queryParamMap` into a single `routeParams` object. While
-the slice is loading it shows a spinner; if the load fails it shows an
-error message.
+follows exactly this script. `remoteName` and `element` are inputs
+bound from the route data (`withComponentInputBinding`). A
+`resource()` calls the loader and creates the element; while it is
+loading the shell shows a spinner, and if the load fails it shows an
+error message. `paramMap` + `queryParamMap` become signals
+(`toSignal`) that a `computed` merges into one `routeParams` object
+(with `equal: sameRouteParams`, so the element only sees a new object
+when a value actually changed). An `effect` mounts the element and
+assigns `routeParams`.
 
 ### 2. The event bus (`window.__NF_REGISTRY__`)
 
 Custom elements solve composition: a remote can mount another remote's
 UI. But composition alone is not enough — the remotes also need to
 _talk_ to each other. They do that through a small, shared event bus
-that the host sets up before Angular bootstraps.
+that `startFederation` installs before Angular bootstraps.
 
-The bus lives on `window.__NF_REGISTRY__` and is created at the top of
-`projects/host/src/main.ts:18`:
+The bus lives on `window.__NF_REGISTRY__`. In these docs it is always
+called _the event bus_ (the host's intent ID → URL table is _the
+intent map_, see [navigation.md](./navigation.md)). It is created in
+`libs/shared/src/start/start.ts`, which every app's `main.ts` runs, so
+a remote running standalone gets a bus too:
 
 ```ts
-window.__NF_REGISTRY__ = Object.freeze(
-  createRegistry({
-    maxStreams: 20,
-    maxEvents: 1,
-    removePercentage: 0.25,
-  })(),
+window.__NF_REGISTRY__ ??= Object.freeze(
+  createRegistry({ maxStreams: 20, maxEvents: 1, removePercentage: 0.25 })(),
 );
 ```
 
-It is a pub/sub object provided by the Native Federation orchestrator
-with two primitives, `emit(name, data)` and `on(name, handler)`. On
-top of that primitive, `@ng-internal/event-bus` introduces a tiny
-abstraction so that _channels_ carry both their name **and** their
-payload type in one place
-(`libs/event-bus/src/lib/event-bus-setup.ts:28`):
+It is the [event registry][nf-registry] of the Native Federation
+orchestrator: event streams (`emit(name, data)` / `on(name, handler)`)
+plus latched resources (`register(name, value)` / `onReady(name,
+handler)`). On top of that, `libs/shared/src/bus/channel.ts` adds a
+tiny abstraction so that a channel carries both its name **and** its
+payload type in one place:
 
 ```ts
-export interface ChannelHandle<TPayload> {
-  readonly name: string;
-  emit(payload: TPayload): void;
-  on(handler: (payload: TPayload) => void): () => void;
-}
+// An event stream. `replay` is how many past events a new subscriber receives.
+export const defineChannel = <T>(
+  name: string,
+  { replay = 1 }: { replay?: number } = {},
+): Channel<T> => ({
+  emit: (payload) => bus().emit<T>(name, payload),
+  on: (handler) => bus().on<T>(name, ({ data }) => handler(data), { replay }),
+});
 
-export const defineChannel = <TPayload>(name: string): ChannelHandle<TPayload> => {
-  requireBus(name);
-  return Object.freeze({
-    name,
-    emit: (payload) => requireBus(name).emit<TPayload>(name, payload),
-    on: (handler) => requireBus(name).on<TPayload>(name, (event) => handler(event.data)),
-  });
+// A value that is set once; `on` fires synchronously when it is already there.
+export const defineResource = <T>(name: string): Resource<T> => ({
+  publish: (value) => void bus().register<T>(name, value),
+  on: (handler) => bus().onReady<T>(name, handler),
+});
+
+// Subscribes for the lifetime of the current injection context.
+export const listenTo = <T>(source: Subscribable<T>, handler: (value: T) => void): void => {
+  inject(DestroyRef).onDestroy(source.on(handler));
 };
 ```
 
-Every cross-MFE channel is then declared in a one-line file:
+`bus()` looks `window.__NF_REGISTRY__` up on every call, so channels
+can be declared at module level before the bus exists. Every
+cross-MFE channel is then declared in one line:
 
 ```ts
-// libs/event-bus/src/lib/nav-event-bus.ts
-export const navigateTo = defineChannel<NavigatePayload>("nav:navigate");
-export const navIntents = defineChannel<NavIntentMap>("nav:intents");
+// libs/shared/src/bus/nav-channels.ts
+export const navigateTo = defineChannel<NavigatePayload>('nav:navigate', { replay: 0 });
+export const navIntents = defineResource<IntentMap>('nav:intents');
 
-// libs/event-bus/src/lib/store-event-bus.ts
-export const storeSelected = defineChannel<StoreSelectedPayload>("store:selected");
+// libs/shared/src/bus/store-channels.ts
+export const storeSelected = defineChannel<StoreSelectedPayload>('store:selected');
 ```
+
+`navigateTo` uses `replay: 0` because a command must never be replayed
+to a late subscriber. `navIntents` is a resource, so a link that
+renders after the host published the intent map receives it
+synchronously.
+
+[nf-registry]: https://native-federation.com/docs/v4/orchestrator/event-registry
 
 Both the emitter and the listener import the **same** channel handle,
 so typos in the channel name and shape mismatches in the payload
@@ -260,8 +290,8 @@ channel's contract lives in one file that both ends import.
 ```mermaid
 flowchart LR
     subgraph Host["host"]
-        SN[setupShellNavigation]
-        NR[(NavRegistry)]
+        SN[provideRemoteNavigation]
+        NR[(intent map)]
     end
     subgraph Explore["explore"]
         SP[mfe-store-picker]
@@ -279,31 +309,32 @@ flowchart LR
     PD -- "nav:navigate" --> SN
     SP -- "nav:navigate" --> SN
     CO -- "nav:navigate" --> SN
-    NR -- "nav:intents (broadcast)" --> Explore
-    NR -- "nav:intents (broadcast)" --> Decide
-    NR -- "nav:intents (broadcast)" --> Checkout
+    NR -- "nav:intents (resource)" --> Explore
+    NR -- "nav:intents (resource)" --> Decide
+    NR -- "nav:intents (resource)" --> Checkout
     SP -- "store:selected" --> CO
     AC -- "cart:updated" --> CS
     MC <-. "cart:updated" .-> CS
 ```
 
-| Channel          | Defined in                                          | Direction                  | Purpose                                                                                |
-| ---------------- | --------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------- |
-| `nav:navigate`   | `libs/event-bus/src/lib/nav-event-bus.ts`           | remote → host              | Intent-based navigation requests (used by `[appNavigateTo]`)                           |
-| `nav:intents`    | `libs/event-bus/src/lib/nav-event-bus.ts`           | host → remotes (broadcast) | Snapshot of `intentId → {basePath, path}` so directives can render real `href`s        |
-| `store:selected` | `libs/event-bus/src/lib/store-event-bus.ts`         | explore → checkout         | Notify checkout when the user picks a pickup store                                     |
-| `cart:updated`   | `projects/checkout/src/core/data/store/cart-bus.ts` | checkout ↔ checkout        | Sync `CartStore` instances loaded from different slices, including across browser tabs |
+| Channel          | Defined in                                          | Direction                 | Purpose                                                                         |
+| ---------------- | --------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------- |
+| `nav:navigate`   | `libs/shared/src/bus/nav-channels.ts`               | remote → host             | Intent-based navigation requests (used by `[appNavigateTo]`)                    |
+| `nav:intents`    | `libs/shared/src/bus/nav-channels.ts`               | host → remotes (resource) | The intent map (`intentId → {basePath, path}`) so directives can render real `href`s |
+| `store:selected` | `libs/shared/src/bus/store-channels.ts`             | explore → checkout        | Notify checkout when the user picks a pickup store                              |
+| `cart:updated`   | `projects/checkout/src/core/data/store/cart-bus.ts` | checkout ↔ checkout       | Sync `CartStore` instances of different checkout elements                       |
 
 The fourth channel is worth a closer look. The **checkout** remote's
-`CartStore` is an `@Injectable` service, so each slice that the loader
-bootstraps gets its own instance. When `<mfe-mini-cart>` (mounted
-inside explore's header) and `<mfe-cart>` (mounted as a host route)
-run side by side, they would otherwise drift. The `cart-bus` rides on
-the same `__NF_REGISTRY__` to keep both stores in step; it also
-re-emits browser `storage` events so a second tab stays in sync
-(`projects/checkout/src/core/data/store/cart-bus.ts:39`). The channel
-is internal to checkout but uses the same `defineChannel` factory —
-the cost of joining the bus is one line.
+`CartStore` is an `@Injectable` service, so every instance holds its
+own copy of the cart. When `<mfe-mini-cart>` (mounted inside explore's
+header) and `<mfe-cart>` (mounted as a host route) run side by side,
+they would otherwise drift. The `cart-bus` rides on the same
+`__NF_REGISTRY__` to keep the stores in step. A second browser tab is
+kept in sync separately: `CartStore` listens to the window's
+`storage` events itself (`fromEvent` + `takeUntilDestroyed` in
+`projects/checkout/src/core/data/store/cart-store.ts`). The channel is
+internal to checkout but uses the same `defineChannel` factory — the
+cost of joining the bus is one line.
 
 The pattern generalises: when two MFEs need to coordinate on a piece
 of state, declare a channel via `defineChannel<Payload>('name')` and
@@ -324,12 +355,11 @@ intents:
 ```ts
 // projects/checkout/src/core/nav-contribution.ts
 export const navContribution: NavContribution = {
-  source: "@tractor-store/checkout",
-  basePath: "checkout",
+  basePath: 'checkout',
   intents: [
-    { id: "cart", path: "/cart", element: "mfe-cart" },
-    { id: "checkout", path: "/checkout", element: "mfe-checkout" },
-    { id: "thanks", path: "/thanks", element: "mfe-thanks" },
+    { id: 'cart', path: '/cart', element: 'mfe-cart' },
+    { id: 'checkout', path: '/checkout', element: 'mfe-checkout' },
+    { id: 'thanks', path: '/thanks', element: 'mfe-thanks' },
   ],
 };
 ```
@@ -338,7 +368,7 @@ The remote owns relative intent IDs (`cart`, `checkout`, `thanks`).
 The host prepends each contribution's `basePath` when it registers
 them, producing the public IDs other teams link to (`checkout.cart`,
 etc.). Remotes link by intent, never by URL — and a directive in
-`@ng-internal/navigation` makes that ergonomic in templates. Full
+`@tractor-store/shared` makes that ergonomic in templates. Full
 walkthrough in [navigation.md](./navigation.md).
 
 > Cam Jackson, _martinfowler.com_: "_Using the page URL for this
@@ -356,32 +386,37 @@ How a host page comes alive, end to end:
 sequenceDiagram
     participant Browser
     participant Main as projects/host/src/main.ts
+    participant Start as startFederation
     participant Boot as app/bootstrap.ts
     participant AppCfg as app.config.ts
-    participant Init as provideShellNav<br/>(appInitializer)
-    participant NR as NavRegistry
+    participant Init as provideRemoteNavigation<br/>(appInitializer)
     participant Router as Angular Router
 
     Browser->>Main: load
-    Main->>Main: install __NF_REGISTRY__
-    Main->>Main: fetch env.config.json + federation.manifest.json
-    Main->>Main: initFederation(manifest, …)
-    Main->>Boot: bootstrap(env, nf, manifest)
+    Main->>Start: startFederation(run)
+    Start->>Start: install __NF_REGISTRY__ (if missing)
+    Start->>Start: fetch env.config.json + federation.manifest.json
+    Start->>Start: initFederation(manifest, …)
+    Start->>Boot: run({ env, nf, manifest, loadRemote })
     Boot->>Boot: load Raleway + global.css + helper.js
-    Boot->>AppCfg: bootstrapApplication(App, appConfig(env, nf, manifest))
-    AppCfg->>Init: provideShellNav(nf, manifest)
+    Boot->>AppCfg: bootstrapApplication(App, appConfig(ctx))
+    AppCfg->>Init: provideRemoteNavigation(nf, manifest)
     Init->>Init: loadContributions(nf, manifest)<br/>(Promise.allSettled)
-    Init->>NR: register every contribution<br/>full id = basePath + '.' + id
-    Init->>Init: navIntents.emit(registry.getIntents())
+    Init->>Init: buildIntentMap(loaded)<br/>full id = basePath + '.' + id
+    Init->>Init: navIntents.publish(intents)
     Init->>Init: navigateTo.on(handler) — listen for click intents
     Init->>Router: router.resetConfig([…remote routes, wildcard])
     Router-->>Browser: first paint
 ```
 
-Two artefacts drive everything:
+Every app's `main.ts` is the same call to `startFederation(run)`
+(`libs/shared/src/start/start.ts`); only `run` differs. The host
+bootstraps its Angular app, a standalone remote bootstraps its default
+page. Two artefacts drive everything, both fetched with
+`cache: 'no-cache'`:
 
 - **`env.config.json`** — per-environment values: `apiUrl`, `cdnUrl`,
-  `production`, `scope`. Same shape across all four apps. CI rewrites
+  `production`. Same shape across all four apps. CI rewrites
   it for the deployed environment, so the same build works locally
   and on GitHub Pages.
 - **`federation.manifest.json`** — the discovery file:
@@ -401,8 +436,7 @@ Two artefacts drive everything:
   resolves to the right bundle.
 
 `__NF_REGISTRY__` is installed _before_ federation init, so remotes
-that touch the bus during their own bootstrap (e.g. building channel
-handles) always find it there.
+that touch the bus during their own bootstrap always find it there.
 
 ## Native Federation vs. Module Federation
 
@@ -423,66 +457,59 @@ This workspace uses
 plus `@softarc/native-federation-orchestrator` (the runtime that
 ships `createRegistry`, the event bus we attach to `__NF_REGISTRY__`).
 
-## Shared libraries
+## Shared library
 
-Six TypeScript libraries live under `libs/`. Each has a single
-responsibility; nothing in them holds business code.
+One TypeScript library lives under `libs/shared/src/`, imported as
+`@tractor-store/shared` (public API: `libs/shared/src/public-api.ts`).
+Each folder has a single responsibility; nothing in it holds business
+code.
 
-| Package                   | Path               | Contains                                                                                                        | Shared at runtime? |
-| ------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------ |
-| `@ng-internal/event-bus`  | `libs/event-bus/`  | `defineChannel` factory, channel declarations (`navigateTo`, `navIntents`, `storeSelected`)                     | yes                |
-| `@ng-internal/navigation` | `libs/navigation/` | `NavigateToDirective`, `NavContribution`/`NavIntent`/`NavTarget`/`NavBarContribution` types                     | yes                |
-| `@ng-internal/url`        | `libs/url/`        | `RouteParams` helpers (`param`, `requiredParam`, `paramList`), path-template + query helpers, `NavPayload` type | yes                |
-| `@ng-internal/ui`         | `libs/ui/`         | Design-system primitives (`Button`, `Spinner`)                                                                  | yes                |
-| `@ng-internal/logging`    | `libs/logging/`    | `ConsoleLoggerService` for consistent log formatting                                                            | yes                |
-| `@ng-internal/federation` | `libs/federation/` | `EnvironmentConfig`, `LoadRemoteSlice`, `createSliceLoader`, `toCdnUrl`                                         | no — bundled       |
+| Folder        | Import alias                    | Contains                                                                                                             | Shared at runtime? |
+| ------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `bus/`        | `@tractor-store/shared`         | `defineChannel`, `defineResource`, `listenTo`, channel declarations (`navigateTo`, `navIntents`, `storeSelected`)    | yes                |
+| `nav/`        | `@tractor-store/shared`         | `NavigateToDirective`, `NavContribution`/`NavIntent`/`IntentMap` types, `resolveIntentUrl`, `RouteParams` helpers    | yes                |
+| `federation/` | `@tractor-store/shared`         | `ENV`, `provideEnv`, `LOAD_REMOTE`, `defineRemoteApp`, `RemoteElementDirective`                                      | yes                |
+| `ui/`         | `@tractor-store/shared`         | Design-system primitives (`Button`, `Spinner`), CDN image loader                                                     | yes                |
+| `start/`      | `@tractor-store/start`          | `startFederation`, `createRemoteLoader`                                                                              | no — bundled       |
+| `testing/`    | `@tractor-store/shared/testing` | `createFakeRegistry`, `installFakeRegistry` (also the test builder's `setupFiles`)                                   | tests only         |
 
-Each app's `federation.config.mjs` lists the five shared libraries in
-`sharedMappings`:
+Each app's `federation.config.mjs` lists the library as its single
+entry in `sharedMappings` (`projects/host/federation.config.mjs`):
 
-```ts
-shared: {
-  ...shareAll({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' }, {
-    overrides: {
-      '@angular/core': { /* …same flags… */ includeSecondaries: { keepAll: true } },
-    },
-  }),
-},
-sharedMappings: [
-  "@ng-internal/event-bus",
-  "@ng-internal/navigation",
-  "@ng-internal/url",
-  "@ng-internal/ui",
-  "@ng-internal/logging",
-],
+```js
+shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
+  .patch(['@angular/core'], { includeSecondaries: { keepAll: true } })
+  .get(),
+sharedMappings: ["@tractor-store/shared"],
 skip: ['rxjs/ajax', 'rxjs/fetch', 'rxjs/testing', 'rxjs/webSocket'],
 ```
 
 What the flags mean:
 
-- **`singleton: true` on Angular.** Exactly one `@angular/core` on the
-  page. Without this, two copies of Angular would each have their own
-  injector tree roots and DI would silently break across remotes.
-  `strictVersion: true` makes a version mismatch fail loudly at load
-  time instead of producing weird runtime bugs.
+- **`singleton: true` on every package dependency, Angular included.**
+  Exactly one `@angular/core` on the page. Without this, two copies of
+  Angular would each have their own injector tree roots and DI would
+  silently break across remotes. `strictVersion: true` makes a version
+  mismatch fail loudly at load time instead of producing weird runtime
+  bugs.
 - **`includeSecondaries: { keepAll: true }` on `@angular/core`.** Keeps
   secondary entry points (`@angular/core/rxjs-interop`, etc.) in the
   shared bundle so remotes can use them without re-bundling them.
-- **`sharedMappings`** for the internal libraries. These are TypeScript
-  path-mapped libraries inside this workspace; sharing them means the
+- **`sharedMappings`** for the internal library. It is a TypeScript
+  path-mapped library inside this workspace; sharing it means the
   host and all remotes use the same `NavigateToDirective`, the same
   `defineChannel` factory, the same `Spinner`. Critically, channel
-  handles defined in `@ng-internal/event-bus` are _the same handles_
+  handles defined in `@tractor-store/shared` are _the same handles_
   in every app — one channel registration, one set of subscribers, no
   surprises.
 - **`skip`** trims rxjs sub-entries that aren't used at runtime,
   cutting the shared bundle.
 
-`@ng-internal/federation` is deliberately **not** shared. It is used
-once at bootstrap inside each app's `main.ts`, so bundling it locally
-avoids load-order puzzles: by the time anything tries to read it, the
-slice loader has already been instantiated against the right
-manifest.
+`@tractor-store/start` is deliberately **not** shared. `main.ts` runs
+it before the import map exists, so it has to be bundled into each
+app. It gets its own alias rather than `@tractor-store/shared/start`
+because Native Federation treats sub-paths of a shared mapping as
+shared too.
 
 > Cam Jackson, _martinfowler.com_: "_The most obvious candidates for
 > sharing are 'dumb' visual primitives such as icons, labels, and
@@ -491,8 +518,8 @@ manifest.
 > is put into a shared library it creates a high degree of coupling
 > across applications._"
 
-Every shared lib in this workspace fits that rule: contracts (event
-channels, type definitions), wiring (directive, slice loader), or
+Everything in the shared library fits that rule: contracts (event
+channels, type definitions), wiring (directives, remote loader), or
 dumb UI primitives (button, spinner). No team's product logic ever
 ends up in `libs/`.
 

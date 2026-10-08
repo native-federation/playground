@@ -14,7 +14,7 @@ export default withNativeFederation({
   shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
     .patch(['@angular/core'], {includeSecondaries: {keepAll: true}})
     .get(),
-  sharedMappings: ["@ng-internal/event-bus", "@ng-internal/navigation", "@ng-internal/url", "@ng-internal/ui"],
+  sharedMappings: ["@tractor-store/shared"],
   skip: [
     'rxjs/ajax',
     'rxjs/fetch',

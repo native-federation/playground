@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NavigateToDirective } from '@tractor-store/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FilterComponent, type FilterItem } from './filter';
 
@@ -42,13 +42,12 @@ describe('FilterComponent', () => {
 
   it('renders one item per filter', () => {
     expect(
-      (create().nativeElement as HTMLElement).shadowRoot!.querySelectorAll('li')
-        .length,
+      (create().nativeElement as HTMLElement).querySelectorAll('li').length,
     ).toBe(3);
   });
 
   it('renders the active filter as a static label, not a link', () => {
-    const el: ShadowRoot = (create().nativeElement as HTMLElement).shadowRoot!;
+    const el: HTMLElement = create().nativeElement as HTMLElement;
     const active = el.querySelector('.e_Filter__filter--active');
     expect(active?.textContent).toContain('Classics');
     expect(active?.querySelector('a')).toBeNull();
@@ -56,9 +55,13 @@ describe('FilterComponent', () => {
 
   it('renders inactive filters as nav links pointing at the correct intent', () => {
     const fixture = create();
-    const links = fixture.debugElement.queryAll(By.directive(NavigateToDirective));
+    const links = fixture.debugElement.queryAll(
+      By.directive(NavigateToDirective),
+    );
     expect(links.length).toBe(2);
-    const intents = links.map((l) => l.injector.get(NavigateToDirective).appNavigateTo());
+    const intents = links.map((l) =>
+      l.injector.get(NavigateToDirective).appNavigateTo(),
+    );
     expect(intents).toEqual(['explore.products', 'explore.products.category']);
   });
 

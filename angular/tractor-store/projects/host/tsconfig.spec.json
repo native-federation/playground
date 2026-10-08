@@ -11,6 +11,6 @@
   "include": [
     "src/**/*.spec.ts",
     "src/**/*.d.ts",
-    "../../libs/event-bus/src/testing/install-registry-stub.ts"
+    "../../libs/shared/src/testing/install-registry-stub.ts"
   ]
 }

@@ -1,19 +1,16 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  inject,
   ViewEncapsulation,
 } from '@angular/core';
-import { ResourceService } from '../../shared/utils/resource.service';
+import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-footer',
+  imports: [NgOptimizedImage],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
 })
-export class FooterComponent {
-  private readonly image = inject(ResourceService);
-  readonly neulandLogo = this.image.cdnUrl('/cdn/img/neulandlogo.svg');
-}
+export class FooterComponent {}

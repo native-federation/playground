@@ -6,18 +6,17 @@ import {
   computed,
   inject,
 } from '@angular/core';
-import { ButtonComponent } from '@ng-internal/ui';
+import { RemoteElementDirective, ButtonComponent } from '@tractor-store/shared';
 import { VariantHttp } from '../../core/data/http/variant-http';
 import { CartStore } from '../../core/data/store/cart-store';
 import {
   LineItemComponent,
   LineItemView,
 } from '../../shared/components/line-item/line-item';
-import { LOADER } from '../../core/remote-loader';
 
 @Component({
   selector: 'app-cart',
-  imports: [ButtonComponent, LineItemComponent],
+  imports: [RemoteElementDirective, ButtonComponent, LineItemComponent],
   templateUrl: './cart.page.html',
   styleUrl: './cart.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,13 +27,6 @@ import { LOADER } from '../../core/remote-loader';
 export class CartPage {
   private readonly cart = inject(CartStore);
   private readonly variantHttp = inject(VariantHttp);
-  private loader = inject(LOADER);
-
-  constructor() {
-    void this.loader('@tractor-store/explore', 'mfe-header');
-    void this.loader('@tractor-store/explore', 'mfe-footer');
-    void this.loader('@tractor-store/explore', 'mfe-recommendations');
-  }
 
   private readonly skus = computed(() =>
     this.cart.lineItems().map((i) => i.sku),
