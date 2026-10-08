@@ -1,0 +1,177 @@
+{
+  "$version": "v4",
+  "name": "@tractor-store/explore",
+  "shared": [
+    {
+      "requiredVersion": "~22.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "22.2.0",
+      "bundle": "browser-angular_common",
+      "packageName": "@angular/common",
+      "entries": {
+        "@angular/common": "_angular_common.JakyjxNHBh.js",
+        "@angular/common/http": "_angular_common_http.-O4_5WfyPa.js"
+      }
+    },
+    {
+      "requiredVersion": "~22.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "22.2.0",
+      "bundle": "browser-angular_core",
+      "packageName": "@angular/core",
+      "entries": {
+        "@angular/core": "_angular_core.JYpya6Hoi5.js",
+        "@angular/core/event-dispatch-contract.min.js": "_angular_core_event_dispatch_contract_min_js.r9-MvHU1Mr.js",
+        "@angular/core/primitives/di": "_angular_core_primitives_di.uwtFubG3Jm.js",
+        "@angular/core/primitives/event-dispatch": "_angular_core_primitives_event_dispatch.uQ0IVsx-2p.js",
+        "@angular/core/primitives/signals": "_angular_core_primitives_signals.cyEJ20BpGB.js",
+        "@angular/core/rxjs-interop": "_angular_core_rxjs_interop.YTYMAL_Mde.js"
+      }
+    },
+    {
+      "requiredVersion": "~22.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "22.2.0",
+      "bundle": "browser-angular_elements",
+      "packageName": "@angular/elements",
+      "entries": {
+        "@angular/elements": "_angular_elements.RUOvCsMe1Y.js"
+      }
+    },
+    {
+      "requiredVersion": "~22.2.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "22.2.0",
+      "bundle": "browser-angular_platform_browser",
+      "packageName": "@angular/platform-browser",
+      "entries": {
+        "@angular/platform-browser": "_angular_platform_browser.CRhKKeSlQW.js"
+      }
+    },
+    {
+      "requiredVersion": "~7.8.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "7.8.2",
+      "bundle": "browser-rxjs",
+      "packageName": "rxjs",
+      "entries": {
+        "rxjs": "rxjs.joDRaYzmH-.js",
+        "rxjs/operators": "rxjs_operators.COEUE-FlrX.js"
+      }
+    },
+    {
+      "requiredVersion": "^2.3.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "2.8.1",
+      "bundle": "browser-tslib",
+      "packageName": "tslib",
+      "entries": {
+        "tslib": "tslib.KKUV5ZoaNv.js"
+      }
+    },
+    {
+      "requiredVersion": "~1.2.3",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "1.2.3",
+      "bundle": "mapping-bundle",
+      "packageName": "@tractor-store/shared",
+      "entries": {
+        "@tractor-store/shared": "_tractor_store_shared-J55JGRRS.js"
+      }
+    }
+  ],
+  "exposes": [
+    {
+      "key": "mfe-home",
+      "outFileName": "mfe-home-EF6Q24P2.js"
+    },
+    {
+      "key": "mfe-category",
+      "outFileName": "mfe-category-GVGLSXAQ.js"
+    },
+    {
+      "key": "mfe-stores",
+      "outFileName": "mfe-stores-QPIUM3QB.js"
+    },
+    {
+      "key": "mfe-header",
+      "outFileName": "mfe-header-EYYTPYCP.js"
+    },
+    {
+      "key": "mfe-footer",
+      "outFileName": "mfe-footer-FQTVZJGS.js"
+    },
+    {
+      "key": "mfe-recommendations",
+      "outFileName": "mfe-recommendations-VNEMZTVH.js"
+    },
+    {
+      "key": "mfe-store-picker",
+      "outFileName": "mfe-store-picker-EEODXGJ4.js"
+    },
+    {
+      "key": "nav-contribution",
+      "outFileName": "nav-contribution-LKQJ6333.js"
+    }
+  ],
+  "chunks": {
+    "browser-angular_common": [
+      "chunk-YR6VVFNU.js"
+    ],
+    "browser-angular_core": [
+      "chunk-GPPPB4GZ.js",
+      "chunk-4HS6NDZM.js",
+      "chunk-HFQNY2UQ.js",
+      "chunk-DE723NA7.js",
+      "chunk-E3KSJ42M.js"
+    ],
+    "browser-rxjs": [
+      "chunk-CQWIQYAC.js"
+    ],
+    "mapping-bundle": [],
+    "mapping-or-exposed": [
+      "chunk-MMAGX3OM.js",
+      "chunk-JLRIDEEY.js"
+    ]
+  },
+  "integrity": {
+    "_angular_common.JakyjxNHBh.js": "sha384-I6v3am16BD1zEvRyzumfrwhwqc1Re7fKaqdjKgreJNzd0E2goqKcET6xteUdwUax",
+    "_angular_common_http.-O4_5WfyPa.js": "sha384-D27IzVOGQ9E2K3bSDhNEHL1oaJmoMZ34rMIIVmK8bM0P8EQ7ya+VQ55gr6Ne7OUU",
+    "chunk-YR6VVFNU.js": "sha384-rCqRKFwZ3C3GIKZsCEwrpdkd1XuU3+nBUCj8BZgPWTMHYGt6zEWKJrANgQOpZrqy",
+    "_angular_core.JYpya6Hoi5.js": "sha384-vmMX12gylZeECpx1JpcKQdmCzWkajdq48+a6CDNDTU2U0gCBoTn4SEl/hQlihTxk",
+    "_angular_core_event_dispatch_contract_min_js.r9-MvHU1Mr.js": "sha384-CHa53OnUUTf5opTXfRgoziwvlbOXz+Ob3KDHmZSWPYIfzXIgA04hEwsFjOkyD1GJ",
+    "_angular_core_primitives_di.uwtFubG3Jm.js": "sha384-Alb1MGtauT4wPYT9t+HRDd/jkpzeEFMr7Hcln6qj6xPgiE9048Z0yQ5JZrXqR/0q",
+    "_angular_core_primitives_event_dispatch.uQ0IVsx-2p.js": "sha384-v6hKts3Xpn6WrR9BXdQc1GgjBp224GRCMmREC4bENp3PLQEpaMsy+9F4M7uqitUQ",
+    "chunk-GPPPB4GZ.js": "sha384-N+0BbScZzvjXvtjSHQlyezKRsSF6WXgcEyee4RbDXjCJzkzLXdUBrUN0Ps/o51g3",
+    "_angular_core_primitives_signals.cyEJ20BpGB.js": "sha384-yu9Mn3huJL5lakiZLNmgv/zVH5fhgSoJvJA/i02k35x/xKIlSRyyeXKqO4iGkdGE",
+    "_angular_core_rxjs_interop.YTYMAL_Mde.js": "sha384-tzCDUNPXwnXhKF5KPTZz8esGPYtXPxiTIXG7aITOqZhWmdtMDsIsMDEUjcvIk0x5",
+    "chunk-4HS6NDZM.js": "sha384-H0pBo5pfkMktF6R7bxppnAKp6LCpyuMsfUkHpO3C/kKdet6MwFmOKUsxHZttMaa7",
+    "chunk-HFQNY2UQ.js": "sha384-oga8ZxCPVTFiv3ya+eqWFrdU4JpPGMmG3D8+qfi3TwjaZx9f2euhPmkV8w2qscJR",
+    "chunk-DE723NA7.js": "sha384-AOS+lzjONRNn057ROlfAEwY7d6v0iJYvbanlLp0bn04DDAAH5lDNhhrM91Vmsvfc",
+    "chunk-E3KSJ42M.js": "sha384-tqufh5PFAJEmwkMlNxBa/RriuJ+jFhf0PPb+pjYxEIf89C1dcVyrJguPoespmge9",
+    "_angular_elements.RUOvCsMe1Y.js": "sha384-rjZgATTsThfh8uiSRDtIhScaG8/+cqfi/10oSc2XB4SOfo6hnn3Q4waJozAYIVo4",
+    "_angular_platform_browser.CRhKKeSlQW.js": "sha384-ZmjKOy4FCxX+M/jOMzwHTrZ7XFQ2DujAkZ0Z5aybg+skizMa9ST1S6Ote+BWddSW",
+    "rxjs.joDRaYzmH-.js": "sha384-hFHYyDlQ8zGShWgSoeNe/b6C7IMp+httgHK7iRQZNYLhv/45s5TjFcxSZojg74fS",
+    "rxjs_operators.COEUE-FlrX.js": "sha384-tOJNAi+EBXYrJlsOInwJP2wFiUtUh9MSv0zkSEpd+ikQmpEvSb88zij+KT99QwLG",
+    "chunk-CQWIQYAC.js": "sha384-LKDsuUem10/ALRMcKzxe8PGWvwT9TQre+xJzA/w2zD7fKqBHUHiaNFPblswuds8F",
+    "tslib.KKUV5ZoaNv.js": "sha384-yQohDSrs91SnzTcpjuivGZtiAWIieqnbbtrpqKOJ1ZyNwaL16h1WWMGlCbrjDie2",
+    "_tractor_store_shared-J55JGRRS.js": "sha384-J9JuS9uzH/lS/icYfwj2rq31mUKc79CEEv6SgOSL88oktbTyJxrMqy0y7zhq+JEW",
+    "mfe-home-EF6Q24P2.js": "sha384-v1QyNbOgPRatyww4Omuh2wUEbOm7VRc4CnSxZq1icl3fBVxWQd7JkV9vdJ97N/RE",
+    "mfe-category-GVGLSXAQ.js": "sha384-w4TlsXKIKbKuz+OHrq29+NdSkd8ZEeB6z9QzURhhnt+AhogTvemCVnOR2OGhDD94",
+    "mfe-stores-QPIUM3QB.js": "sha384-uPpQzayyj8f7DOciFe1ZKALMyvTH/rmfTNDpoVcuxXWMOZEEIXETX+EeNgdyAwjo",
+    "mfe-header-EYYTPYCP.js": "sha384-ekCcqbJ6f7AxVY3CFjXbrHSBHtWHd8FfL3ahs1PUL7jCMmjAxwWmjbg0PzvwwNrS",
+    "mfe-footer-FQTVZJGS.js": "sha384-QxPe0RaFn4SdMPKKynYBHSdxik8a5A3yfkbhjN9h9yCvjLZyRW4XH58qdjLpSzpA",
+    "mfe-recommendations-VNEMZTVH.js": "sha384-VKKpghv/ezVw2Cmi91cWb/3pjMPUAZXPnHf3EvRtbE3ZpBn/HQHiKPD+E14mTIbX",
+    "mfe-store-picker-EEODXGJ4.js": "sha384-SVG7s+OSJuzb0iPv1A2Et0kudVQhHa+YLbLb/6PhEAhUAPmMUOqp6x3RXuq7HpDI",
+    "nav-contribution-LKQJ6333.js": "sha384-+gnC7WVCLWEDwZJMtNO8kOQ7pxvFMiAKSkEb0/BUB9cP0Mh95AjSNMw8rsovjIAV",
+    "chunk-MMAGX3OM.js": "sha384-EE7BH7bSlYWqlWwtX7XpM9W0PZ2//G7BqyakMEs/pFXcJ6+//8vSk6lTMHYireMh",
+    "chunk-JLRIDEEY.js": "sha384-BtI7sQpqMHo96kcHv8wosG15itTV3/gTMdsIc/YcIAVO73z8VmPUMtjfQuhAP+2P"
+  }
+}

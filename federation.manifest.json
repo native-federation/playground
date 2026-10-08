@@ -1,0 +1,5 @@
+{
+  "@tractor-store/explore": "/playground/explore/remoteEntry.json",
+  "@tractor-store/decide": "/playground/decide/remoteEntry.json",
+  "@tractor-store/checkout": "/playground/checkout/remoteEntry.json"
+}
