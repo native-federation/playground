@@ -1,18 +1,21 @@
-<mfe-header></mfe-header>
+<mfe-header mfeRemote="@tractor-store/explore"></mfe-header>
 
 <main class="d_ProductPage">
   @if (product(); as p) {
 
   <div class="d_ProductPage__details">
+    @if (selectedVariant(); as variant) {
     <img
       class="d_ProductPage__productImage"
-      [src]="productImage()"
-      [attr.srcset]="productSrcset()"
+      [ngSrc]="variant.image"
+      ngSrcset="400w, 800w"
       sizes="400px"
+      [loaderParams]="{ size: 400 }"
       width="400"
       height="400"
       [alt]="productAlt()"
     />
+    }
     <div class="d_ProductPage__productInformation">
       <h2 class="d_ProductPage__title">{{ p.name }}</h2>
       <ul class="d_ProductPage__highlights">
@@ -31,14 +34,14 @@
         />
         }
       </ul>
-      <mfe-add-to-cart [attr.sku]="selectedSku()"></mfe-add-to-cart>
+      <mfe-add-to-cart mfeRemote="@tractor-store/checkout" [attr.sku]="selectedSku()"></mfe-add-to-cart>
     </div>
   </div>
-  <mfe-recommendations [attr.skus]="selectedSku()"></mfe-recommendations>
+  <mfe-recommendations mfeRemote="@tractor-store/explore" [attr.skus]="selectedSku()"></mfe-recommendations>
   } @else if (isLoading()) {
   <p>Loading…</p>
   } @else {
   <p>Product not found.</p>
   }
 </main>
-<mfe-footer></mfe-footer>
+<mfe-footer mfeRemote="@tractor-store/explore"></mfe-footer>

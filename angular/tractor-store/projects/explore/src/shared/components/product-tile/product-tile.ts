@@ -1,29 +1,30 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ViewEncapsulation,
   computed,
-  inject,
   input,
 } from '@angular/core';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NgOptimizedImage } from '@angular/common';
+import { NavigateToDirective } from '@tractor-store/shared';
 import type { ProductModel } from '../../../core/data/contracts/models/product.model';
-import { ResourceService } from '../../utils/resource.service';
 import { fmtPrice } from '../../utils/price';
 
 @Component({
   selector: 'app-product-tile',
-  imports: [NavigateToDirective],
+  imports: [NgOptimizedImage, NavigateToDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.ShadowDom,
   styleUrl: './product-tile.scss',
   template: `
     <li class="e_Product">
-      <a class="e_Product_link" [appNavigateTo]="product().link.intent" [navPayload]="product().link.params ?? {}">
+      <a
+        class="e_Product_link"
+        [appNavigateTo]="product().link.intent"
+        [navPayload]="product().link.params ?? {}"
+      >
         <img
           class="e_Product_image"
-          [src]="imgSrc()"
-          [srcset]="imgSrcset()"
+          [ngSrc]="product().image"
+          ngSrcset="200w, 400w, 800w"
           sizes="300px"
           width="200"
           height="200"
@@ -36,12 +37,6 @@ import { fmtPrice } from '../../utils/price';
   `,
 })
 export class ProductTileComponent {
-  private readonly image = inject(ResourceService);
-
   readonly product = input.required<ProductModel>();
-  readonly imgSrc = computed(() => this.image.imgSrc(this.product().image, 200));
-  readonly imgSrcset = computed(() =>
-    this.image.imgSrcset(this.product().image, [200, 400, 800]),
-  );
   readonly price = computed(() => fmtPrice(this.product().startPrice));
 }

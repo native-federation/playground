@@ -4,7 +4,10 @@
       <a class="e_Header__link" [appNavigateTo]="'explore.home'">
         <img
           class="e_Header__logo"
-          [src]="logoUrl"
+          ngSrc="/cdn/img/logo.svg"
+          width="700"
+          height="200"
+          disableOptimizedSrcset
           alt="Micro Frontends - Tractor Store"
         />
       </a>
@@ -12,7 +15,7 @@
         <app-navigation></app-navigation>
       </div>
       <div class="e_Header__cart">
-        <mfe-mini-cart></mfe-mini-cart>
+        <mfe-mini-cart mfeRemote="@tractor-store/checkout"></mfe-mini-cart>
       </div>
     </div>
   </div>

@@ -7,15 +7,18 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { param, RouteParams } from '@ng-internal/url';
+import { NgOptimizedImage } from '@angular/common';
+import {
+  RemoteElementDirective,
+  param,
+  RouteParams,
+} from '@tractor-store/shared';
 import { ProductHttp } from '../../core/data/http/product-http';
 import { VariantOption } from '../../shared/components/variant-option/variant-option';
-import { ResourceService } from '../../shared/utils/resource.service';
-import { LOADER } from '../../core/remote-loader';
 
 @Component({
   selector: 'app-product',
-  imports: [VariantOption],
+  imports: [NgOptimizedImage, RemoteElementDirective, VariantOption],
   templateUrl: './product.page.html',
   styleUrl: './product.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,15 +30,6 @@ import { LOADER } from '../../core/remote-loader';
 })
 export class ProductPage {
   private readonly productHttp = inject(ProductHttp);
-  private readonly image = inject(ResourceService);
-  private loader = inject(LOADER);
-
-  constructor() {
-    void this.loader('@tractor-store/explore', 'mfe-header');
-    void this.loader('@tractor-store/explore', 'mfe-footer');
-    void this.loader('@tractor-store/explore', 'mfe-recommendations');
-    void this.loader('@tractor-store/checkout', 'mfe-add-to-cart');
-  }
 
   readonly routeParams = input<RouteParams>({});
 
@@ -58,18 +52,6 @@ export class ProductPage {
   });
 
   readonly selectedSku = computed(() => this.selectedVariant()?.sku ?? '');
-
-  readonly productImage = computed(() => {
-    const variant = this.selectedVariant();
-    if (!variant) return '';
-    return this.image.imgSrc(variant.image, 400);
-  });
-
-  readonly productSrcset = computed(() => {
-    const variant = this.selectedVariant();
-    if (!variant) return '';
-    return this.image.imgSrcset(variant.image, [400, 800]);
-  });
 
   readonly productAlt = computed(() => {
     const product = this.product();

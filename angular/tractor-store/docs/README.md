@@ -37,9 +37,9 @@ Three ideas carry the weight in this repo:
 2. **A central event bus** (`window.__NF_REGISTRY__`). Remotes
    publish and subscribe to small, _typed_ channels instead of
    calling each other directly. Each channel is defined once with
-   `defineChannel<Payload>(name)` in `@ng-internal/event-bus`;
+   `defineChannel<Payload>(name)` in `@tractor-store/shared`;
    emitter and listener then share the same compile-time contract.
-   Navigation, store selection, and cart sync all ride on this bus.
+   Navigation and store selection ride on this bus.
 3. **Intent-based navigation.** A button in the _decide_ micro frontend that should
    open the cart never types `'/checkout/cart'`. It uses the
    `[appNavigateTo]` directive with the intent `'checkout.cart'`,
@@ -92,8 +92,8 @@ custom element inside its own page without going through the host.
 
 - **[Architecture](./architecture.md)** — what the host owns, what
   each remote owns, and the three decoupling mechanisms (custom
-  elements, the event bus, intent-based navigation) plus how shared
-  libraries are scoped.
+  elements, the event bus, intent-based navigation) plus how the
+  shared library is scoped.
 - **[Navigation](./navigation.md)** — the intent-based navigation
   system and why it is the load-bearing piece of the host/remote
   decoupling.
@@ -103,27 +103,32 @@ custom element inside its own page without going through the host.
 
 ## Where does X live?
 
-| Concern                                      | File / module                                                             |
-| -------------------------------------------- | ------------------------------------------------------------------------- |
-| Host bootstrap & federation init             | `projects/host/src/main.ts`                                               |
-| Host DI providers & Router setup             | `projects/host/src/app/app.config.ts`                                     |
-| App-initializer that wires the registry      | `projects/host/src/app/nav/provide-shell-nav.ts`                          |
-| Building routes from contributions           | `projects/host/src/app/nav/setup-shell-nav.ts`, `remote-routes.ts`        |
-| Loading a remote's custom element            | `libs/federation/src/lib/federation.ts` (`createSliceLoader`)             |
-| Host route → element mount                   | `projects/host/src/app/loader/remote-shell.component.ts`                  |
-| Cross-MFE link directive (`[appNavigateTo]`) | `libs/navigation/src/lib/navigate-to.directive.ts`                        |
-| Intent → URL resolution                      | `projects/host/src/app/nav/nav-registry.ts`                               |
-| Event-bus channel factory                    | `libs/event-bus/src/lib/event-bus-setup.ts` (`defineChannel`)             |
-| Navigation channels                          | `libs/event-bus/src/lib/nav-event-bus.ts` (`nav:navigate`, `nav:intents`) |
-| Store-selected channel                       | `libs/event-bus/src/lib/store-event-bus.ts` (`store:selected`)            |
-| Cross-instance cart sync                     | `projects/checkout/src/core/data/store/cart-bus.ts` (`cart:updated`)      |
-| Path/query helpers (shared)                  | `libs/url/src/lib/path-template.ts`, `query.ts`, `route-params.ts`        |
-| `NavPayload` / `RouteParams` types           | `libs/url/src/lib/nav-payload.ts`, `route-params.ts`                      |
-| Remote bootstrap (custom-element)            | `projects/<remote>/src/features/<feature>/bootstrap.ts`                   |
-| Per-remote shared injector                   | `projects/<remote>/src/core/shared-injector.ts`                           |
-| Per-remote slice-loader token                | `projects/<remote>/src/core/remote-loader.ts` (`LOADER`)                  |
-| Remote nav contribution                      | `projects/<remote>/src/core/nav-contribution.ts`                          |
-| Federation config (per app)                  | `projects/<app>/federation.config.mjs`                                    |
-| Runtime remote discovery                     | `projects/<app>/public/federation.manifest.json`                          |
-| Per-environment values                       | `projects/<app>/public/env.config.json`                                   |
-| Team boundary visualisation overlay          | `public/cdn/js/helper.js`                                                 |
+| Concern                                      | File / module                                                                 |
+| -------------------------------------------- | ----------------------------------------------------------------------------- |
+| Bootstrap & federation init (every app)      | `projects/<app>/src/main.ts`                                                  |
+| Host DI providers & Router setup             | `projects/host/src/app/app.config.ts`                                         |
+| App-initializer that loads contributions     | `projects/host/src/app/nav/remote-navigation.ts` (`provideRemoteNavigation`)  |
+| Building routes from contributions           | `projects/host/src/app/nav/remote-routes.ts` (`buildRemoteRoutes`)            |
+| Building the intent map                      | `projects/host/src/app/nav/remote-navigation.ts` (`buildIntentMap`)           |
+| Loading a remote's custom element            | `libs/shared/src/federation/remote-loader.ts` (`createRemoteLoader`)          |
+| Embedding a foreign `mfe-*` element          | `libs/shared/src/federation/remote-element.directive.ts` (`[mfeRemote]`)      |
+| `ENV` / `LOAD_REMOTE` tokens                 | `libs/shared/src/federation/env.ts`, `remote-loader.ts`, `provide-env.ts`     |
+| CDN image loader (`ngSrc`)                   | `libs/shared/src/ui/cdn-image-loader.ts`                                      |
+| Host route → element mount                   | `projects/host/src/app/loader/remote-shell.component.ts`                      |
+| Cross-MFE link directive (`[appNavigateTo]`) | `libs/shared/src/nav/navigate-to.directive.ts`                                |
+| Intent → URL resolution                      | `libs/shared/src/nav/intent-url.ts` (`resolveIntentUrl`)                      |
+| Event-bus channel factory                    | `libs/shared/src/bus/channel.ts` (`defineChannel`, `defineResource`, `listenTo`) |
+| Navigation channels                          | `libs/shared/src/bus/nav-channels.ts` (`nav:navigate`, `nav:intents`)         |
+| Store-selected channel                       | `libs/shared/src/bus/store-channels.ts` (`store:selected`)                    |
+| Cart state & cross-tab sync                  | `projects/checkout/src/core/data/store/cart-store.ts`                         |
+| Path/query helpers (shared)                  | `libs/shared/src/nav/path-template.ts`, `query.ts`, `route-params.ts`         |
+| `NavPayload` / `RouteParams` types           | `libs/shared/src/nav/nav-payload.ts`, `route-params.ts`                       |
+| Nav contribution / intent map types          | `libs/shared/src/nav/contribution.ts`                                         |
+| Remote bootstrap (custom-element)            | `projects/<remote>/src/features/<feature>/bootstrap.ts`                       |
+| Per-remote Angular application               | `projects/<remote>/src/core/remote-app.ts` (`defineRemoteApp`)                |
+| Remote nav contribution                      | `projects/<remote>/src/core/nav-contribution.ts`                              |
+| Fake event bus for tests                     | `libs/shared/src/testing/install-registry-stub.ts`                            |
+| Federation config (per app)                  | `projects/<app>/federation.config.mjs`                                        |
+| Runtime remote discovery                     | `projects/<app>/public/federation.manifest.json`                              |
+| Per-environment values                       | `projects/<app>/public/env.config.json`                                       |
+| Team boundary visualisation overlay          | `public/cdn/js/helper.js`                                                     |

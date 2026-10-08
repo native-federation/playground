@@ -1,8 +1,8 @@
 @let i = item();
 <a [appNavigateTo]="'decide.product'" [navPayload]="linkParams()" class="c_LineItem__image">
   <img
-    [src]="smallSrc()"
-    [srcset]="srcset()"
+    [ngSrc]="i.image"
+    ngSrcset="200w, 400w"
     sizes="200px"
     [alt]="i.name"
     width="200"

@@ -1,4 +1,4 @@
-<mfe-header></mfe-header>
+<mfe-header mfeRemote="@tractor-store/explore"></mfe-header>
 <main class="c_CartPage">
   <h2>Basket</h2>
   <ul class="c_CartPage__lineItems" role="list">
@@ -14,6 +14,6 @@
     <ts-button variant="secondary" [appNavigateTo]="'explore.home'">Continue Shopping</ts-button>
   </div>
 
-  <mfe-recommendations [attr.skus]="skusCsv()"></mfe-recommendations>
+  <mfe-recommendations mfeRemote="@tractor-store/explore" [attr.skus]="skusCsv()"></mfe-recommendations>
 </main>
-<mfe-footer></mfe-footer>
+<mfe-footer mfeRemote="@tractor-store/explore"></mfe-footer>

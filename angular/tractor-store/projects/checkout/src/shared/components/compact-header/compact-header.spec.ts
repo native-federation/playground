@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NavigateToDirective, provideEnv } from '@tractor-store/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ENV } from '../../../env.config';
 import { testEnv } from '../../../testing/env.fixture';
 import { CompactHeaderComponent } from './compact-header';
 
@@ -11,7 +10,7 @@ describe('CompactHeaderComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CompactHeaderComponent],
-      providers: [provideRouter([]), { provide: ENV, useValue: testEnv }],
+      providers: [provideRouter([]), provideEnv(testEnv)],
     }).compileComponents();
   });
 
@@ -21,14 +20,8 @@ describe('CompactHeaderComponent', () => {
     return fixture;
   }
 
-  it('exposes a cdn-prefixed logo url', () => {
-    expect(create().componentInstance.logoUrl).toBe(
-      'http://cdn.test/cdn/img/logo.svg',
-    );
-  });
-
   it('renders the logo with cdn src and accessible alt text', () => {
-    const img = (create().nativeElement as HTMLElement).shadowRoot!.querySelector(
+    const img = (create().nativeElement as HTMLElement).querySelector(
       'img',
     ) as HTMLImageElement;
     expect(img.getAttribute('src')).toBe('http://cdn.test/cdn/img/logo.svg');

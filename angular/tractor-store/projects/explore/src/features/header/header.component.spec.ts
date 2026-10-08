@@ -2,8 +2,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { LOADER } from '../../core/remote-loader';
-import { ENV } from '../../env.config';
+import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
 import { testEnv } from '../../testing/env.fixture';
 import { HeaderComponent } from './header.component';
 
@@ -16,8 +15,8 @@ describe('HeaderComponent', () => {
       imports: [HeaderComponent],
       providers: [
         provideRouter([]),
-        { provide: ENV, useValue: testEnv },
-        { provide: LOADER, useValue: loader },
+        provideEnv(testEnv),
+        { provide: LOAD_REMOTE, useValue: loader },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
@@ -26,9 +25,9 @@ describe('HeaderComponent', () => {
   it('renders the cdn-prefixed logo', () => {
     const fixture = TestBed.createComponent(HeaderComponent);
     fixture.detectChanges();
-    const img = (fixture.nativeElement as HTMLElement).shadowRoot!.querySelector(
-      '.e_Header__logo',
-    ) as HTMLImageElement;
+    const img = (
+      fixture.nativeElement as HTMLElement
+    ).shadowRoot!.querySelector('.e_Header__logo') as HTMLImageElement;
     expect(img.getAttribute('src')).toBe('http://cdn.test/cdn/img/logo.svg');
     expect(img.getAttribute('alt')).toBe('Micro Frontends - Tractor Store');
   });
@@ -45,8 +44,8 @@ describe('HeaderComponent', () => {
     const fixture = TestBed.createComponent(HeaderComponent);
     fixture.detectChanges();
     expect(
-      (fixture.nativeElement as HTMLElement).shadowRoot!
-        .querySelector('header')
+      (fixture.nativeElement as HTMLElement)
+        .shadowRoot!.querySelector('header')
         ?.getAttribute('data-boundary'),
     ).toBe('explore');
   });

@@ -3,15 +3,13 @@ import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CART_STORAGE_KEY } from '../../core/data/store/cart-store';
 import { VariantHttp } from '../../core/data/http/variant-http';
-import { LOADER } from '../../core/remote-loader';
-import { ENV } from '../../env.config';
+import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
 import { fakeVariantHttp } from '../../testing/variant-http.stub';
 import { CartPage } from './cart.page';
 
 const envFixture = {
   production: false,
   apiUrl: '',
-  scope: 'checkout',
   cdnUrl: '',
 };
 
@@ -21,8 +19,8 @@ function configure() {
     providers: [
       provideRouter([]),
       { provide: VariantHttp, useFactory: () => fakeVariantHttp() },
-      { provide: LOADER, useValue: () => Promise.resolve() },
-      { provide: ENV, useValue: envFixture },
+      { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
+      provideEnv(envFixture),
     ],
   }).compileComponents();
 }

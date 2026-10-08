@@ -1,13 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NavigateToDirective, provideEnv } from '@tractor-store/shared';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CART_STORAGE_KEY,
   CartStore,
 } from '../../../core/data/store/cart-store';
-import { ENV } from '../../../env.config';
 import { testEnv } from '../../../testing/env.fixture';
 import { LineItemComponent, LineItemView } from './line-item';
 
@@ -26,7 +25,7 @@ describe('LineItemComponent', () => {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [LineItemComponent],
-      providers: [provideRouter([]), { provide: ENV, useValue: testEnv }],
+      providers: [provideRouter([]), provideEnv(testEnv)],
     }).compileComponents();
   });
 
@@ -44,24 +43,11 @@ describe('LineItemComponent', () => {
         sku: 'AU-03-RD',
       });
     });
-
-    it('builds a cdn-prefixed 200w small src from the [size] placeholder', () => {
-      expect(create().componentInstance.smallSrc()).toBe(
-        'http://cdn.test/cdn/img/product/200/AU-03-RD.webp',
-      );
-    });
-
-    it('builds a srcset with 200w and 400w descriptors', () => {
-      expect(create().componentInstance.srcset()).toBe(
-        'http://cdn.test/cdn/img/product/200/AU-03-RD.webp 200w, ' +
-          'http://cdn.test/cdn/img/product/400/AU-03-RD.webp 400w',
-      );
-    });
   });
 
   describe('template rendering', () => {
     it('renders the variant name, sku, quantity and total', () => {
-      const el: ShadowRoot = (create().nativeElement as HTMLElement).shadowRoot!;
+      const el: HTMLElement = create().nativeElement as HTMLElement;
       expect(el.querySelector('.c_LineItem__name')?.textContent).toContain(
         'FutureHarvest Navigator Scarlet Dynamo',
       );
@@ -77,7 +63,7 @@ describe('LineItemComponent', () => {
     });
 
     it('renders the product image with src, srcset and alt', () => {
-      const img = (create().nativeElement as HTMLElement).shadowRoot!.querySelector(
+      const img = (create().nativeElement as HTMLElement).querySelector(
         'img',
       ) as HTMLImageElement;
       expect(img.getAttribute('src')).toBe(
@@ -144,9 +130,11 @@ describe('LineItemComponent', () => {
         sku: 'CL-01-GR',
       });
       expect(
-        ((fixture.nativeElement as HTMLElement).shadowRoot!.querySelector(
-          'img',
-        ) as HTMLImageElement).getAttribute('src'),
+        (
+          (fixture.nativeElement as HTMLElement).querySelector(
+            'img',
+          ) as HTMLImageElement
+        ).getAttribute('src'),
       ).toBe('http://cdn.test/cdn/img/product/200/CL-01-GR.webp');
     });
   });

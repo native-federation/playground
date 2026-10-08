@@ -1,33 +1,25 @@
 import { initFederation } from '@softarc/native-federation-orchestrator';
 import {
-  useShimImportMap,
   consoleLogger,
   globalThisStorageEntry,
+  useShimImportMap,
 } from '@softarc/native-federation-orchestrator/options';
-import {
-  createRegistry,
-  NFEventRegistry,
-} from '@softarc/native-federation-orchestrator/registry';
+import { createRegistry } from '@softarc/native-federation-orchestrator/registry';
 
-declare global {
-  interface Window {
-    __NF_REGISTRY__: NFEventRegistry;
-  }
-}
+// The event bus must exist before any remote code runs.
+window.__NF_REGISTRY__ ??= Object.freeze(
+  createRegistry({ maxStreams: 20, maxEvents: 1, removePercentage: 0.25 })(),
+);
 
-(function (): void {
-  const registry = createRegistry({
-    maxStreams: 20,
-    maxEvents: 1,
-    removePercentage: 0.25,
-  });
-  window.__NF_REGISTRY__ = Object.freeze(registry());
-})();
+// Always revalidate: these files differ per deployment.
+const fetchJson = (url: string) =>
+  fetch(url, { cache: 'no-cache' }).then((resp) => resp.json());
 
 let showErrors = false;
+
 Promise.all([
-  fetch('./env.config.json').then((resp) => resp.json()),
-  fetch('./federation.manifest.json').then((resp) => resp.json()),
+  fetchJson('./env.config.json'),
+  fetchJson('./federation.manifest.json'),
 ])
   .then(async ([env, manifest]) => {
     showErrors = !env.production;
@@ -38,9 +30,8 @@ Promise.all([
       hostRemoteEntry: './remoteEntry.json',
       logLevel: 'debug',
     });
-    return import('./app/bootstrap').then((m) =>
-      m.bootstrap(env, nf, manifest),
-    );
+    const { bootstrap } = await import('./app/bootstrap');
+    await bootstrap(env, nf, manifest);
   })
   .catch((err) => {
     console.error('Failed to load app!');

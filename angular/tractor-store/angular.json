@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-architects/native-federation:build",
           "options": {
-						"cacheExternalArtifacts": true,
+            "cacheExternalArtifacts": true,
             "tsConfig": "projects/host/tsconfig.federation.json",
             "entryPoints": [
               "projects/host/src/main.ts"
@@ -39,8 +39,8 @@
           "options": {
             "target": "host:serve-original:development",
             "tsConfig": "projects/host/tsconfig.federation.json",
-						"cacheExternalArtifacts": true,
-						"rebuildDelay": 500,
+            "cacheExternalArtifacts": true,
+            "rebuildDelay": 500,
             "dev": true,
             "port": 0
           }
@@ -53,7 +53,7 @@
           "options": {
             "buildTarget": "host:esbuild:development",
             "setupFiles": [
-              "libs/event-bus/src/testing/install-registry-stub.ts"
+              "libs/shared/src/testing/install-registry-stub.ts"
             ]
           }
         },
@@ -137,7 +137,7 @@
           "options": {
             "projectName": "explore",
             "tsConfig": "projects/explore/tsconfig.federation.json",
-						"cacheExternalArtifacts": true,
+            "cacheExternalArtifacts": true,
             "entryPoints": [
               "projects/explore/src/main.ts"
             ]
@@ -159,8 +159,8 @@
             "projectName": "explore",
             "tsConfig": "projects/explore/tsconfig.federation.json",
             "target": "explore:serve-original:development",
-						"cacheExternalArtifacts": true,
-						"rebuildDelay": 500,
+            "cacheExternalArtifacts": true,
+            "rebuildDelay": 500,
             "dev": true,
             "devServer": true,
             "port": 0,
@@ -174,7 +174,7 @@
           "options": {
             "buildTarget": "explore:esbuild:development",
             "setupFiles": [
-              "libs/event-bus/src/testing/install-registry-stub.ts"
+              "libs/shared/src/testing/install-registry-stub.ts"
             ]
           }
         },
@@ -254,7 +254,7 @@
           "options": {
             "projectName": "decide",
             "tsConfig": "projects/decide/tsconfig.federation.json",
-						"cacheExternalArtifacts": true,
+            "cacheExternalArtifacts": true,
             "entryPoints": [
               "projects/decide/src/main.ts"
             ]
@@ -276,8 +276,8 @@
             "projectName": "decide",
             "tsConfig": "projects/decide/tsconfig.federation.json",
             "target": "decide:serve-original:development",
-						"cacheExternalArtifacts": true,
-						"rebuildDelay": 500,
+            "cacheExternalArtifacts": true,
+            "rebuildDelay": 500,
             "dev": true,
             "devServer": true,
             "port": 0,
@@ -291,7 +291,7 @@
           "options": {
             "buildTarget": "decide:esbuild:development",
             "setupFiles": [
-              "libs/event-bus/src/testing/install-registry-stub.ts"
+              "libs/shared/src/testing/install-registry-stub.ts"
             ]
           }
         },
@@ -371,7 +371,7 @@
           "options": {
             "projectName": "checkout",
             "tsConfig": "projects/checkout/tsconfig.federation.json",
-						"cacheExternalArtifacts": true,
+            "cacheExternalArtifacts": true,
             "entryPoints": [
               "projects/checkout/src/main.ts"
             ]
@@ -393,8 +393,8 @@
             "projectName": "checkout",
             "tsConfig": "projects/checkout/tsconfig.federation.json",
             "target": "checkout:serve-original:development",
-						"cacheExternalArtifacts": true,
-						"rebuildDelay": 500,
+            "cacheExternalArtifacts": true,
+            "rebuildDelay": 500,
             "dev": true,
             "devServer": true,
             "port": 0,
@@ -408,7 +408,7 @@
           "options": {
             "buildTarget": "checkout:esbuild:development",
             "setupFiles": [
-              "libs/event-bus/src/testing/install-registry-stub.ts"
+              "libs/shared/src/testing/install-registry-stub.ts"
             ]
           }
         },
@@ -472,164 +472,20 @@
         }
       }
     },
-    "event-bus": {
+    "shared": {
       "projectType": "library",
-      "root": "libs/event-bus",
-      "sourceRoot": "libs/event-bus/src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "libs/event-bus/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "libs/event-bus/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "libs/event-bus/tsconfig.spec.json",
-            "setupFiles": [
-              "libs/event-bus/src/testing/install-registry-stub.ts"
-            ]
-          }
-        }
-      }
-    },
-    "navigation": {
-      "projectType": "library",
-      "root": "libs/navigation",
-      "sourceRoot": "libs/navigation/src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "libs/navigation/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "libs/navigation/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "libs/navigation/tsconfig.spec.json",
-            "setupFiles": [
-              "libs/event-bus/src/testing/install-registry-stub.ts"
-            ]
-          }
-        }
-      }
-    },
-    "url": {
-      "projectType": "library",
-      "root": "libs/url",
-      "sourceRoot": "libs/url/src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "libs/url/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "libs/url/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "libs/url/tsconfig.spec.json"
-          }
-        }
-      }
-    },
-    "ui": {
-      "projectType": "library",
-      "root": "libs/ui",
-      "sourceRoot": "libs/ui/src",
+      "root": "libs/shared",
+      "sourceRoot": "libs/shared/src",
       "prefix": "ts",
       "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "libs/ui/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "libs/ui/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "tsConfig": "libs/ui/tsconfig.spec.json"
-          }
-        }
-      }
-    },
-    "federation": {
-      "projectType": "library",
-      "root": "libs/federation",
-      "sourceRoot": "libs/federation/src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "libs/federation/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "libs/federation/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "libs/federation/tsconfig.spec.json"
-          }
-        }
-      }
-    },
-    "logging": {
-      "projectType": "library",
-      "root": "libs/logging",
-      "sourceRoot": "libs/logging/src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "libs/logging/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "libs/logging/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "libs/logging/tsconfig.spec.json"
+            "buildTarget": "host:esbuild:development",
+            "tsConfig": "libs/shared/tsconfig.spec.json",
+            "setupFiles": [
+              "libs/shared/src/testing/install-registry-stub.ts"
+            ]
           }
         }
       }

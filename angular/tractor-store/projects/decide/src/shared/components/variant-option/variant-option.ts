@@ -1,11 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ViewEncapsulation,
   computed,
   input,
 } from '@angular/core';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NavigateToDirective } from '@tractor-store/shared';
 
 @Component({
   selector: 'app-variant-option',
@@ -16,13 +15,14 @@ import { NavigateToDirective } from '@ng-internal/navigation';
       @if (selected()) {
         <strong>{{ name() }}</strong>
       } @else {
-        <a [appNavigateTo]="'decide.product'" [navPayload]="linkParams()">{{ name() }}</a>
+        <a [appNavigateTo]="'decide.product'" [navPayload]="linkParams()">{{
+          name()
+        }}</a>
       }
     </li>
   `,
   styleUrl: './variant-option.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.ShadowDom,
 })
 export class VariantOption {
   readonly id = input.required<string>();

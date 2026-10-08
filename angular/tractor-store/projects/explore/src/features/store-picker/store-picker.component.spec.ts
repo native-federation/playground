@@ -1,59 +1,27 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StoreHttp } from '../../core/data/http/store-http';
-import { ENV } from '../../env.config';
+import { provideEnv } from '@tractor-store/shared';
 import { testEnv } from '../../testing/env.fixture';
 import { fakeListHttp } from '../../testing/list-http.stub';
 import { storeFixture } from '../../testing/store.fixture';
 import { StorePickerComponent } from './store-picker.component';
-
-type Listener = (event: { data: unknown; timestamp: number }) => void;
-
-const fakeBus = () => {
-  const listeners = new Map<string, Listener[]>();
-  return {
-    on: (type: string, cb: Listener) => {
-      const arr = listeners.get(type) ?? [];
-      arr.push(cb);
-      listeners.set(type, arr);
-      return () => {
-        const next = (listeners.get(type) ?? []).filter((h) => h !== cb);
-        listeners.set(type, next);
-      };
-    },
-    onReady: () => () => {},
-    emit: (type: string, data: unknown) => {
-      for (const cb of listeners.get(type) ?? [])
-        cb({ data, timestamp: Date.now() });
-    },
-    register: async () => {},
-    clear: () => listeners.clear(),
-  };
-};
+import { installFakeRegistry } from '@tractor-store/shared/testing';
 
 describe('StorePickerComponent', () => {
-  let original: unknown;
-  let bus: ReturnType<typeof fakeBus>;
+  let bus: ReturnType<typeof installFakeRegistry>;
 
   beforeEach(async () => {
-    original = (window as unknown as { __NF_REGISTRY__?: unknown })
-      .__NF_REGISTRY__;
-    bus = fakeBus();
-    (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ = bus;
+    bus = installFakeRegistry();
     await TestBed.configureTestingModule({
       imports: [StorePickerComponent],
       providers: [
         provideRouter([]),
-        { provide: ENV, useValue: testEnv },
+        provideEnv(testEnv),
         { provide: StoreHttp, useValue: fakeListHttp(storeFixture) },
       ],
     }).compileComponents();
-  });
-
-  afterEach(() => {
-    (window as unknown as { __NF_REGISTRY__: unknown }).__NF_REGISTRY__ =
-      original;
   });
 
   function create() {
@@ -64,9 +32,9 @@ describe('StorePickerComponent', () => {
 
   it('renders one entry per store with cdn-prefixed image src/srcset', () => {
     const fixture = create();
-    const entries = (fixture.nativeElement as HTMLElement).shadowRoot!.querySelectorAll(
-      '.e_StorePicker_entry',
-    );
+    const entries = (
+      fixture.nativeElement as HTMLElement
+    ).shadowRoot!.querySelectorAll('.e_StorePicker_entry');
     expect(entries.length).toBe(2);
 
     const firstImg = entries[0].querySelector('img') as HTMLImageElement;
@@ -74,8 +42,8 @@ describe('StorePickerComponent', () => {
       'http://cdn.test/img/200/store-1.webp',
     );
     expect(firstImg.getAttribute('srcset')).toBe(
-      'http://cdn.test/img/200/store-1.webp 200w, ' +
-        'http://cdn.test/img/400/store-1.webp 400w',
+      'http://cdn.test/img/200/store-1.webp 1x, ' +
+        'http://cdn.test/img/400/store-1.webp 2x',
     );
   });
 
@@ -85,7 +53,7 @@ describe('StorePickerComponent', () => {
       imports: [StorePickerComponent],
       providers: [
         provideRouter([]),
-        { provide: ENV, useValue: testEnv },
+        provideEnv(testEnv),
         { provide: StoreHttp, useValue: fakeListHttp(undefined) },
       ],
     });
@@ -120,9 +88,9 @@ describe('StorePickerComponent', () => {
     expect(cmp.selected()).toEqual(storeFixture[1]);
     expect(seen).toHaveBeenCalledWith({ id: 'store-b' });
 
-    const selectedDisplay = (fixture.nativeElement as HTMLElement).shadowRoot!.querySelector(
-      '.e_StorePicker_selected',
-    ) as HTMLElement;
+    const selectedDisplay = (
+      fixture.nativeElement as HTMLElement
+    ).shadowRoot!.querySelector('.e_StorePicker_selected') as HTMLElement;
     expect(selectedDisplay).not.toBeNull();
     expect(selectedDisplay.textContent).toContain('Big Micro');
     expect(selectedDisplay.textContent).toContain('Broadway 2');

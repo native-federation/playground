@@ -2,7 +2,7 @@ import {
   FederationManifest,
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
-import { NavContribution } from '@ng-internal/navigation';
+import { NavContribution } from '@tractor-store/shared';
 
 export const NAV_CONTRIBUTION_MODULE = 'nav-contribution';
 
@@ -14,11 +14,7 @@ export interface RemoteRouteContribution {
 const isNavContribution = (v: unknown): v is NavContribution => {
   if (typeof v !== 'object' || v === null) return false;
   const o = v as Record<string, unknown>;
-  return (
-    typeof o['source'] === 'string' &&
-    typeof o['basePath'] === 'string' &&
-    Array.isArray(o['intents'])
-  );
+  return typeof o['basePath'] === 'string' && Array.isArray(o['intents']);
 };
 
 const loadContribution = async (

@@ -3,28 +3,26 @@ import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
   ViewEncapsulation,
-  inject,
 } from '@angular/core';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NgOptimizedImage } from '@angular/common';
+import {
+  RemoteElementDirective,
+  NavigateToDirective,
+} from '@tractor-store/shared';
 import { NavigationComponent } from '../../shared/components/navigation/navigation';
-import { ResourceService } from '../../shared/utils/resource.service';
-import { LOADER } from '../../core/remote-loader';
 
 @Component({
   selector: 'app-header',
-  imports: [NavigationComponent, NavigateToDirective],
+  imports: [
+    NgOptimizedImage,
+    RemoteElementDirective,
+    NavigationComponent,
+    NavigateToDirective,
+  ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class HeaderComponent {
-  private readonly image = inject(ResourceService);
-  readonly logoUrl = this.image.cdnUrl('/cdn/img/logo.svg');
-  private readonly loader = inject(LOADER);
-
-  constructor() {
-    void this.loader('@tractor-store/checkout', 'mfe-mini-cart');
-  }
-}
+export class HeaderComponent {}

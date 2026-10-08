@@ -1,10 +1,5 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ViewEncapsulation,
-  input,
-} from '@angular/core';
-import { NavigateToDirective, NavTarget } from '@ng-internal/navigation';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { NavigateToDirective, NavTarget } from '@tractor-store/shared';
 
 export interface FilterItem {
   link: NavTarget;
@@ -16,7 +11,6 @@ export interface FilterItem {
   selector: 'app-filter',
   imports: [NavigateToDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.ShadowDom,
   styleUrl: './filter.scss',
   template: `
     <div class="e_Filter">
@@ -26,7 +20,13 @@ export interface FilterItem {
           @if (f.active) {
             <li class="e_Filter__filter--active">{{ f.name }}</li>
           } @else {
-            <li><a [appNavigateTo]="f.link.intent" [navPayload]="f.link.params ?? {}">{{ f.name }}</a></li>
+            <li>
+              <a
+                [appNavigateTo]="f.link.intent"
+                [navPayload]="f.link.params ?? {}"
+                >{{ f.name }}</a
+              >
+            </li>
           }
         }
       </ul>

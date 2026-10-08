@@ -1,7 +1,6 @@
-import type { NavContribution } from '@ng-internal/navigation';
+import type { NavContribution } from '@tractor-store/shared';
 
 export const exploreContribution: NavContribution = {
-  source: '@tractor-store/explore',
   basePath: 'explore',
   intents: [
     { id: 'home', path: '/', element: 'mfe-explore-home' },
@@ -14,7 +13,6 @@ export const exploreContribution: NavContribution = {
 };
 
 export const decideContribution: NavContribution = {
-  source: '@tractor-store/decide',
   basePath: 'decide',
   intents: [
     {

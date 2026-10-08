@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { NavigateToDirective } from '@tractor-store/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { NavigationComponent } from './navigation';
 
@@ -17,8 +17,7 @@ describe('NavigationComponent', () => {
     const fixture = TestBed.createComponent(NavigationComponent);
     fixture.detectChanges();
     expect(
-      (fixture.nativeElement as HTMLElement).shadowRoot!.querySelectorAll('a')
-        .length,
+      (fixture.nativeElement as HTMLElement).querySelectorAll('a').length,
     ).toBe(2);
   });
 

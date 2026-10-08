@@ -1,17 +1,10 @@
 import { computed, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter, fromEvent } from 'rxjs';
 import type { CartLineItemModel } from '../contracts/models/cart-line-item.model';
-import {
-  CART_STORAGE_KEY,
-  cartUpdated,
-  parseCart,
-  serializeCart,
-} from './cart-bus';
+import { CART_STORAGE_KEY, parseCart, serializeCart } from './cart-storage';
 
-export { CART_STORAGE_KEY } from './cart-bus';
-
-function hasWindow(): boolean {
-  return typeof window !== 'undefined';
-}
+export { CART_STORAGE_KEY } from './cart-storage';
 
 @Injectable({ providedIn: 'root' })
 export class CartStore {
@@ -26,23 +19,27 @@ export class CartStore {
   );
 
   constructor() {
-    cartUpdated.on(({ items }) => this._lineItems.set([...items]));
+    // A storage event only fires in the *other* tabs, so this never echoes our own writes.
+    fromEvent<StorageEvent>(window, 'storage')
+      .pipe(
+        filter((event) => event.key === CART_STORAGE_KEY),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) => this._lineItems.set(parseCart(event.newValue)));
   }
 
   add(sku: string): void {
-    const current = [...this._lineItems()];
-    const existing = current.find((item) => item.sku === sku);
-    if (existing) {
-      existing.quantity += 1;
-    } else {
-      current.push({ sku, quantity: 1 });
-    }
-    this.persist(current);
+    const items = this._lineItems();
+    const next = items.some((item) => item.sku === sku)
+      ? items.map((item) =>
+          item.sku === sku ? { ...item, quantity: item.quantity + 1 } : item,
+        )
+      : [...items, { sku, quantity: 1 }];
+    this.persist(next);
   }
 
   remove(sku: string): void {
-    const current = this._lineItems().filter((item) => item.sku !== sku);
-    this.persist(current);
+    this.persist(this._lineItems().filter((item) => item.sku !== sku));
   }
 
   clear(): void {
@@ -51,20 +48,16 @@ export class CartStore {
 
   private persist(items: CartLineItemModel[]): void {
     this._lineItems.set(items);
-    if (hasWindow()) {
-      try {
-        window.localStorage.setItem(CART_STORAGE_KEY, serializeCart(items));
-      } catch {
-        /* storage full or unavailable – ignore */
-      }
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, serializeCart(items));
+    } catch {
+      // Storage full or unavailable: the in-memory cart still works.
     }
-    cartUpdated.emit({ items });
   }
 
   private readFromStorage(): CartLineItemModel[] {
-    if (!hasWindow()) return [];
     try {
-      return parseCart(window.localStorage.getItem(CART_STORAGE_KEY));
+      return parseCart(localStorage.getItem(CART_STORAGE_KEY));
     } catch {
       return [];
     }

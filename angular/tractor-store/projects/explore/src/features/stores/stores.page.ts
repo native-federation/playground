@@ -8,11 +8,11 @@ import {
 } from '@angular/core';
 import { StoreHttp } from '../../core/data/http/store-http';
 import { StoreTileComponent } from '../../shared/components/store-tile/store-tile';
-import { LOADER } from '../../core/remote-loader';
+import { RemoteElementDirective } from '@tractor-store/shared';
 
 @Component({
   selector: 'app-stores',
-  imports: [StoreTileComponent],
+  imports: [RemoteElementDirective, StoreTileComponent],
   templateUrl: './stores.page.html',
   styleUrl: './stores.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,10 +24,4 @@ export class StoresPage {
   private readonly storeHttp = inject(StoreHttp);
   private readonly storesResource = this.storeHttp.list();
   readonly stores = computed(() => this.storesResource.value() ?? []);
-  private readonly loader = inject(LOADER);
-
-  constructor() {
-    void this.loader('@tractor-store/explore', 'mfe-header');
-    void this.loader('@tractor-store/explore', 'mfe-footer');
-  }
 }

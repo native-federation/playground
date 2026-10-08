@@ -1,20 +1,12 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ViewEncapsulation,
-  computed,
-  inject,
-  input,
-} from '@angular/core';
-import { NavigateToDirective } from '@ng-internal/navigation';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { NavigateToDirective } from '@tractor-store/shared';
 import type { RecommendationModel } from '../../../core/data/contracts/models/recommendation.model';
-import { ResourceService } from '../../utils/resource.service';
 
 @Component({
   selector: 'app-recommendation',
-  imports: [NavigateToDirective],
+  imports: [NgOptimizedImage, NavigateToDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.ShadowDom,
   styleUrl: './recommendation.scss',
   template: `
     <li class="e_Recommendation">
@@ -25,8 +17,8 @@ import { ResourceService } from '../../utils/resource.service';
       >
         <img
           class="e_Recommendation_image"
-          [src]="imgSrc()"
-          [srcset]="imgSrcset()"
+          [ngSrc]="item().image"
+          ngSrcset="200w, 400w"
           alt=""
           sizes="200px"
           width="200"
@@ -38,11 +30,5 @@ import { ResourceService } from '../../utils/resource.service';
   `,
 })
 export class RecommendationComponent {
-  private readonly image = inject(ResourceService);
-
   readonly item = input.required<RecommendationModel>();
-  readonly imgSrc = computed(() => this.image.imgSrc(this.item().image, 200));
-  readonly imgSrcset = computed(() =>
-    this.image.imgSrcset(this.item().image, [200, 400]),
-  );
 }

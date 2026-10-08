@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { NavContribution } from '@ng-internal/navigation';
+import type { NavContribution } from '@tractor-store/shared';
 import { buildRemoteRoutes } from './remote-routes';
 
-const loaded = (contribution: NavContribution) => ({
-  remoteName: contribution.source,
+const loaded = (remoteName: string, contribution: NavContribution) => ({
+  remoteName,
   contribution,
 });
 
@@ -20,8 +20,7 @@ describe('buildRemoteRoutes', () => {
 
   it('builds one route per routed intent', () => {
     const routes = buildRemoteRoutes([
-      loaded({
-        source: '@x/explore',
+      loaded('@x/explore', {
         basePath: 'explore',
         intents: [
           { id: 'explore.home', path: '/', element: 'mfe-home' },
@@ -45,8 +44,7 @@ describe('buildRemoteRoutes', () => {
 
   it('attaches a lazy loadComponent to each route', () => {
     const routes = buildRemoteRoutes([
-      loaded({
-        source: '@x/explore',
+      loaded('@x/explore', {
         basePath: 'explore',
         intents: [{ id: 'a', path: '/', element: 'mfe-a' }],
       }),
@@ -56,8 +54,7 @@ describe('buildRemoteRoutes', () => {
 
   it('skips intents without an element (link-only intents)', () => {
     const routes = buildRemoteRoutes([
-      loaded({
-        source: '@x/decide',
+      loaded('@x/decide', {
         basePath: 'decide',
         intents: [
           { id: 'decide.product', path: '/product/{id}', element: 'mfe-p' },
@@ -73,8 +70,7 @@ describe('buildRemoteRoutes', () => {
 
   it('warns and skips contributions with no routed intents', () => {
     const routes = buildRemoteRoutes([
-      loaded({
-        source: '@x/link-only',
+      loaded('@x/link-only', {
         basePath: 'l',
         intents: [{ id: 'l.go', path: '/go' }],
       }),

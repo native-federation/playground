@@ -61,12 +61,12 @@ jobs:
         run: |
           # main.ts in each app fetches env.config.json and
           # federation.manifest.json separately, so we rewrite both per app.
-          # env.config.json shape: { production, apiUrl, scope, cdnUrl }
+          # env.config.json shape: { production, apiUrl, cdnUrl }
           # federation.manifest.json shape: { "<remote>": "<remoteEntryUrl>", ... }
 
           # Host
           jq --arg b "${BASE_PATH}" \
-             '{ production: true, apiUrl: "", scope: $b, cdnUrl: $b }' \
+             '{ production: true, apiUrl: "", cdnUrl: $b }' \
              _site/env.config.json > _site/env.config.json.tmp
           mv _site/env.config.json.tmp _site/env.config.json
 
@@ -77,7 +77,7 @@ jobs:
           }' _site/federation.manifest.json > _site/federation.manifest.json.tmp
           mv _site/federation.manifest.json.tmp _site/federation.manifest.json
 
-          # Per-remote: scope is the remote's own folder; manifest lists the
+          # Per-remote: the manifest lists the
           # sibling remotes this app loads when running standalone. Mirrors
           # the dev-time entries in each remote's public/federation.manifest.json.
           declare -A remote_manifest=(
@@ -86,8 +86,8 @@ jobs:
             [checkout]='{"@tractor-store/explore": "/explore/remoteEntry.json"}'
           )
           for app in explore decide checkout; do
-            jq --arg b "${BASE_PATH}" --arg s "${BASE_PATH}/$app" \
-               '{ production: true, apiUrl: "", scope: $s, cdnUrl: $b }' \
+            jq --arg b "${BASE_PATH}" \
+               '{ production: true, apiUrl: "", cdnUrl: $b }' \
                "_site/$app/env.config.json" > "_site/$app/env.config.json.tmp"
             mv "_site/$app/env.config.json.tmp" "_site/$app/env.config.json"
 

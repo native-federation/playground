@@ -2,8 +2,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StoreHttp } from '../../core/data/http/store-http';
-import { LOADER } from '../../core/remote-loader';
-import { ENV } from '../../env.config';
+import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
 import { testEnv } from '../../testing/env.fixture';
 import { fakeListHttp } from '../../testing/list-http.stub';
 import { storeFixture } from '../../testing/store.fixture';
@@ -17,8 +16,8 @@ describe('StoresPage', () => {
     await TestBed.configureTestingModule({
       imports: [StoresPage],
       providers: [
-        { provide: ENV, useValue: testEnv },
-        { provide: LOADER, useValue: loader },
+        provideEnv(testEnv),
+        { provide: LOAD_REMOTE, useValue: loader },
         { provide: StoreHttp, useValue: fakeListHttp(storeFixture) },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -49,8 +48,11 @@ describe('StoresPage', () => {
     TestBed.configureTestingModule({
       imports: [StoresPage],
       providers: [
-        { provide: ENV, useValue: testEnv },
-        { provide: LOADER, useValue: vi.fn().mockResolvedValue(undefined) },
+        provideEnv(testEnv),
+        {
+          provide: LOAD_REMOTE,
+          useValue: vi.fn().mockResolvedValue(undefined),
+        },
         { provide: StoreHttp, useValue: fakeListHttp(undefined) },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -74,9 +76,7 @@ describe('StoresPage', () => {
     const fixture = TestBed.createComponent(StoresPage);
     fixture.detectChanges();
     expect(
-      (fixture.nativeElement as HTMLElement).getAttribute(
-        'data-boundary-page',
-      ),
+      (fixture.nativeElement as HTMLElement).getAttribute('data-boundary-page'),
     ).toBe('explore');
   });
 });

@@ -1,17 +1,20 @@
 import {
   ApplicationConfig,
-  InjectionToken,
   provideZonelessChangeDetection,
 } from '@angular/core';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import {
+import type {
   FederationManifest,
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
-import { EnvironmentConfig, createSliceLoader } from '@ng-internal/federation';
-import { ENV, LOAD_REMOTE_SLICE } from './env.config';
-import { provideHttpClient, withFetch } from '@angular/common/http';
-import { provideShellNav } from './nav/provide-shell-nav';
+import {
+  createRemoteLoader,
+  type EnvironmentConfig,
+  LOAD_REMOTE,
+  provideEnv,
+} from '@tractor-store/shared';
+import { provideRemoteNavigation } from './nav/remote-navigation';
 
 export const appConfig = (
   env: EnvironmentConfig,
@@ -19,14 +22,11 @@ export const appConfig = (
   manifest: FederationManifest,
 ): ApplicationConfig => ({
   providers: [
-    { provide: ENV, useValue: env },
-    {
-      provide: LOAD_REMOTE_SLICE,
-      useValue: createSliceLoader(env, nf, manifest),
-    },
+    provideEnv(env),
+    { provide: LOAD_REMOTE, useValue: createRemoteLoader(env, nf) },
     provideHttpClient(withFetch()),
     provideZonelessChangeDetection(),
     provideRouter([], withComponentInputBinding()),
-    provideShellNav(nf, manifest),
+    provideRemoteNavigation(nf, manifest),
   ],
 });

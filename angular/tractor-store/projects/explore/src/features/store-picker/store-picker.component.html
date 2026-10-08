@@ -1,11 +1,10 @@
 <div class="e_StorePicker">
   <div class="e_StorePicker_control" data-boundary="explore">
-    @if (selectedView(); as s) {
+    @if (selected(); as s) {
       <div class="e_StorePicker_selected">
         <img
           class="e_StorePicker_image"
-          [src]="s.src"
-          [srcset]="s.srcset"
+          [ngSrc]="s.image"
           width="200"
           height="200"
           alt=""
@@ -34,8 +33,7 @@
             <div class="e_StorePicker_content">
               <img
                 class="e_StorePicker_image"
-                [src]="s.src"
-                [srcset]="s.srcset"
+                [ngSrc]="s.image"
                 width="200"
                 height="200"
                 alt=""

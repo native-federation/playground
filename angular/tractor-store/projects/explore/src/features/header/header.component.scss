@@ -90,6 +90,7 @@
 }
 
 .e_Header__logo {
+  height: auto;
   @media (max-width: 499px) { width: 170px; }
   @media (min-width: 500px) { width: 270px; }
   aspect-ratio: 3.5;
