@@ -39,7 +39,7 @@ Three ideas carry the weight in this repo:
    calling each other directly. Each channel is defined once with
    `defineChannel<Payload>(name)` in `@tractor-store/shared`;
    emitter and listener then share the same compile-time contract.
-   Navigation, store selection, and cart sync all ride on this bus.
+   Navigation and store selection ride on this bus.
 3. **Intent-based navigation.** A button in the _decide_ micro frontend that should
    open the cart never types `'/checkout/cart'`. It uses the
    `[appNavigateTo]` directive with the intent `'checkout.cart'`,
@@ -120,7 +120,7 @@ custom element inside its own page without going through the host.
 | Event-bus channel factory                    | `libs/shared/src/bus/channel.ts` (`defineChannel`, `defineResource`, `listenTo`) |
 | Navigation channels                          | `libs/shared/src/bus/nav-channels.ts` (`nav:navigate`, `nav:intents`)         |
 | Store-selected channel                       | `libs/shared/src/bus/store-channels.ts` (`store:selected`)                    |
-| Cross-instance cart sync                     | `projects/checkout/src/core/data/store/cart-bus.ts` (`cart:updated`)          |
+| Cart state & cross-tab sync                  | `projects/checkout/src/core/data/store/cart-store.ts`                         |
 | Path/query helpers (shared)                  | `libs/shared/src/nav/path-template.ts`, `query.ts`, `route-params.ts`         |
 | `NavPayload` / `RouteParams` types           | `libs/shared/src/nav/nav-payload.ts`, `route-params.ts`                       |
 | Nav contribution / intent map types          | `libs/shared/src/nav/contribution.ts`                                         |

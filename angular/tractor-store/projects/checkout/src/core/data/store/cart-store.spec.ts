@@ -1,18 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CART_STORAGE_KEY } from './cart-bus';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { CART_STORAGE_KEY } from './cart-storage';
 import { CartStore } from './cart-store';
-import { installFakeRegistry } from '@tractor-store/shared/testing';
-
-const CART_UPDATED = 'cart:updated';
 
 describe('CartStore', () => {
-  let bus: ReturnType<typeof installFakeRegistry>;
-
   beforeEach(() => {
     window.localStorage.clear();
     TestBed.resetTestingModule();
-    bus = installFakeRegistry();
   });
 
   function create(): CartStore {
@@ -64,24 +58,6 @@ describe('CartStore', () => {
     store.clear();
     expect(store.lineItems()).toEqual([]);
     expect(window.localStorage.getItem(CART_STORAGE_KEY)).toBe('');
-  });
-
-  it('emits an update on the NF registry when writing', () => {
-    const store = create();
-    const spy = vi.fn();
-    bus.on(CART_UPDATED, (event) => spy(event.data));
-    store.add('AU-03-RD');
-    expect(spy).toHaveBeenCalledWith({
-      items: [{ sku: 'AU-03-RD', quantity: 1 }],
-    });
-  });
-
-  it('syncs from a registry update emitted by a peer MFE', () => {
-    const store = create();
-    bus.emit(CART_UPDATED, {
-      items: [{ sku: 'AU-05-ZH', quantity: 3 }],
-    });
-    expect(store.lineItems()).toEqual([{ sku: 'AU-05-ZH', quantity: 3 }]);
   });
 
   it('syncs from a storage event fired by another tab', () => {

@@ -22,8 +22,8 @@ boundary in place:
   HTML — no Angular type, RxJS Observable, or service crosses the line.
 - **A central event bus on `window.__NF_REGISTRY__`.** Remotes publish
   and subscribe to small, stable, *typed* channels instead of calling
-  each other directly. Navigation, store selection, and cart sync all
-  ride on this bus, and every channel is defined the same way:
+  each other directly. Navigation and store selection ride on this
+  bus, and every channel is defined the same way:
   `defineChannel<Payload>('channel:name')`.
 - **Intent-based navigation.** A button in *decide* that should open the
   cart never types `'/checkout/cart'`. It emits the intent

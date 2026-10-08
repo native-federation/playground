@@ -167,13 +167,11 @@ but load no foreign fragments themselves.
   `'checkout.thanks'`, to ask the host to route to the confirmation
   page. This is the same channel that powers `[appNavigateTo]`; the
   page just uses it directly from TypeScript.
-- **Internal `cart:updated`** (`core/data/store/cart-bus.ts`) — keeps
-  every `CartStore` instance in step. Otherwise a user adding an item
-  via `<mfe-add-to-cart>` (mounted inside decide's product page) and
-  the `<mfe-mini-cart>` (mounted inside explore's header) could see
-  different counts. The bus syncs them without either side importing
-  the other. A second tab is kept in sync by `CartStore` itself, which
-  listens to the browser's `storage` events.
+- **No bus for the cart.** `<mfe-add-to-cart>` (inside decide's
+  product page) and `<mfe-mini-cart>` (inside explore's header) are
+  both checkout elements, so they share checkout's single `CartStore`
+  and always show the same count. A second tab is kept in sync by
+  `CartStore` itself, which listens to the browser's `storage` events.
 
 ---
 
@@ -209,14 +207,11 @@ Every channel that travels on `window.__NF_REGISTRY__`:
 | `nav:navigate`   | `libs/shared/src/bus/nav-channels.ts`                            | `[appNavigateTo]` + direct emitters    | host (`provideRemoteNavigation`)        |
 | `nav:intents`    | `libs/shared/src/bus/nav-channels.ts`                            | host (publishes the intent map)        | `NavigateToDirective` in every remote   |
 | `store:selected` | `libs/shared/src/bus/store-channels.ts`                          | explore (`mfe-store-picker`)           | checkout (`mfe-checkout`)               |
-| `cart:updated`   | `projects/checkout/src/core/data/store/cart-bus.ts`              | checkout (`CartStore`)                 | checkout (`CartStore`)                  |
 
-All four are declared in `@tractor-store/shared`'s bus helpers
+All three are declared in `@tractor-store/shared`'s bus helpers
 (`defineChannel`, or `defineResource` for `nav:intents`), so the
 emitter and subscriber import the same typed handle — one channel
-name, one payload type, both ends in sync. `cart:updated` is internal
-to checkout (only checkout subscribes) but uses the same factory so
-joining the bus is free.
+name, one payload type, both ends in sync.
 
 ## Shared library
 

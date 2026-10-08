@@ -1,16 +1,10 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { listenTo } from '@tractor-store/shared';
 import { filter, fromEvent } from 'rxjs';
 import type { CartLineItemModel } from '../contracts/models/cart-line-item.model';
-import {
-  CART_STORAGE_KEY,
-  cartUpdated,
-  parseCart,
-  serializeCart,
-} from './cart-bus';
+import { CART_STORAGE_KEY, parseCart, serializeCart } from './cart-storage';
 
-export { CART_STORAGE_KEY } from './cart-bus';
+export { CART_STORAGE_KEY } from './cart-storage';
 
 @Injectable({ providedIn: 'root' })
 export class CartStore {
@@ -25,8 +19,6 @@ export class CartStore {
   );
 
   constructor() {
-    listenTo(cartUpdated, ({ items }) => this._lineItems.set([...items]));
-
     // A storage event only fires in the *other* tabs, so this never echoes our own writes.
     fromEvent<StorageEvent>(window, 'storage')
       .pipe(
@@ -61,7 +53,6 @@ export class CartStore {
     } catch {
       // Storage full or unavailable: the in-memory cart still works.
     }
-    cartUpdated.emit({ items });
   }
 
   private readFromStorage(): CartLineItemModel[] {

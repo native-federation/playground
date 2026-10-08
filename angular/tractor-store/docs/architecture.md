@@ -299,9 +299,6 @@ flowchart LR
     end
     subgraph Checkout["checkout"]
         CO[mfe-checkout]
-        CS[CartStore<br/>instances]
-        MC[mfe-mini-cart]
-        AC[mfe-add-to-cart]
     end
 
     PD -- "nav:navigate" --> SN
@@ -311,8 +308,6 @@ flowchart LR
     NR -- "nav:intents (resource)" --> Decide
     NR -- "nav:intents (resource)" --> Checkout
     SP -- "store:selected" --> CO
-    AC -- "cart:updated" --> CS
-    MC <-. "cart:updated" .-> CS
 ```
 
 | Channel          | Defined in                                          | Direction                 | Purpose                                                                         |
@@ -320,19 +315,13 @@ flowchart LR
 | `nav:navigate`   | `libs/shared/src/bus/nav-channels.ts`               | remote → host             | Intent-based navigation requests (used by `[appNavigateTo]`)                    |
 | `nav:intents`    | `libs/shared/src/bus/nav-channels.ts`               | host → remotes (resource) | The intent map (`intentId → {basePath, path}`) so directives can render real `href`s |
 | `store:selected` | `libs/shared/src/bus/store-channels.ts`             | explore → checkout        | Notify checkout when the user picks a pickup store                              |
-| `cart:updated`   | `projects/checkout/src/core/data/store/cart-bus.ts` | checkout ↔ checkout       | Sync `CartStore` instances of different checkout elements                       |
 
-The fourth channel is worth a closer look. The **checkout** remote's
-`CartStore` is an `@Injectable` service, so every instance holds its
-own copy of the cart. When `<mfe-mini-cart>` (mounted inside explore's
-header) and `<mfe-cart>` (mounted as a host route) run side by side,
-they would otherwise drift. The `cart-bus` rides on the same
-`__NF_REGISTRY__` to keep the stores in step. A second browser tab is
-kept in sync separately: `CartStore` listens to the window's
-`storage` events itself (`fromEvent` + `takeUntilDestroyed` in
-`projects/checkout/src/core/data/store/cart-store.ts`). The channel is
-internal to checkout but uses the same `defineChannel` factory — the
-cost of joining the bus is one line.
+State that stays inside one remote does not need the bus. All of
+checkout's elements (`<mfe-cart>`, `<mfe-mini-cart>`,
+`<mfe-add-to-cart>`, …) share one Angular application, so they share
+one `CartStore` and its signals keep them in step. A second browser
+tab is kept in sync by `CartStore` listening to the window's `storage`
+events (`projects/checkout/src/core/data/store/cart-store.ts`).
 
 The pattern generalises: when two MFEs need to coordinate on a piece
 of state, declare a channel via `defineChannel<Payload>('name')` and
