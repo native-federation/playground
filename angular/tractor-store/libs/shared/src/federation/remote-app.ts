@@ -10,9 +10,10 @@ import { createCustomElement } from '@angular/elements';
 import { createApplication } from '@angular/platform-browser';
 import type { EnvironmentConfig } from './env';
 import { provideEnv } from './provide-env';
+import type { NativeFederationResult } from '@softarc/native-federation-orchestrator';
 import {
+  createRemoteLoader,
   LOAD_REMOTE,
-  type LoadRemote,
   type RemoteElementModule,
 } from './remote-loader';
 
@@ -31,11 +32,11 @@ export const defineRemoteApp = (
 ): RemoteApp => {
   let injector: Promise<Injector> | undefined;
 
-  const getInjector = (env: EnvironmentConfig, loadRemote: LoadRemote) =>
+  const getInjector = (env: EnvironmentConfig, nf: NativeFederationResult) =>
     (injector ??= createApplication({
       providers: [
         provideEnv(env),
-        { provide: LOAD_REMOTE, useValue: loadRemote },
+        { provide: LOAD_REMOTE, useValue: createRemoteLoader(env, nf) },
         provideZonelessChangeDetection(),
         provideHttpClient(withFetch()),
         ...providers,
@@ -43,8 +44,8 @@ export const defineRemoteApp = (
     }).then((app) => app.injector));
 
   return {
-    expose: (tag, component) => async (env, loadRemote) => {
-      const elementInjector = await getInjector(env, loadRemote);
+    expose: (tag, component) => async (env, nf) => {
+      const elementInjector = await getInjector(env, nf);
       if (customElements.get(tag)) return;
       customElements.define(
         tag,

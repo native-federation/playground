@@ -1,13 +1,19 @@
 import { DestroyRef, inject } from '@angular/core';
 import type { NFEventRegistry } from '@softarc/native-federation-orchestrator/registry';
 
+declare global {
+  interface Window {
+    // Installed by each app's main.ts before federation starts.
+    __NF_REGISTRY__?: NFEventRegistry;
+  }
+}
+
 // Looked up on every call, so channels can be declared before the bus exists.
 const bus = (): NFEventRegistry => {
-  const registry = (window as { __NF_REGISTRY__?: NFEventRegistry })
-    .__NF_REGISTRY__;
+  const registry = window.__NF_REGISTRY__;
   if (!registry) {
     throw new Error(
-      'event bus: window.__NF_REGISTRY__ is not installed (see startFederation).',
+      'event bus: window.__NF_REGISTRY__ is not installed (see main.ts).',
     );
   }
   return registry;

@@ -108,7 +108,7 @@ Four consequences worth calling out:
   single instance used by all remotes.
 - **Bootstrap is idempotent.** A `customElements.get(tag)` guard inside
   `expose` plus a matching check inside `createRemoteLoader`
-  (`libs/shared/src/start/remote-loader.ts`) make it safe to request
+  (`libs/shared/src/federation/remote-loader.ts`) make it safe to request
   the same fragment from many places. Only the first call defines the
   element; subsequent calls are no-ops.
 - **Shadow DOM at the boundary only.** The exposed root components
@@ -124,25 +124,22 @@ Four consequences worth calling out:
 
 #### Loading a fragment: `LoadRemote`
 
-Every app receives the same closure for loading remote fragments
-(`libs/shared/src/federation/remote-loader.ts`,
-`libs/shared/src/start/remote-loader.ts`):
+Every app loads remote fragments with the same function
+(`libs/shared/src/federation/remote-loader.ts`):
 
 ```ts
 export type LoadRemote = (remoteName: string, element: string) => Promise<void>;
 
-export const createRemoteLoader = (env: EnvironmentConfig, nf: NativeFederationResult): LoadRemote => {
-  // Passes itself to the remote so that remote can load further remotes.
-  const loadRemote: LoadRemote = async (remoteName, element) => {
+export const createRemoteLoader =
+  (env: EnvironmentConfig, nf: NativeFederationResult): LoadRemote =>
+  async (remoteName, element) => {
     if (customElements.get(element)) return;
     const mod = await nf.loadRemoteModule<RemoteElementModule>(remoteName, element);
-    await mod.bootstrap(env, loadRemote);
+    await mod.bootstrap(env, nf);
   };
-  return loadRemote;
-};
 ```
 
-The closure lives in DI under the `LOAD_REMOTE` token
+The loader lives in DI under the `LOAD_REMOTE` token
 (`libs/shared/src/federation/remote-loader.ts`): the host provides it
 in `projects/host/src/app/app.config.ts`, and `defineRemoteApp`
 provides it inside each remote. Components never call it by hand.
@@ -155,11 +152,12 @@ named remote:
 <mfe-header mfeRemote="@tractor-store/explore"></mfe-header>
 ```
 
-The loader passes _itself_ into the remote's bootstrap as the second
-argument. That detail is how cross-remote loads work even when the
-host is not in the picture: explore's header can contain
-`<mfe-mini-cart mfeRemote="@tractor-store/checkout">` and recursion
-gets it done.
+The loader hands `nf` (the federation runtime) to the remote's
+bootstrap, and that remote builds its own loader from it. That is how
+cross-remote loads work even when the host is not in the picture:
+explore's header can contain
+`<mfe-mini-cart mfeRemote="@tractor-store/checkout">` and it just
+works.
 
 #### Why a single `routeParams` property and not attributes
 
@@ -186,7 +184,7 @@ sequenceDiagram
     U->>R: navigate to /explore/products/tractors
     R->>S: load lazy route, bind inputs {remoteName, element: 'mfe-category'}
     S->>L: loadRemote('@tractor-store/explore', 'mfe-category')
-    L->>B: nf.loadRemoteModule(...) → bootstrap(env, loadRemote)
+    L->>B: nf.loadRemoteModule(...) → bootstrap(env, nf)
     B->>B: customElements.define('mfe-category', …)
     L-->>S: resolved
     S->>E: document.createElement('mfe-category')
@@ -210,13 +208,13 @@ assigns `routeParams`.
 Custom elements solve composition: a remote can mount another remote's
 UI. But composition alone is not enough — the remotes also need to
 _talk_ to each other. They do that through a small, shared event bus
-that `startFederation` installs before Angular bootstraps.
+that each app's `main.ts` installs before Angular bootstraps.
 
 The bus lives on `window.__NF_REGISTRY__`. In these docs it is always
 called _the event bus_ (the host's intent ID → URL table is _the
-intent map_, see [navigation.md](./navigation.md)). It is created in
-`libs/shared/src/start/start.ts`, which every app's `main.ts` runs, so
-a remote running standalone gets a bus too:
+intent map_, see [navigation.md](./navigation.md)). It is created at
+the top of every app's `main.ts`, so a remote running standalone gets a
+bus too:
 
 ```ts
 window.__NF_REGISTRY__ ??= Object.freeze(
@@ -386,20 +384,18 @@ How a host page comes alive, end to end:
 sequenceDiagram
     participant Browser
     participant Main as projects/host/src/main.ts
-    participant Start as startFederation
     participant Boot as app/bootstrap.ts
     participant AppCfg as app.config.ts
     participant Init as provideRemoteNavigation<br/>(appInitializer)
     participant Router as Angular Router
 
     Browser->>Main: load
-    Main->>Start: startFederation(run)
-    Start->>Start: install __NF_REGISTRY__ (if missing)
-    Start->>Start: fetch env.config.json + federation.manifest.json
-    Start->>Start: initFederation(manifest, …)
-    Start->>Boot: run({ env, nf, manifest, loadRemote })
+    Main->>Main: install __NF_REGISTRY__ (if missing)
+    Main->>Main: fetch env.config.json + federation.manifest.json
+    Main->>Main: initFederation(manifest, …)
+    Main->>Boot: bootstrap(env, nf, manifest)
     Boot->>Boot: load Raleway + global.css + helper.js
-    Boot->>AppCfg: bootstrapApplication(App, appConfig(ctx))
+    Boot->>AppCfg: bootstrapApplication(App, appConfig(env, nf, manifest))
     AppCfg->>Init: provideRemoteNavigation(nf, manifest)
     Init->>Init: loadContributions(nf, manifest)<br/>(Promise.allSettled)
     Init->>Init: buildIntentMap(loaded)<br/>full id = basePath + '.' + id
@@ -409,10 +405,12 @@ sequenceDiagram
     Router-->>Browser: first paint
 ```
 
-Every app's `main.ts` is the same call to `startFederation(run)`
-(`libs/shared/src/start/start.ts`); only `run` differs. The host
-bootstraps its Angular app, a standalone remote bootstraps its default
-page. Two artefacts drive everything, both fetched with
+Every app's `main.ts` does the same three steps; only the last line
+differs. The host bootstraps its Angular app, a standalone remote
+bootstraps its default page with `bootstrap(env, nf)`. `main.ts`
+imports nothing from `@tractor-store/shared`: it runs before the import
+map exists, so shared code is only reached through the dynamically
+imported bootstrap. Two artefacts drive everything, both fetched with
 `cache: 'no-cache'`:
 
 - **`env.config.json`** — per-environment values: `apiUrl`, `cdnUrl`,
@@ -468,9 +466,8 @@ code.
 | ------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | `bus/`        | `@tractor-store/shared`         | `defineChannel`, `defineResource`, `listenTo`, channel declarations (`navigateTo`, `navIntents`, `storeSelected`)    | yes                |
 | `nav/`        | `@tractor-store/shared`         | `NavigateToDirective`, `NavContribution`/`NavIntent`/`IntentMap` types, `resolveIntentUrl`, `RouteParams` helpers    | yes                |
-| `federation/` | `@tractor-store/shared`         | `ENV`, `provideEnv`, `LOAD_REMOTE`, `defineRemoteApp`, `RemoteElementDirective`                                      | yes                |
+| `federation/` | `@tractor-store/shared`         | `ENV`, `provideEnv`, `LOAD_REMOTE`, `createRemoteLoader`, `defineRemoteApp`, `[mfeRemote]`                                    | yes                |
 | `ui/`         | `@tractor-store/shared`         | Design-system primitives (`Button`, `Spinner`), CDN image loader                                                     | yes                |
-| `start/`      | `@tractor-store/start`          | `startFederation`, `createRemoteLoader`                                                                              | no — bundled       |
 | `testing/`    | `@tractor-store/shared/testing` | `createFakeRegistry`, `installFakeRegistry` (also the test builder's `setupFiles`)                                   | tests only         |
 
 Each app's `federation.config.mjs` lists the library as its single
@@ -504,12 +501,6 @@ What the flags mean:
   surprises.
 - **`skip`** trims rxjs sub-entries that aren't used at runtime,
   cutting the shared bundle.
-
-`@tractor-store/start` is deliberately **not** shared. `main.ts` runs
-it before the import map exists, so it has to be bundled into each
-app. It gets its own alias rather than `@tractor-store/shared/start`
-because Native Federation treats sub-paths of a shared mapping as
-shared too.
 
 > Cam Jackson, _martinfowler.com_: "_The most obvious candidates for
 > sharing are 'dumb' visual primitives such as icons, labels, and

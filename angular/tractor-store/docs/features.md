@@ -228,18 +228,14 @@ contain business code.
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `bus/`        | `defineChannel`, `defineResource`, `listenTo`, channel declarations (`navigateTo`, `navIntents`, `storeSelected`) and their payload types      |
 | `nav/`        | `NavigateToDirective`, `NavContribution`/`NavIntent`/`NavTarget`/`IntentMap`/`IntentTarget` types, `resolveIntentUrl`, `toRoutePath`, `RouteParams` helpers (`param`, `requiredParam`, `paramList`, `sameRouteParams`), `NavPayload` type |
-| `federation/` | `EnvironmentConfig`, `ENV`, `provideEnv`, `toCdnUrl`, `LoadRemote`/`LOAD_REMOTE`, `defineRemoteApp`, `RemoteElementDirective`               |
+| `federation/` | `EnvironmentConfig`, `ENV`, `provideEnv`, `toCdnUrl`, `LoadRemote`/`LOAD_REMOTE`, `createRemoteLoader`, `defineRemoteApp`, `RemoteElementDirective`               |
 | `ui/`         | Design-system primitives (`Button`, `Spinner`), `provideCdnImageLoader` for `NgOptimizedImage`                                               |
-| `start/`      | `startFederation`, `createRemoteLoader` (alias `@tractor-store/start`)                                                                        |
 | `testing/`    | `createFakeRegistry`, `installFakeRegistry` (alias `@tractor-store/shared/testing`)                                                           |
 
 `@tractor-store/shared` is the single entry in each app's
 `sharedMappings`, so the host and remotes share a single instance —
 same `NavigateToDirective`, same channel handles, same `instanceof`
 identity.
-
-`@tractor-store/start` is *not* in `sharedMappings`. `main.ts` runs it
-before the import map exists, so it is bundled into each app.
 
 ## See also
 

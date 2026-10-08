@@ -1,8 +1,11 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { App } from './app';
 import { appConfig } from './app.config';
-import { toCdnUrl } from '@tractor-store/shared';
-import type { FederationContext } from '@tractor-store/start';
+import type {
+  FederationManifest,
+  NativeFederationResult,
+} from '@softarc/native-federation-orchestrator';
+import { type EnvironmentConfig, toCdnUrl } from '@tractor-store/shared';
 
 const loadRalewayFont = (cdnUrl: string): void => {
   if (!('FontFace' in window)) return;
@@ -32,11 +35,13 @@ const loadGlobalStylesheet = (cdnUrl: string): void => {
   document.head.appendChild(link);
 };
 
-export const bootstrap = (ctx: FederationContext) => {
-  loadGlobalStylesheet(ctx.env.cdnUrl);
-  loadRalewayFont(ctx.env.cdnUrl);
-  loadHelperScript(ctx.env.cdnUrl);
-  return bootstrapApplication(App, appConfig(ctx)).catch((err) =>
-    console.error(err),
-  );
+export const bootstrap = (
+  env: EnvironmentConfig,
+  nf: NativeFederationResult,
+  manifest: FederationManifest,
+) => {
+  loadGlobalStylesheet(env.cdnUrl);
+  loadRalewayFont(env.cdnUrl);
+  loadHelperScript(env.cdnUrl);
+  return bootstrapApplication(App, appConfig(env, nf, manifest));
 };

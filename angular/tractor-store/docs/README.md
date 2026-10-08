@@ -105,12 +105,12 @@ custom element inside its own page without going through the host.
 
 | Concern                                      | File / module                                                                 |
 | -------------------------------------------- | ----------------------------------------------------------------------------- |
-| Bootstrap & federation init (every app)      | `libs/shared/src/start/start.ts` (`startFederation`), called from `projects/<app>/src/main.ts` |
+| Bootstrap & federation init (every app)      | `projects/<app>/src/main.ts`                                                  |
 | Host DI providers & Router setup             | `projects/host/src/app/app.config.ts`                                         |
 | App-initializer that loads contributions     | `projects/host/src/app/nav/remote-navigation.ts` (`provideRemoteNavigation`)  |
 | Building routes from contributions           | `projects/host/src/app/nav/remote-routes.ts` (`buildRemoteRoutes`)            |
 | Building the intent map                      | `projects/host/src/app/nav/remote-navigation.ts` (`buildIntentMap`)           |
-| Loading a remote's custom element            | `libs/shared/src/start/remote-loader.ts` (`createRemoteLoader`)               |
+| Loading a remote's custom element            | `libs/shared/src/federation/remote-loader.ts` (`createRemoteLoader`)          |
 | Embedding a foreign `mfe-*` element          | `libs/shared/src/federation/remote-element.directive.ts` (`[mfeRemote]`)      |
 | `ENV` / `LOAD_REMOTE` tokens                 | `libs/shared/src/federation/env.ts`, `remote-loader.ts`, `provide-env.ts`     |
 | CDN image loader (`ngSrc`)                   | `libs/shared/src/ui/cdn-image-loader.ts`                                      |

@@ -82,7 +82,6 @@ tractor-store/
 │       ├── nav/        # NavigateToDirective, NavContribution, intent → URL, RouteParams
 │       ├── federation/ # ENV, LOAD_REMOTE, defineRemoteApp, [mfeRemote] directive
 │       ├── ui/         # Button, Spinner, CDN image loader
-│       ├── start/      # @tractor-store/start — startFederation() used by every main.ts
 │       └── testing/    # @tractor-store/shared/testing — fake event bus for specs
 └── public/cdn/       # Static fonts and images (served at :3000 in dev)
 ```

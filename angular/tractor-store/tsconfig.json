@@ -8,9 +8,6 @@
       "@tractor-store/shared": [
         "./libs/shared/src/public-api.ts"
       ],
-      "@tractor-store/start": [
-        "./libs/shared/src/start/index.ts"
-      ],
       "@tractor-store/shared/testing": [
         "./libs/shared/src/testing/install-registry-stub.ts"
       ]
