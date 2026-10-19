@@ -3,9 +3,12 @@ import {withNativeFederation, fromPackageJson} from '@angular-architects/native-
 export default withNativeFederation({
   name: "host",
   shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
-    .patch(['@angular/core'], {includeSecondaries: {keepAll: true}})
+    .patch(['@angular/*'], {includeSecondaries: {keepAll: true}, pool: "ng-core"})
     .get(),
   skip: [
+    // @angular/animations is not installed; see native-federation/native-federation-core#195
+    '@angular/platform-browser/animations',
+    '@angular/platform-browser/animations/async',
     'rxjs/ajax', 
     'rxjs/fetch',
     'rxjs/testing',
