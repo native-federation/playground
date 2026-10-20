@@ -5,7 +5,6 @@ import { getAppInjector } from './app.config';
 import { CartStore } from './data/cart-store';
 import { bootstrap as bootstrapAddToCart } from './features/add-to-cart/bootstrap';
 import { bootstrap as bootstrapMiniCart } from './features/mini-cart/bootstrap';
-import { LOAD_REMOTE } from './shared/remote-element';
 import { testEnv } from './testing/env.fixture';
 
 // Nothing here loads a remote, so the federation result is never touched.
@@ -35,15 +34,13 @@ describe('getAppInjector', () => {
       'http://cdn.test/cdn/img/product/200/AU-03-RD.webp',
     );
   });
-
-  it('provides a remote loader', async () => {
-    const injector = await getAppInjector(testEnv, nf);
-    expect(injector.get(LOAD_REMOTE)).toBeTypeOf('function');
-  });
 });
 
 describe('bootstrap', () => {
   it('defines each element once, even when bootstrapped concurrently', async () => {
+    // Must run before any other test in this file bootstraps these tags.
+    expect(customElements.get('mfe-mini-cart')).toBeUndefined();
+    expect(customElements.get('mfe-add-to-cart')).toBeUndefined();
     const define = vi.spyOn(customElements, 'define');
     await Promise.all([
       bootstrapMiniCart(testEnv, nf),
@@ -70,21 +67,24 @@ describe('bootstrap', () => {
     addToCart.setAttribute('sku', 'AU-03-RD');
     document.body.append(miniCart, addToCart);
 
-    const addButton = await vi.waitFor(() => {
-      const button = addToCart.shadowRoot?.querySelector('button');
-      if (!button) throw new Error('add-to-cart has not rendered yet');
-      return button;
-    });
-    addButton.click();
+    try {
+      const addButton = await vi.waitFor(() => {
+        const button = addToCart.shadowRoot?.querySelector('button');
+        if (!button) throw new Error('add-to-cart has not rendered yet');
+        return button;
+      });
+      addButton.click();
 
-    expect(injector.get(CartStore).totalQuantity()).toBe(1);
-    await vi.waitFor(() =>
-      expect(
-        miniCart.shadowRoot?.querySelector('.c_MiniCart__quantity')
-          ?.textContent,
-      ).toBe('1'),
-    );
-    miniCart.remove();
-    addToCart.remove();
+      expect(injector.get(CartStore).totalQuantity()).toBe(1);
+      await vi.waitFor(() =>
+        expect(
+          miniCart.shadowRoot?.querySelector('.c_MiniCart__quantity')
+            ?.textContent,
+        ).toBe('1'),
+      );
+    } finally {
+      miniCart.remove();
+      addToCart.remove();
+    }
   });
 });

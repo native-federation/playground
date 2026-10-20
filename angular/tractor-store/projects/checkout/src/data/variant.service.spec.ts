@@ -1,6 +1,6 @@
-import { signal } from '@angular/core';
+import { type ResourceRef, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { VariantService } from './variant.service';
 
 describe('VariantService', () => {
@@ -11,13 +11,10 @@ describe('VariantService', () => {
     service = TestBed.inject(VariantService);
   });
 
-  async function settle<T>(ref: {
-    status: () => string;
-    value: () => T;
-  }): Promise<T> {
-    while (ref.status() === 'loading' || ref.status() === 'idle') {
-      await new Promise((r) => setTimeout(r, 20));
-    }
+  // Fails fast with the loader's error instead of waiting out the test timeout.
+  async function settle<T>(ref: ResourceRef<T>): Promise<T> {
+    await vi.waitFor(() => expect(ref.isLoading()).toBe(false));
+    expect(ref.error()).toBeUndefined();
     return ref.value();
   }
 
