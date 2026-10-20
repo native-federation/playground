@@ -75,9 +75,9 @@ its own.
 
 - `store:selected` — when the user picks a pickup store inside
   `mfe-store-picker`
-  (`projects/explore/src/features/store-picker/store-picker.component.ts:47`).
-  Defined as a typed channel in
-  `libs/shared/src/bus/store-channels.ts` and consumed by
+  (`projects/explore/src/features/store-picker/store-picker.component.ts`).
+  Typed as `Events['store:selected']` in
+  `libs/contracts/index.ts` and consumed by
   `mfe-checkout` to pre-fill the order's store field.
 
 ---
@@ -165,8 +165,8 @@ but load no foreign fragments themselves.
   (`projects/checkout/src/features/checkout/checkout.page.ts`).
 - **Emits** `nav:navigate` after a successful submission, with intent
   `'checkout.thanks'`, to ask the host to route to the confirmation
-  page. This is the same channel that powers `[appNavigateTo]`; the
-  page just uses it directly from TypeScript.
+  page. This is the same event that `[navIntent]` emits; the page just
+  emits it directly from TypeScript.
 - **No bus for the cart.** `<mfe-add-to-cart>` (inside decide's
   product page) and `<mfe-mini-cart>` (inside explore's header) are
   both checkout elements, so they share checkout's single `CartStore`
@@ -200,41 +200,40 @@ Two heuristics fall out of the table:
 
 ## Cross-remote events
 
-Every channel that travels on `window.__NF_REGISTRY__`:
+Every event that travels on `window.__NF_REGISTRY__`:
 
-| Channel          | Defined in                                                       | Emitter                                | Subscriber                              |
-| ---------------- | ---------------------------------------------------------------- | -------------------------------------- | --------------------------------------- |
-| `nav:navigate`   | `libs/shared/src/bus/nav-channels.ts`                            | `[appNavigateTo]` + direct emitters    | host (`provideRemoteNavigation`)        |
-| `nav:intents`    | `libs/shared/src/bus/nav-channels.ts`                            | host (publishes the intent map)        | `NavigateToDirective` in every remote   |
-| `store:selected` | `libs/shared/src/bus/store-channels.ts`                          | explore (`mfe-store-picker`)           | checkout (`mfe-checkout`)               |
+| Event            | Emitter                              | Subscriber                                   |
+| ---------------- | ------------------------------------ | -------------------------------------------- |
+| `nav:navigate`   | `[navIntent]` + direct emitters      | host (`provideNavigation`)                   |
+| `nav:resolve`    | host (registers its resolver)        | `NavIntentDirective` in every remote         |
+| `store:selected` | explore (`mfe-store-picker`)         | checkout (`mfe-checkout`)                    |
 
-All three are declared in `@tractor-store/shared`'s bus helpers
-(`defineChannel`, or `defineResource` for `nav:intents`), so the
-emitter and subscriber import the same typed handle — one channel
-name, one payload type, both ends in sync.
+Each event's name and payload type are listed once in the `Events`
+interface in `libs/contracts/index.ts`. Emitters and subscribers pass
+that type to the registry (`emit<Events['store:selected']>(…)`), so a
+payload that doesn't match is a compile error on both ends.
 
-## Shared library
+## Contracts
 
-One TypeScript library lives under `libs/shared/src/`, imported as
-`@tractor-store/shared`. Each folder has a single responsibility; none
-contain business code.
+The apps share no runtime code. What the teams agree on is one
+types-only file, `libs/contracts/index.ts` (alias
+`@tractor-store/contracts`):
 
-| Folder        | What it provides                                                                                                                              |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bus/`        | `defineChannel`, `defineResource`, `listenTo`, channel declarations (`navigateTo`, `navIntents`, `storeSelected`) and their payload types      |
-| `nav/`        | `NavigateToDirective`, `NavContribution`/`NavIntent`/`NavTarget`/`IntentMap`/`IntentTarget` types, `resolveIntentUrl`, `toRoutePath`, `RouteParams` helpers (`param`, `requiredParam`, `paramList`, `sameRouteParams`), `NavPayload` type |
-| `federation/` | `EnvironmentConfig`, `ENV`, `provideEnv`, `toCdnUrl`, `LoadRemote`/`LOAD_REMOTE`, `createRemoteLoader`, `defineRemoteApp`, `RemoteElementDirective`               |
-| `ui/`         | Design-system primitives (`Button`, `Spinner`), `provideCdnImageLoader` for `NgOptimizedImage`                                               |
-| `testing/`    | `createFakeRegistry`, `installFakeRegistry` (alias `@tractor-store/shared/testing`)                                                           |
+| Type                                      | Used for                                                      |
+| ----------------------------------------- | ------------------------------------------------------------- |
+| `EnvironmentConfig`                       | the shape of every app's `env.config.json`                    |
+| `RemoteElementModule`                     | what every exposed `mfe-*` module exports (`bootstrap`)       |
+| `NavContribution`, `NavIntent`            | each remote's `nav-contribution.ts`                           |
+| `NavPayload`, `NavResolver`, `RouteParams`| links in the remotes and params on routed elements            |
+| `Events` and the payload types            | every event on the bus, plus the `window.__NF_REGISTRY__` type |
 
-`@tractor-store/shared` is the single entry in each app's
-`sharedMappings`, so the host and remotes share a single instance —
-same `NavigateToDirective`, same channel handles, same `instanceof`
-identity.
+Everything else, including the bootstrap, the remote loader, the
+`[navIntent]` directive and the button, is written out in each app
+that uses it. Each app's `sharedMappings` is `[]`.
 
 ## See also
 
 - [Architecture](./architecture.md) — how custom elements, the event
-  bus, and shared deps make this composition possible.
+  bus, and the contracts make this composition possible.
 - [Navigation](./navigation.md) — how the intent system makes the
   cross-remote loads in this catalogue possible without coupling.
