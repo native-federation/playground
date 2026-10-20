@@ -24,9 +24,7 @@ const param = (params: RouteParams, key: string) =>
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  host: {
-    'data-boundary-page': 'decide',
-  },
+  host: { 'data-boundary-page': 'decide' },
 })
 export class ProductPage {
   readonly routeParams = input<RouteParams>({});

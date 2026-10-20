@@ -3,7 +3,7 @@
   <h2>Basket</h2>
   <ul class="c_CartPage__lineItems" role="list">
     @for (item of lineItems(); track item.sku) {
-    <app-line-item [item]="item"></app-line-item>
+      <app-line-item [item]="item"></app-line-item>
     }
   </ul>
   <hr />
