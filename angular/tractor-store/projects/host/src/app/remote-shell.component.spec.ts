@@ -105,7 +105,8 @@ describe('RemoteShellComponent', () => {
     expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
   });
 
-  it('renders an alert when the remote fails to load', async () => {
+  it('renders an alert and logs the cause when the remote fails to load', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     const { root, mounted } = await setup({
       loadRemote: async () => {
         throw new Error('boom');
@@ -115,6 +116,11 @@ describe('RemoteShellComponent', () => {
       '@x/decide',
     );
     expect(mounted()).toBeNull();
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining('@x/decide'),
+      expect.objectContaining({ message: 'boom' }),
+    );
+    error.mockRestore();
   });
 
   it('passes path and query params as one routeParams property', async () => {

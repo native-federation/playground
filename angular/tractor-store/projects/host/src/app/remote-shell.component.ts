@@ -105,7 +105,16 @@ export class RemoteShellComponent {
   protected readonly remote = resource({
     params: () => ({ remoteName: this.remoteName(), element: this.element() }),
     loader: async ({ params: { remoteName, element } }) => {
-      await this.loadRemote(remoteName, element);
+      try {
+        await this.loadRemote(remoteName, element);
+      } catch (err) {
+        // The template only shows that it failed; keep the cause for developers.
+        console.error(
+          `[host] failed to load <${element}> from "${remoteName}"`,
+          err,
+        );
+        throw err;
+      }
       return document.createElement(element) as RemoteElement;
     },
   });
