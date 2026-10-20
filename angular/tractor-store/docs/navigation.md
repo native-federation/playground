@@ -183,9 +183,8 @@ in the host.
 
 Remotes never type a URL and never inject `Router`. Each remote that
 renders links has its own `NavIntentDirective`
-(`src/shared/nav-intent.directive.ts`). The copies in explore, decide
-and checkout are the same; explore's also exports the `NavLink` type
-its catalog data uses for teaser links:
+(`src/shared/nav-intent.directive.ts`; the copies in explore, decide
+and checkout are identical, and so are their specs):
 
 ```html
 <a [navIntent]="'checkout.cart'">Cart</a>
