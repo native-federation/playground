@@ -6,7 +6,9 @@ import {
 } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
-import { LOAD_REMOTE, type LoadRemote } from './load-remote';
+import { LOAD_REMOTE } from './load-remote';
+
+type LoadRemote = (remoteName: string, element: string) => Promise<void>;
 import { RemoteShellComponent } from './remote-shell.component';
 
 type RemoteElement = HTMLElement & { routeParams?: Record<string, unknown> };
