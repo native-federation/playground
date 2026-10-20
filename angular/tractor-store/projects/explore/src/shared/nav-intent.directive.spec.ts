@@ -1,112 +1,122 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import type { Events, NavResolver } from '@tractor-store/contracts';
+import type {
+  Events,
+  NavigatePayload,
+  NavResolver,
+} from '@tractor-store/contracts';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { NavIntentDirective } from './nav-intent.directive';
 import { publishNavResolver } from '../testing/nav-resolver.stub';
+import { NavIntentDirective } from './nav-intent.directive';
 
-// Stands in for the host's resolver: knows two intents, and 'decide.product' needs an id.
-const resolve: NavResolver = (id, payload = {}) => {
+// Stand-in for the host's resolver: knows two intents, needs {id} for the product.
+const resolver: NavResolver = (id, payload = {}) => {
   if (id === 'explore.home') return '/';
-  if (id === 'decide.product' && payload['id'])
+  if (id === 'decide.product' && payload['id']) {
     return `/product/${payload['id']}`;
+  }
   return null;
 };
+
+const publishResolver = () => publishNavResolver(resolver);
 
 @Component({
   imports: [NavIntentDirective],
   template: `
     <a [navIntent]="'explore.home'"></a>
     <a [navIntent]="'decide.product'" [navPayload]="{ id: 'CL-01' }"></a>
-    <a [navIntent]="'decide.product'"></a>
     <button [navIntent]="'explore.home'"></button>
+    <a [navIntent]="'decide.product'"></a>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class HostComponent {}
 
 describe('NavIntentDirective', () => {
-  let navigations: Events['nav:navigate'][];
+  let navigations: NavigatePayload[];
 
   beforeEach(() => {
     navigations = [];
     window.__NF_REGISTRY__!.on<Events['nav:navigate']>(
       'nav:navigate',
       ({ data }) => navigations.push(data),
+      { replay: 0 },
     );
   });
 
-  async function render() {
+  async function render(resolverPublished = true) {
+    if (resolverPublished) await publishResolver();
+    TestBed.configureTestingModule({ imports: [HostComponent] });
     const fixture = TestBed.createComponent(HostComponent);
-    await fixture.whenStable();
+    fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     return {
       fixture,
-      links: [...root.querySelectorAll('a')],
+      anchors: [...root.querySelectorAll('a')],
       button: root.querySelector('button')!,
     };
   }
 
-  it('renders the resolved URL as href on anchors only', async () => {
-    await publishNavResolver(resolve);
-    const { links, button } = await render();
-    expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      '/',
-      '/product/CL-01',
-      null,
-    ]);
-    expect(button.hasAttribute('href')).toBe(false);
-  });
-
-  it('marks links aria-disabled until the host has published its resolver', async () => {
-    const { fixture, links } = await render();
-    expect(links[0].getAttribute('aria-disabled')).toBe('true');
-
-    await publishNavResolver(resolve);
-    await fixture.whenStable();
-    expect(links[0].getAttribute('aria-disabled')).toBeNull();
-    expect(links[0].getAttribute('href')).toBe('/');
-  });
-
-  it('marks links aria-disabled when the intent cannot be resolved', async () => {
-    await publishNavResolver(resolve);
-    const { links } = await render();
-    expect(links[2].getAttribute('aria-disabled')).toBe('true');
-  });
-
-  it('asks the host to navigate instead of following the link', async () => {
-    await publishNavResolver(resolve);
-    const { links } = await render();
-    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
-    links[1].dispatchEvent(click);
-    expect(click.defaultPrevented).toBe(true);
+  it('emits nav:navigate with the intent and payload when clicked', async () => {
+    const { anchors } = await render();
+    anchors[0].click();
+    anchors[1].click();
     expect(navigations).toEqual([
+      { id: 'explore.home', payload: {} },
       { id: 'decide.product', payload: { id: 'CL-01' } },
     ]);
   });
 
-  it('works on buttons too', async () => {
-    await publishNavResolver(resolve);
-    (await render()).button.click();
+  it('works on buttons too, without an href', async () => {
+    const { button } = await render();
+    button.click();
     expect(navigations).toEqual([{ id: 'explore.home', payload: {} }]);
+    expect(button.hasAttribute('href')).toBe(false);
+  });
+
+  it('renders the resolved URL as href on anchors', async () => {
+    const { anchors } = await render();
+    expect(anchors[0].getAttribute('href')).toBe('/');
+    expect(anchors[1].getAttribute('href')).toBe('/product/CL-01');
+  });
+
+  it('prevents the default anchor navigation', async () => {
+    const { anchors } = await render();
+    const event = new MouseEvent('click', { cancelable: true, bubbles: true });
+    anchors[0].dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
   });
 
   it('leaves modified clicks on anchors to the browser', async () => {
-    await publishNavResolver(resolve);
-    const { links } = await render();
-    const click = new MouseEvent('click', {
-      bubbles: true,
+    const { anchors } = await render();
+    const event = new MouseEvent('click', {
       cancelable: true,
+      bubbles: true,
       ctrlKey: true,
     });
-    links[0].dispatchEvent(click);
-    expect(click.defaultPrevented).toBe(false);
+    anchors[0].dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
     expect(navigations).toEqual([]);
   });
 
-  it('does nothing for an intent that cannot be resolved', async () => {
-    await publishNavResolver(resolve);
-    (await render()).links[2].click();
+  it('marks links aria-disabled until the host publishes its resolver', async () => {
+    const { fixture, anchors } = await render(false);
+    expect(anchors[0].getAttribute('aria-disabled')).toBe('true');
+    expect(anchors[0].getAttribute('href')).toBeNull();
+
+    anchors[0].click();
+    expect(navigations).toEqual([]);
+
+    await publishResolver();
+    fixture.detectChanges();
+    expect(anchors[0].getAttribute('aria-disabled')).toBeNull();
+    expect(anchors[0].getAttribute('href')).toBe('/');
+  });
+
+  it('stays disabled and silent when the resolver cannot build the URL', async () => {
+    const { anchors } = await render();
+    expect(anchors[2].getAttribute('aria-disabled')).toBe('true');
+    anchors[2].click();
     expect(navigations).toEqual([]);
   });
 });

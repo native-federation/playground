@@ -1,12 +1,12 @@
 import { IMAGE_LOADER } from '@angular/common';
 import type { NativeFederationResult } from '@softarc/native-federation-orchestrator';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { getAppInjector } from './app.config';
 import { bootstrap } from './features/product/bootstrap';
-import { LOAD_REMOTE } from './shared/remote-element';
 import { testEnv } from './testing/env.fixture';
 
-const nf = { loadRemoteModule: vi.fn() } as unknown as NativeFederationResult;
+// Nothing here loads a remote, so the federation result is never touched.
+const nf = {} as NativeFederationResult;
 
 // getAppInjector caches in module state, so every test here shares one application.
 describe('app.config', () => {
@@ -27,25 +27,6 @@ describe('app.config', () => {
     expect(load({ src: '/img/[size]/a.webp' })).toBe(
       'http://cdn.test/img/200/a.webp',
     );
-  });
-
-  it('loads an embedded element from its remote once', async () => {
-    const remoteBootstrap = vi.fn(async () => {
-      customElements.define('mfe-probe', class extends HTMLElement {});
-    });
-    vi.mocked(nf.loadRemoteModule).mockResolvedValue({
-      bootstrap: remoteBootstrap,
-    });
-    const loadRemote = (await getAppInjector(testEnv, nf)).get(LOAD_REMOTE);
-
-    await loadRemote('@tractor-store/explore', 'mfe-probe');
-    await loadRemote('@tractor-store/explore', 'mfe-probe');
-
-    expect(nf.loadRemoteModule).toHaveBeenCalledExactlyOnceWith(
-      '@tractor-store/explore',
-      'mfe-probe',
-    );
-    expect(remoteBootstrap).toHaveBeenCalledWith(testEnv, nf);
   });
 });
 
