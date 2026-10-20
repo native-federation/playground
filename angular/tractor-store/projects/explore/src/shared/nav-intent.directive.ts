@@ -9,12 +9,6 @@ import {
 } from '@angular/core';
 import type { Events, NavPayload, NavResolver } from '@tractor-store/contracts';
 
-// A [navIntent] target stored in the catalog data.
-export interface NavLink {
-  readonly intent: string;
-  readonly params?: NavPayload;
-}
-
 // Links to a page by intent id, e.g. 'decide.product': the host resolves the href and navigates.
 @Directive({
   selector: '[navIntent]',

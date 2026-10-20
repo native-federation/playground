@@ -1,4 +1,4 @@
-import type { NavLink } from '../shared/nav-intent.directive';
+import type { NavLink } from './nav-link';
 
 export interface Recommendation {
   sku: string;

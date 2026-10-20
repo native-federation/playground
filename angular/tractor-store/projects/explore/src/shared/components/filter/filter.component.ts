@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { NavIntentDirective, type NavLink } from '../../nav-intent.directive';
+import type { NavLink } from '../../../data/nav-link';
+import { NavIntentDirective } from '../../nav-intent.directive';
 
 export interface FilterItem {
   link: NavLink;
