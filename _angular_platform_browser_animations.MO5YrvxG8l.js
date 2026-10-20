@@ -1,0 +1,11 @@
+if (typeof globalThis.ngServerMode === 'undefined') globalThis.ngServerMode = typeof window === 'undefined';
+import{h as s}from"@nf-internal/chunk-ED6ZJXJ4";import{i as u}from"@nf-internal/chunk-TN6MOIOG";import{k as d,l as i,m as r,o as p,q as a,s as A,x as f}from"@nf-internal/chunk-TW2S5QW2";import"@nf-internal/chunk-E3KSJ42M";import*as n from"@angular/core";import{ANIMATION_MODULE_TYPE as M,RendererFactory2 as v,inject as c,NgZone as g,\u0275performanceMarkFeature as I}from"@angular/core";import{ANIMATION_MODULE_TYPE as h}from"@angular/core";import{DOCUMENT as D}from"@angular/common";var O=(()=>{class e extends a{constructor(o,t,y){super(o,t,y)}ngOnDestroy(){this.flush()}static \u0275fac=function(t){return new(t||e)(n.\u0275\u0275inject(D),n.\u0275\u0275inject(i),n.\u0275\u0275inject(r))};static \u0275prov=n.\u0275\u0275defineInjectable({token:e,factory:e.\u0275fac})}return e})();function S(){return new p}function R(){return new f(c(u),c(a),c(g))}var N=[{provide:r,useFactory:S},{provide:a,useClass:O},{provide:v,useFactory:R}],l=[{provide:i,useClass:d},{provide:M,useValue:"NoopAnimations"},...N],m=[{provide:i,useFactory:()=>typeof ngServerMode<"u"&&ngServerMode?new d:new A},{provide:M,useFactory:()=>typeof ngServerMode<"u"&&ngServerMode?"NoopAnimations":"BrowserAnimations"},...N],C=(()=>{class e{static withConfig(o){return{ngModule:e,providers:o.disableAnimations?l:m}}static \u0275fac=function(t){return new(t||e)};static \u0275mod=n.\u0275\u0275defineNgModule({type:e});static \u0275inj=n.\u0275\u0275defineInjector({providers:m,imports:[s]})}return e})();function W(){return I("NgEagerAnimations"),[...m]}var z=(()=>{class e{static \u0275fac=function(t){return new(t||e)};static \u0275mod=n.\u0275\u0275defineNgModule({type:e});static \u0275inj=n.\u0275\u0275defineInjector({providers:l,imports:[s]})}return e})();function V(){return[...l]}export{h as ANIMATION_MODULE_TYPE,C as BrowserAnimationsModule,z as NoopAnimationsModule,W as provideAnimations,V as provideNoopAnimations,O as \u0275InjectableAnimationEngine};
+/*! Bundled license information:
+
+@angular/platform-browser/fesm2022/animations.mjs:
+  (**
+   * @license Angular v22.2.0
+   * (c) 2010-2026 Google LLC. https://angular.dev/
+   * License: MIT
+   *)
+*/
