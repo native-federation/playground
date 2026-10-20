@@ -52,6 +52,25 @@ describe('CartStore', () => {
     expect(window.localStorage.getItem(CART_STORAGE_KEY)).toBe('CL-01-GR_1');
   });
 
+  it('leaves the cart unchanged when removing an unknown sku', () => {
+    window.localStorage.setItem(CART_STORAGE_KEY, 'AU-03-RD_2');
+    const store = create();
+    store.remove('XX-00-XX');
+    expect(store.lineItems()).toEqual([{ sku: 'AU-03-RD', quantity: 2 }]);
+    expect(window.localStorage.getItem(CART_STORAGE_KEY)).toBe('AU-03-RD_2');
+  });
+
+  // Another app version (or a user poking devtools) may have left junk behind.
+  it('keeps only the valid line items from corrupt storage', () => {
+    window.localStorage.setItem(
+      CART_STORAGE_KEY,
+      'garbage|AU-03-RD_2|_5|CL-01-GR_x',
+    );
+    const store = create();
+    expect(store.lineItems()).toEqual([{ sku: 'AU-03-RD', quantity: 2 }]);
+    expect(store.totalQuantity()).toBe(2);
+  });
+
   it('clears the cart', () => {
     window.localStorage.setItem(CART_STORAGE_KEY, 'AU-03-RD_2');
     const store = create();
