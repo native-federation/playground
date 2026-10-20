@@ -101,7 +101,7 @@ describe('provideNavigation', () => {
         '@tractor-store/decide': { navContribution: { basePath: 'decide' } },
       });
       const { router } = await setup(nf);
-      expect(router.config.map((r) => r.path)).toEqual(['**']);
+      expect(router.config).toEqual([]);
       expect(consoleWarn).toHaveBeenCalledTimes(2);
     });
   });
@@ -116,6 +116,27 @@ describe('provideNavigation', () => {
         '**',
       ]);
       expect(router.config.at(-1)?.redirectTo).toBe('explore');
+    });
+
+    it('falls back to the first page without params when explore is down', async () => {
+      const nf = fakeNfByRemote({
+        '@tractor-store/decide': { navContribution: decideContribution },
+        '@x/cart': {
+          navContribution: {
+            basePath: 'checkout',
+            intents: [{ id: 'cart', path: '/cart', element: 'mfe-cart' }],
+          },
+        },
+      });
+      const { router } = await setup(nf, {
+        '@tractor-store/decide': 'http://decide/remoteEntry.json',
+        '@x/cart': 'http://cart/remoteEntry.json',
+      });
+      // decide's only page needs an :id, so it can't be the fallback.
+      expect(router.config.at(-1)).toEqual({
+        path: '**',
+        redirectTo: 'checkout/cart',
+      });
     });
 
     it('binds the remote and element as route data for the shell', async () => {
@@ -143,9 +164,9 @@ describe('provideNavigation', () => {
         ],
       });
       const { router } = await setup(nf, manifest);
+      // Its only page needs params, so there is nothing to fall back to.
       expect(router.config.map((r) => r.path)).toEqual([
         'git/:org/:repo/issues/:num',
-        '**',
       ]);
     });
   });
@@ -178,6 +199,31 @@ describe('provideNavigation', () => {
       });
       const { resolve } = await setup(nf, manifest);
       expect(resolve('git.external')).toBe('/git/somewhere');
+    });
+
+    it('warns when two remotes define the same intent id and keeps the last', async () => {
+      const nf = fakeNfByRemote({
+        '@x/a': {
+          navContribution: {
+            basePath: 'shop',
+            intents: [{ id: 'home', path: '/a' }],
+          },
+        },
+        '@x/b': {
+          navContribution: {
+            basePath: 'shop',
+            intents: [{ id: 'home', path: '/b' }],
+          },
+        },
+      });
+      const { resolve } = await setup(nf, {
+        '@x/a': 'http://a/remoteEntry.json',
+        '@x/b': 'http://b/remoteEntry.json',
+      });
+      expect(resolve('shop.home')).toBe('/shop/b');
+      expect(consoleWarn).toHaveBeenCalledWith(
+        expect.stringContaining('"shop.home"'),
+      );
     });
 
     it('returns null for an unknown intent or a missing path param', async () => {
@@ -214,6 +260,8 @@ describe('provideNavigation', () => {
         id: 'explore.products',
       });
       const { navigateByUrl } = await setup(bothRemotes());
+      // Give a late replay a full macrotask to arrive before asserting it never came.
+      await new Promise((resolve) => setTimeout(resolve));
       expect(navigateByUrl).not.toHaveBeenCalled();
     });
   });

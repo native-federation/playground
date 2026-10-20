@@ -1,18 +1,21 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { provideRouter, Router } from '@angular/router';
+import { describe, expect, it } from 'vitest';
 import { App } from './app';
 
-describe('AppComponent', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-      providers: [provideRouter([])],
-    }).compileComponents();
-  });
+@Component({ template: '<p>routed page</p>' })
+class RoutedPage {}
 
-  it('should create the app', () => {
+describe('App', () => {
+  it('renders the active route', async () => {
+    TestBed.configureTestingModule({
+      imports: [App],
+      providers: [provideRouter([{ path: 'page', component: RoutedPage }])],
+    });
     const fixture = TestBed.createComponent(App);
-    expect(fixture.componentInstance).toBeTruthy();
+    await TestBed.inject(Router).navigateByUrl('/page');
+    await fixture.whenStable();
+    expect(fixture.nativeElement.textContent).toContain('routed page');
   });
 });

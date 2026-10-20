@@ -393,7 +393,7 @@ sequenceDiagram
     Boot->>Boot: load global.css + Raleway + helper.js
     Boot->>Nav: bootstrapApplication(App, { providers: [provideNavigation(nf, manifest), …] })
     Nav->>Nav: load every remote's nav-contribution<br/>(Promise.allSettled)
-    Nav->>Router: router.resetConfig([…remote routes, '**' → explore])
+    Nav->>Router: router.resetConfig([…remote routes, '**' → fallback])
     Nav->>Nav: register('nav:resolve', () => resolve)
     Nav->>Nav: on('nav:navigate', …, { replay: 0 })
     Router-->>Browser: first paint

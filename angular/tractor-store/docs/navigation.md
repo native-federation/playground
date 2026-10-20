@@ -87,10 +87,14 @@ export const provideNavigation = (
     const registry = window.__NF_REGISTRY__!;
     const contributions = await loadContributions(nf, manifest);
 
-    router.resetConfig([
-      ...toRoutes(contributions),
-      { path: '**', redirectTo: 'explore' },
-    ]);
+    const routes = toRoutes(contributions);
+    // Unknown URLs go to the store's home, or to any page that still loaded when explore is down.
+    const fallback =
+      routes.find((route) => route.path === 'explore') ??
+      routes.find((route) => !route.path?.includes(':'));
+    router.resetConfig(
+      fallback ? [...routes, { path: '**', redirectTo: fallback.path }] : routes,
+    );
 
     const resolve = createResolver(contributions);
     // see Events['nav:resolve']
@@ -115,7 +119,9 @@ It does four things:
    shell. It is skipped with a console warning.
 2. **Resets the Angular Router config** with one route per intent that
    has an `element`. Every route lazy-loads the same
-   `RemoteShellComponent`; only the route data differs:
+   `RemoteShellComponent`; only the route data differs. Unknown URLs
+   redirect to explore's home, or to the first page without params if
+   explore failed to load:
 
    ```ts
    {

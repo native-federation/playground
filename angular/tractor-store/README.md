@@ -134,7 +134,9 @@ pnpm start:all
 Open <http://localhost:4200> to see the integrated application. Each
 remote can also be opened standalone on its own port — Native Federation
 will load the sibling fragments it needs from the URLs declared in that
-remote's `public/federation.manifest.json`.
+remote's `public/federation.manifest.json`. Only the host loads the CDN's
+global stylesheet and font, so a standalone remote looks plainer than the
+integrated store.
 
 You can also serve a single app:
 

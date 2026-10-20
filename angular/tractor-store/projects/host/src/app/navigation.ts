@@ -33,10 +33,16 @@ export const provideNavigation = (
     const registry = window.__NF_REGISTRY__!;
     const contributions = await loadContributions(nf, manifest);
 
-    router.resetConfig([
-      ...toRoutes(contributions),
-      { path: '**', redirectTo: 'explore' },
-    ]);
+    const routes = toRoutes(contributions);
+    // Unknown URLs go to the store's home, or to any page that still loaded when explore is down.
+    const fallback =
+      routes.find((route) => route.path === 'explore') ??
+      routes.find((route) => !route.path?.includes(':'));
+    router.resetConfig(
+      fallback
+        ? [...routes, { path: '**', redirectTo: fallback.path }]
+        : routes,
+    );
 
     const resolve = createResolver(contributions);
     // see Events['nav:resolve']
@@ -108,14 +114,18 @@ const toRoutes = (contributions: readonly RemoteContribution[]): Routes =>
 const createResolver = (
   contributions: readonly RemoteContribution[],
 ): NavResolver => {
-  const templates = new Map<string, string[]>(
-    contributions.flatMap(({ contribution: { basePath, intents } }) =>
-      intents.map((intent) => [
-        `${basePath}.${intent.id}`,
-        segments(basePath, intent.path),
-      ]),
-    ),
-  );
+  const templates = new Map<string, string[]>();
+  for (const { remoteName, contribution } of contributions) {
+    for (const intent of contribution.intents) {
+      const id = `${contribution.basePath}.${intent.id}`;
+      if (templates.has(id)) {
+        console.warn(
+          `[nav] "${remoteName}" redefines intent "${id}"; the last one wins`,
+        );
+      }
+      templates.set(id, segments(contribution.basePath, intent.path));
+    }
+  }
 
   return (id, payload = {}) => {
     const template = templates.get(id);
