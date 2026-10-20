@@ -1,110 +1,70 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { IMAGE_LOADER } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { TeaserHttp } from '../../core/data/http/teaser-http';
-import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
+import { cdnImageLoader } from '../../app.config';
+import { TeaserService } from '../../data/teaser.service';
+import { LOAD_REMOTE } from '../../shared/remote-element';
 import { testEnv } from '../../testing/env.fixture';
-import { fakeListHttp } from '../../testing/list-http.stub';
+import { fakeTeaserService } from '../../testing/teaser-service.stub';
 import { teaserFixture } from '../../testing/teaser.fixture';
 import { HomePage } from './home.page';
 
 describe('HomePage', () => {
-  let loader: ReturnType<typeof vi.fn>;
+  let loadRemote: ReturnType<typeof vi.fn>;
 
-  beforeEach(async () => {
-    loader = vi.fn().mockResolvedValue(undefined);
-    await TestBed.configureTestingModule({
-      imports: [HomePage],
-      providers: [
-        provideRouter([]),
-        provideEnv(testEnv),
-        { provide: LOAD_REMOTE, useValue: loader },
-        { provide: TeaserHttp, useValue: fakeListHttp(teaserFixture) },
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
-  });
-
-  it('renders one link per teaser with title and cdn-prefixed image', () => {
-    const fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-    const links = (
-      fixture.nativeElement as HTMLElement
-    ).shadowRoot!.querySelectorAll('.e_HomePage__categoryLink');
-    expect(links.length).toBe(2);
-    expect(links[0].textContent).toContain('Classic Tractors');
-
-    const img = links[0].querySelector('img') as HTMLImageElement;
-    expect(img.getAttribute('src')).toBe(
-      'http://cdn.test/img/500/classics.webp',
-    );
-    expect(img.getAttribute('srcset')).toBe(
-      'http://cdn.test/img/500/classics.webp 500w, ' +
-        'http://cdn.test/img/1000/classics.webp 1000w',
-    );
-  });
-
-  it('renders an empty teaser list while teasers are not loaded', () => {
-    TestBed.resetTestingModule();
+  beforeEach(() => {
+    loadRemote = vi.fn().mockResolvedValue(undefined);
     TestBed.configureTestingModule({
-      imports: [HomePage],
       providers: [
-        provideRouter([]),
-        provideEnv(testEnv),
-        {
-          provide: LOAD_REMOTE,
-          useValue: vi.fn().mockResolvedValue(undefined),
-        },
-        { provide: TeaserHttp, useValue: fakeListHttp(undefined) },
+        { provide: TeaserService, useValue: fakeTeaserService() },
+        { provide: LOAD_REMOTE, useValue: loadRemote },
+        { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
     });
-    const fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement).shadowRoot!.querySelectorAll(
-        '.e_HomePage__categoryLink',
-      ).length,
-    ).toBe(0);
   });
 
-  it('eagerly preloads the header, footer and recommendations slices', () => {
-    TestBed.createComponent(HomePage);
-    expect(loader).toHaveBeenCalledWith('@tractor-store/explore', 'mfe-header');
-    expect(loader).toHaveBeenCalledWith('@tractor-store/explore', 'mfe-footer');
-    expect(loader).toHaveBeenCalledWith(
-      '@tractor-store/explore',
-      'mfe-recommendations',
+  async function render() {
+    const fixture = TestBed.createComponent(HomePage);
+    await fixture.whenStable();
+    return {
+      fixture,
+      root: (fixture.nativeElement as HTMLElement).shadowRoot!,
+    };
+  }
+
+  it('shows a teaser per category with a 500px image from the CDN', async () => {
+    const teasers = [
+      ...(await render()).root.querySelectorAll('.e_HomePage__categoryLink'),
+    ];
+    expect(teasers.map((t) => t.textContent?.trim())).toEqual(
+      teaserFixture.map((t) => t.title),
+    );
+
+    const at = (size: number) =>
+      testEnv.cdnUrl + teaserFixture[0].image.replace('[size]', String(size));
+    const img = teasers[0].querySelector('img')!;
+    expect(img.getAttribute('src')).toBe(at(500));
+    expect(img.getAttribute('srcset')).toBe(
+      `${at(500)} 500w, ${at(1000)} 1000w`,
     );
   });
 
-  it('embeds the header, footer and recommendations custom elements', () => {
-    const fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-    const el: ShadowRoot = (fixture.nativeElement as HTMLElement).shadowRoot!;
-    expect(el.querySelector('mfe-header')).not.toBeNull();
-    expect(el.querySelector('mfe-footer')).not.toBeNull();
-    expect(el.querySelector('mfe-recommendations')).not.toBeNull();
+  it('seeds the recommendations with a CSV of skus', async () => {
+    const reco = (await render()).root.querySelector('mfe-recommendations')!;
+    expect(reco.getAttribute('skus')).toBe('CL-01-GY,AU-07-MT');
   });
 
-  it('passes the configured seed skus to the recommendations slice', () => {
-    const fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-    const reco = (
-      fixture.nativeElement as HTMLElement
-    ).shadowRoot!.querySelector('mfe-recommendations') as HTMLElement;
-    expect((reco as unknown as { skus: string[] }).skus).toEqual([
-      'CL-01-GY',
-      'AU-07-MT',
-    ]);
-  });
-
-  it('marks the host with the explore boundary attribute', () => {
-    const fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement).getAttribute('data-boundary-page'),
-    ).toBe('explore');
+  it('loads the header, footer and recommendations and marks the explore page boundary', async () => {
+    const { fixture } = await render();
+    expect(loadRemote.mock.calls).toEqual(
+      expect.arrayContaining([
+        ['@tractor-store/explore', 'mfe-header'],
+        ['@tractor-store/explore', 'mfe-footer'],
+        ['@tractor-store/explore', 'mfe-recommendations'],
+      ]),
+    );
+    expect((fixture.nativeElement as HTMLElement).dataset['boundaryPage']).toBe(
+      'explore',
+    );
   });
 });

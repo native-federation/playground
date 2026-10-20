@@ -2,7 +2,6 @@
 
 <main class="d_ProductPage">
   @if (product(); as p) {
-
   <div class="d_ProductPage__details">
     @if (selectedVariant(); as variant) {
     <img
@@ -13,31 +12,37 @@
       [loaderParams]="{ size: 400 }"
       width="400"
       height="400"
-      [alt]="productAlt()"
+      [alt]="p.name + ' - ' + variant.name"
     />
     }
     <div class="d_ProductPage__productInformation">
       <h2 class="d_ProductPage__title">{{ p.name }}</h2>
       <ul class="d_ProductPage__highlights">
-        @for (highlight of highlights(); track highlight) {
+        @for (highlight of p.highlights; track highlight) {
         <li>{{ highlight }}</li>
         }
       </ul>
       <ul class="d_ProductPage__variants">
-        @for (v of variants(); track v.sku) {
+        @for (v of p.variants; track v.sku) {
         <app-variant-option
           [id]="p.id"
           [sku]="v.sku"
           [name]="v.name"
           [color]="v.color"
-          [selected]="isSelected(v.sku)"
+          [selected]="v.sku === selectedSku()"
         />
         }
       </ul>
-      <mfe-add-to-cart mfeRemote="@tractor-store/checkout" [attr.sku]="selectedSku()"></mfe-add-to-cart>
+      <mfe-add-to-cart
+        mfeRemote="@tractor-store/checkout"
+        [attr.sku]="selectedSku()"
+      ></mfe-add-to-cart>
     </div>
   </div>
-  <mfe-recommendations mfeRemote="@tractor-store/explore" [attr.skus]="selectedSku()"></mfe-recommendations>
+  <mfe-recommendations
+    mfeRemote="@tractor-store/explore"
+    [attr.skus]="selectedSku()"
+  ></mfe-recommendations>
   } @else if (isLoading()) {
   <p>Loading…</p>
   } @else {

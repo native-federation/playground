@@ -1,4 +1,6 @@
-:host { display: block; }
+:host {
+  display: block;
+}
 
 .e_HomePage {
   @media (min-width: 500px) {
@@ -21,7 +23,9 @@
 }
 
 .e_HomePage__categoryLink:hover,
-.e_HomePage__categoryLink:focus { text-decoration: underline; }
+.e_HomePage__categoryLink:focus {
+  text-decoration: underline;
+}
 
 .e_HomePage__categoryLink img {
   width: 100%;
@@ -30,4 +34,6 @@
   margin-bottom: 0.75rem;
 }
 
-.e_HomePage__recommendations { grid-column: span 2; }
+.e_HomePage__recommendations {
+  grid-column: span 2;
+}

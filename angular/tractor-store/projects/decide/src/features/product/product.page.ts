@@ -8,17 +8,17 @@ import {
   input,
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import {
-  RemoteElementDirective,
-  param,
-  RouteParams,
-} from '@tractor-store/shared';
-import { ProductHttp } from '../../core/data/http/product-http';
-import { VariantOption } from '../../shared/components/variant-option/variant-option';
+import type { RouteParams } from '@tractor-store/contracts';
+import { ProductService } from '../../data/product.service';
+import { RemoteElementDirective } from '../../shared/remote-element';
+import { VariantOptionComponent } from '../../shared/components/variant-option/variant-option.component';
+
+const param = (params: RouteParams, key: string) =>
+  typeof params[key] === 'string' ? params[key] : undefined;
 
 @Component({
   selector: 'app-product',
-  imports: [NgOptimizedImage, RemoteElementDirective, VariantOption],
+  imports: [NgOptimizedImage, RemoteElementDirective, VariantOptionComponent],
   templateUrl: './product.page.html',
   styleUrl: './product.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,38 +29,21 @@ import { VariantOption } from '../../shared/components/variant-option/variant-op
   },
 })
 export class ProductPage {
-  private readonly productHttp = inject(ProductHttp);
-
   readonly routeParams = input<RouteParams>({});
 
-  readonly id = computed(() => param(this.routeParams(), 'id'));
-  readonly sku = computed(() => param(this.routeParams(), 'sku'));
+  private readonly id = computed(() => param(this.routeParams(), 'id'));
+  private readonly sku = computed(() => param(this.routeParams(), 'sku'));
 
-  private readonly productResource = this.productHttp.getById(this.id);
-  readonly product = this.productResource.value;
-  readonly isLoading = this.productResource.isLoading;
+  private readonly productResource = inject(ProductService).getById(this.id);
+  protected readonly product = this.productResource.value;
+  protected readonly isLoading = this.productResource.isLoading;
 
-  readonly variants = computed(() => this.product()?.variants ?? []);
-
-  readonly highlights = computed(() => this.product()?.highlights ?? []);
-
-  readonly selectedVariant = computed(() => {
-    const variants = this.variants();
-    if (variants.length === 0) return undefined;
-    const skuParam = this.sku();
-    return variants.find((v) => v.sku === skuParam) ?? variants[0];
+  protected readonly selectedVariant = computed(() => {
+    const variants = this.product()?.variants ?? [];
+    return variants.find((v) => v.sku === this.sku()) ?? variants[0];
   });
 
-  readonly selectedSku = computed(() => this.selectedVariant()?.sku ?? '');
-
-  readonly productAlt = computed(() => {
-    const product = this.product();
-    const variant = this.selectedVariant();
-    if (!product || !variant) return '';
-    return `${product.name} - ${variant.name}`;
-  });
-
-  isSelected(sku: string): boolean {
-    return this.selectedVariant()?.sku === sku;
-  }
+  protected readonly selectedSku = computed(
+    () => this.selectedVariant()?.sku ?? '',
+  );
 }

@@ -5,11 +5,8 @@
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
     "paths": {
-      "@tractor-store/shared": [
-        "./libs/shared/src/public-api.ts"
-      ],
-      "@tractor-store/shared/testing": [
-        "./libs/shared/src/testing/install-registry-stub.ts"
+      "@tractor-store/contracts": [
+        "./libs/contracts/index.ts"
       ]
     },
     "strict": true,
@@ -56,12 +53,6 @@
     },
     {
       "path": "./projects/checkout/tsconfig.spec.json"
-    },
-    {
-      "path": "./libs/shared/tsconfig.lib.json"
-    },
-    {
-      "path": "./libs/shared/tsconfig.spec.json"
     }
   ]
 }

@@ -3,9 +3,9 @@ import {withNativeFederation, fromPackageJson} from '@angular-architects/native-
 export default withNativeFederation({
   name: "host",
   shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
-    .patch(['@angular/core'], {includeSecondaries: {keepAll: true}})
+    .patch(['@angular/*'], {includeSecondaries: {keepAll: true}})
     .get(),
-  sharedMappings: ["@tractor-store/shared"],
+  sharedMappings: [],
   skip: [
     'rxjs/ajax', 
     'rxjs/fetch',

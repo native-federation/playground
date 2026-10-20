@@ -6,9 +6,9 @@ import {
   computed,
   inject,
 } from '@angular/core';
-import { StoreHttp } from '../../core/data/http/store-http';
-import { StoreTileComponent } from '../../shared/components/store-tile/store-tile';
-import { RemoteElementDirective } from '@tractor-store/shared';
+import { StoreService } from '../../data/store.service';
+import { RemoteElementDirective } from '../../shared/remote-element';
+import { StoreTileComponent } from '../../shared/components/store-tile/store-tile.component';
 
 @Component({
   selector: 'app-stores',
@@ -21,7 +21,6 @@ import { RemoteElementDirective } from '@tractor-store/shared';
   host: { 'data-boundary-page': 'explore' },
 })
 export class StoresPage {
-  private readonly storeHttp = inject(StoreHttp);
-  private readonly storesResource = this.storeHttp.list();
-  readonly stores = computed(() => this.storesResource.value() ?? []);
+  private readonly storesResource = inject(StoreService).list();
+  protected readonly stores = computed(() => this.storesResource.value() ?? []);
 }

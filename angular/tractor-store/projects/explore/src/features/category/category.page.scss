@@ -1,4 +1,6 @@
-:host { display: block; }
+:host {
+  display: block;
+}
 
 .e_CategoryPage {
   max-width: calc(1000px + var(--outer-space) * 2);
@@ -14,13 +16,19 @@
 }
 
 @media (max-width: 499px) {
-  .e_CategoryPage_list { grid-template-columns: 1fr; }
+  .e_CategoryPage_list {
+    grid-template-columns: 1fr;
+  }
 }
 @media (min-width: 500px) and (max-width: 999px) {
-  .e_CategoryPage_list { grid-template-columns: 1fr 1fr; }
+  .e_CategoryPage_list {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 @media (min-width: 1000px) {
-  .e_CategoryPage_list { grid-template-columns: 1fr 1fr 1fr; }
+  .e_CategoryPage_list {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 .e_CategoryPage__subline {

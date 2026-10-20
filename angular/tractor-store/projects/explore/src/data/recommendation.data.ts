@@ -1,0 +1,474 @@
+import type { Recommendation } from './recommendation';
+
+export const recommendations: Recommendation[] = [
+  {
+    name: 'TerraFirma AutoCultivator T-300 Silver',
+    sku: 'AU-01-SI',
+    image: '/cdn/img/product/[size]/AU-01-SI.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-01', sku: 'AU-01-SI' },
+    },
+    rgb: [192, 192, 192],
+  },
+  {
+    name: 'SmartFarm Titan Sunset Copper',
+    sku: 'AU-02-OG',
+    image: '/cdn/img/product/[size]/AU-02-OG.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-02', sku: 'AU-02-OG' },
+    },
+    rgb: [221, 82, 25],
+  },
+  {
+    name: 'SmartFarm Titan Cosmic Sapphire',
+    sku: 'AU-02-BL',
+    image: '/cdn/img/product/[size]/AU-02-BL.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-02', sku: 'AU-02-BL' },
+    },
+    rgb: [42, 82, 190],
+  },
+  {
+    name: 'SmartFarm Titan Verdant Shadow',
+    sku: 'AU-02-GG',
+    image: '/cdn/img/product/[size]/AU-02-GG.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-02', sku: 'AU-02-GG' },
+    },
+    rgb: [0, 90, 4],
+  },
+  {
+    name: 'FutureHarvest Navigator Turquoise Titan',
+    sku: 'AU-03-TQ',
+    image: '/cdn/img/product/[size]/AU-03-TQ.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-03', sku: 'AU-03-TQ' },
+    },
+    rgb: [22, 159, 184],
+  },
+  {
+    name: 'FutureHarvest Navigator Majestic Violet',
+    sku: 'AU-03-PL',
+    image: '/cdn/img/product/[size]/AU-03-PL.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-03', sku: 'AU-03-PL' },
+    },
+    rgb: [155, 95, 192],
+  },
+  {
+    name: 'FutureHarvest Navigator Scarlet Dynamo',
+    sku: 'AU-03-RD',
+    image: '/cdn/img/product/[size]/AU-03-RD.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-03', sku: 'AU-03-RD' },
+    },
+    rgb: [255, 36, 0],
+  },
+  {
+    name: 'FutureHarvest Navigator Sunbeam Yellow',
+    sku: 'AU-03-YE',
+    image: '/cdn/img/product/[size]/AU-03-YE.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-03', sku: 'AU-03-YE' },
+    },
+    rgb: [250, 173, 0],
+  },
+  {
+    name: 'Sapphire Sunworker 460R Ruby Red',
+    sku: 'AU-04-RD',
+    image: '/cdn/img/product/[size]/AU-04-RD.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-04', sku: 'AU-04-RD' },
+    },
+    rgb: [155, 17, 30],
+  },
+  {
+    name: 'Sapphire Sunworker 460R Midnight Onyx',
+    sku: 'AU-04-BK',
+    image: '/cdn/img/product/[size]/AU-04-BK.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-04', sku: 'AU-04-BK' },
+    },
+    rgb: [53, 56, 57],
+  },
+  {
+    name: 'EcoGrow Crop Commander Zestful Horizon',
+    sku: 'AU-05-ZH',
+    image: '/cdn/img/product/[size]/AU-05-ZH.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-05', sku: 'AU-05-ZH' },
+    },
+    rgb: [255, 160, 122],
+  },
+  {
+    name: 'FarmFleet Sovereign Canary Zenith',
+    sku: 'AU-06-CZ',
+    image: '/cdn/img/product/[size]/AU-06-CZ.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-06', sku: 'AU-06-CZ' },
+    },
+    rgb: [255, 215, 0],
+  },
+  {
+    name: 'FarmFleet Sovereign Minted Jade',
+    sku: 'AU-06-MT',
+    image: '/cdn/img/product/[size]/AU-06-MT.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-06', sku: 'AU-06-MT' },
+    },
+    rgb: [98, 136, 130],
+  },
+  {
+    name: 'Verde Voyager Glacial Mint',
+    sku: 'AU-07-MT',
+    image: '/cdn/img/product/[size]/AU-07-MT.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-07', sku: 'AU-07-MT' },
+    },
+    rgb: [175, 219, 210],
+  },
+  {
+    name: 'Verde Voyager Sunbeam Yellow',
+    sku: 'AU-07-YE',
+    image: '/cdn/img/product/[size]/AU-07-YE.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-07', sku: 'AU-07-YE' },
+    },
+    rgb: [255, 218, 3],
+  },
+  {
+    name: 'Field Pioneer Polar White',
+    sku: 'AU-08-WH',
+    image: '/cdn/img/product/[size]/AU-08-WH.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'AU-08', sku: 'AU-08-WH' },
+    },
+    rgb: [232, 232, 232],
+  },
+  {
+    name: 'Heritage Workhorse Verdant Field',
+    sku: 'CL-01-GR',
+    image: '/cdn/img/product/[size]/CL-01-GR.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-01', sku: 'CL-01-GR' },
+    },
+    rgb: [107, 142, 35],
+  },
+  {
+    name: 'Heritage Workhorse Stormy Sky',
+    sku: 'CL-01-GY',
+    image: '/cdn/img/product/[size]/CL-01-GY.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-01', sku: 'CL-01-GY' },
+    },
+    rgb: [112, 128, 144],
+  },
+  {
+    name: 'Falcon Crest Farm Cerulean Classic',
+    sku: 'CL-02-BL',
+    image: '/cdn/img/product/[size]/CL-02-BL.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-02', sku: 'CL-02-BL' },
+    },
+    rgb: [0, 123, 167],
+  },
+  {
+    name: 'Falcon Crest Work Meadow Green',
+    sku: 'CL-03-GR',
+    image: '/cdn/img/product/[size]/CL-03-GR.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-03', sku: 'CL-03-GR' },
+    },
+    rgb: [124, 252, 0],
+  },
+  {
+    name: 'Falcon Crest Work Rustic Rose',
+    sku: 'CL-03-PI',
+    image: '/cdn/img/product/[size]/CL-03-PI.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-03', sku: 'CL-03-PI' },
+    },
+    rgb: [181, 0, 24],
+  },
+  {
+    name: 'Falcon Crest Work Harvest Gold',
+    sku: 'CL-03-YE',
+    image: '/cdn/img/product/[size]/CL-03-YE.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-03', sku: 'CL-03-YE' },
+    },
+    rgb: [218, 145, 0],
+  },
+  {
+    name: 'Broadfield Majestic Oceanic Blue',
+    sku: 'CL-04-BL',
+    image: '/cdn/img/product/[size]/CL-04-BL.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-04', sku: 'CL-04-BL' },
+    },
+    rgb: [0, 64, 166],
+  },
+  {
+    name: 'Broadfield Majestic Rustic Crimson',
+    sku: 'CL-04-RD',
+    image: '/cdn/img/product/[size]/CL-04-RD.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-04', sku: 'CL-04-RD' },
+    },
+    rgb: [123, 63, 0],
+  },
+  {
+    name: 'Broadfield Majestic Aqua Green',
+    sku: 'CL-04-TQ',
+    image: '/cdn/img/product/[size]/CL-04-TQ.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-04', sku: 'CL-04-TQ' },
+    },
+    rgb: [0, 178, 152],
+  },
+  {
+    name: 'Countryside Commander Pacific Teal',
+    sku: 'CL-05-PT',
+    image: '/cdn/img/product/[size]/CL-05-PT.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-05', sku: 'CL-05-PT' },
+    },
+    rgb: [71, 157, 168],
+  },
+  {
+    name: 'Countryside Commander Barn Red',
+    sku: 'CL-05-RD',
+    image: '/cdn/img/product/[size]/CL-05-RD.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-05', sku: 'CL-05-RD' },
+    },
+    rgb: [124, 10, 2],
+  },
+  {
+    name: 'Danamark Steadfast Emerald Forest',
+    sku: 'CL-06-MT',
+    image: '/cdn/img/product/[size]/CL-06-MT.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-06', sku: 'CL-06-MT' },
+    },
+    rgb: [70, 245, 187],
+  },
+  {
+    name: 'Danamark Steadfast Golden Wheat',
+    sku: 'CL-06-YE',
+    image: '/cdn/img/product/[size]/CL-06-YE.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-06', sku: 'CL-06-YE' },
+    },
+    rgb: [250, 175, 63],
+  },
+  {
+    name: 'Greenland Rover Forest Fern',
+    sku: 'CL-07-GR',
+    image: '/cdn/img/product/[size]/CL-07-GR.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-07', sku: 'CL-07-GR' },
+    },
+    rgb: [46, 162, 80],
+  },
+  {
+    name: 'Greenland Rover Autumn Amber',
+    sku: 'CL-07-YE',
+    image: '/cdn/img/product/[size]/CL-07-YE.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-07', sku: 'CL-07-YE' },
+    },
+    rgb: [255, 191, 0],
+  },
+  {
+    name: 'Holland Hamster Polder Green',
+    sku: 'CL-08-GR',
+    image: '/cdn/img/product/[size]/CL-08-GR.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-08', sku: 'CL-08-GR' },
+    },
+    rgb: [194, 178, 128],
+  },
+  {
+    name: 'Holland Hamster Tulip Magenta',
+    sku: 'CL-08-PI',
+    image: '/cdn/img/product/[size]/CL-08-PI.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-08', sku: 'CL-08-PI' },
+    },
+    rgb: [214, 82, 130],
+  },
+  {
+    name: 'TerraFirma Veneto Adriatic Blue',
+    sku: 'CL-09-BL',
+    image: '/cdn/img/product/[size]/CL-09-BL.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-09', sku: 'CL-09-BL' },
+    },
+    rgb: [47, 110, 163],
+  },
+  {
+    name: 'TerraFirma Veneto Tuscan Green',
+    sku: 'CL-09-GR',
+    image: '/cdn/img/product/[size]/CL-09-GR.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-09', sku: 'CL-09-GR' },
+    },
+    rgb: [81, 139, 43],
+  },
+  {
+    name: 'Global Gallant Sahara Dawn',
+    sku: 'CL-10-SD',
+    image: '/cdn/img/product/[size]/CL-10-SD.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-10', sku: 'CL-10-SD' },
+    },
+    rgb: [184, 168, 117],
+  },
+  {
+    name: 'Global Gallant Violet Vintage',
+    sku: 'CL-10-VI',
+    image: '/cdn/img/product/[size]/CL-10-VI.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-10', sku: 'CL-10-VI' },
+    },
+    rgb: [138, 43, 226],
+  },
+  {
+    name: 'Scandinavia Sower Baltic Blue',
+    sku: 'CL-11-SK',
+    image: '/cdn/img/product/[size]/CL-11-SK.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-11', sku: 'CL-11-SK' },
+    },
+    rgb: [149, 193, 244],
+  },
+  {
+    name: 'Scandinavia Sower Nordic Gold',
+    sku: 'CL-11-YE',
+    image: '/cdn/img/product/[size]/CL-11-YE.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-11', sku: 'CL-11-YE' },
+    },
+    rgb: [255, 215, 0],
+  },
+  {
+    name: 'Celerity Cruiser Velocity Blue',
+    sku: 'CL-12-BL',
+    image: '/cdn/img/product/[size]/CL-12-BL.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-12', sku: 'CL-12-BL' },
+    },
+    rgb: [30, 144, 255],
+  },
+  {
+    name: 'Celerity Cruiser Rally Red',
+    sku: 'CL-12-RD',
+    image: '/cdn/img/product/[size]/CL-12-RD.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-12', sku: 'CL-12-RD' },
+    },
+    rgb: [237, 41, 57],
+  },
+  {
+    name: 'Rapid Racer Speedway Blue',
+    sku: 'CL-13-BL',
+    image: '/cdn/img/product/[size]/CL-13-BL.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-13', sku: 'CL-13-BL' },
+    },
+    rgb: [38, 121, 166],
+  },
+  {
+    name: 'Rapid Racer Raceway Red',
+    sku: 'CL-13-RD',
+    image: '/cdn/img/product/[size]/CL-13-RD.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-13', sku: 'CL-13-RD' },
+    },
+    rgb: [207, 16, 32],
+  },
+  {
+    name: 'Caribbean Cruiser Emerald Grove',
+    sku: 'CL-14-GR',
+    image: '/cdn/img/product/[size]/CL-14-GR.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-14', sku: 'CL-14-GR' },
+    },
+    rgb: [87, 174, 19],
+  },
+  {
+    name: 'Caribbean Cruiser Ruby Fields',
+    sku: 'CL-14-RD',
+    image: '/cdn/img/product/[size]/CL-14-RD.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-14', sku: 'CL-14-RD' },
+    },
+    rgb: [205, 43, 30],
+  },
+  {
+    name: 'Fieldmaster Classic Vintage Pink',
+    sku: 'CL-15-PI',
+    image: '/cdn/img/product/[size]/CL-15-PI.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-15', sku: 'CL-15-PI' },
+    },
+    rgb: [225, 148, 158],
+  },
+  {
+    name: 'Fieldmaster Classic Sahara Dust',
+    sku: 'CL-15-SD',
+    image: '/cdn/img/product/[size]/CL-15-SD.webp',
+    link: {
+      intent: 'decide.product',
+      params: { id: 'CL-15', sku: 'CL-15-SD' },
+    },
+    rgb: [222, 199, 140],
+  },
+];

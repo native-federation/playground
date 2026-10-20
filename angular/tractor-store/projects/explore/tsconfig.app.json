@@ -8,6 +8,7 @@
     "types": []
   },
   "include": [
+    "../../libs/contracts/index.ts",
     "src/**/*.ts"
   ],
   "exclude": [

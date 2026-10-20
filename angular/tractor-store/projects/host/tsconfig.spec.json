@@ -9,8 +9,9 @@
     ]
   },
   "include": [
+    "../../libs/contracts/index.ts",
     "src/**/*.spec.ts",
     "src/**/*.d.ts",
-    "../../libs/shared/src/testing/install-registry-stub.ts"
+    "src/testing/setup.ts"
   ]
 }

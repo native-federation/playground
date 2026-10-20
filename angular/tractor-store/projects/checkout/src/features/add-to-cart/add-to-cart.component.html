@@ -1,8 +1,7 @@
 @if (variant(); as v) {
-  <form class="c_AddToCart" [formGroup]="form" (ngSubmit)="onSubmit()">
-    <input type="hidden" formControlName="sku" />
+  <div class="c_AddToCart">
     <div class="c_AddToCart__information">
-      <p>{{ v.price }} Ø</p>
+      <p>{{ v.price }},00 Ø</p>
       @if (v.inventory > 0) {
         <p class="c_AddToCart__stock c_AddToCart__stock--ok">
           {{ v.inventory }} in stock, free shipping
@@ -11,23 +10,24 @@
         <p class="c_AddToCart__stock c_AddToCart__stock--empty">out of stock</p>
       }
     </div>
-    <ts-button
-      type="submit"
+    <app-button
       variant="primary"
-      extraClass="c_AddToCart__button"
       [disabled]="outOfStock()"
+      (click)="add(v.sku)"
     >
       add to basket
-    </ts-button>
+    </app-button>
     <div
       class="c_AddToCart__confirmed"
       [class.c_AddToCart__confirmed--hidden]="!confirmed()"
       aria-live="polite"
     >
       <p>Tractor was added.</p>
-      <a [appNavigateTo]="'checkout.cart'" class="c_AddToCart__link">View in basket.</a>
+      <a [navIntent]="'checkout.cart'" class="c_AddToCart__link"
+        >View in basket.</a
+      >
     </div>
-  </form>
+  </div>
 } @else if (isLoading()) {
   <p class="c_AddToCart__loading" aria-live="polite">Loading…</p>
 }

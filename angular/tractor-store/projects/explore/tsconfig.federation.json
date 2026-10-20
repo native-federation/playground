@@ -5,8 +5,8 @@
     "types": []
   },
   "include": [
-    "src/**/*.ts",
-    "../../libs/shared/src/public-api.ts"
+    "../../libs/contracts/index.ts",
+    "src/**/*.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts"

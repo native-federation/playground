@@ -1,7 +1,7 @@
 <app-compact-header></app-compact-header>
 <main class="c_Checkout">
   <h2>Checkout</h2>
-  <form class="c_Checkout__form" [formGroup]="form" (submit)="onSubmit($event)">
+  <form class="c_Checkout__form" [formGroup]="form" (ngSubmit)="submit()">
     <h3>Personal Data</h3>
     <fieldset class="c_Checkout__name">
       <div>
@@ -43,10 +43,12 @@
     </fieldset>
 
     <div class="c_Checkout__buttons">
-      <ts-button type="submit" variant="primary" [disabled]="!isReady()">
+      <app-button type="submit" variant="primary" [disabled]="!isReady()">
         place order
-      </ts-button>
-      <ts-button variant="secondary" [appNavigateTo]="'checkout.cart'">back to cart</ts-button>
+      </app-button>
+      <app-button variant="secondary" [navIntent]="'checkout.cart'"
+        >back to cart</app-button
+      >
     </div>
   </form>
 </main>

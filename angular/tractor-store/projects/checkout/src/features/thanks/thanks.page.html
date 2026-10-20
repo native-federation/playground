@@ -3,6 +3,8 @@
   <h2 class="c_Thanks__title">Thanks for your order!</h2>
   <p class="c_Thanks__text">We'll notify you, when its ready for pickup.</p>
 
-  <ts-button variant="secondary" [appNavigateTo]="'explore.home'">Continue Shopping</ts-button>
+  <app-button variant="secondary" [navIntent]="'explore.home'"
+    >Continue Shopping</app-button
+  >
 </main>
 <mfe-footer mfeRemote="@tractor-store/explore"></mfe-footer>

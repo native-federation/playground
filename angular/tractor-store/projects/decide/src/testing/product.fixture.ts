@@ -1,6 +1,6 @@
-import type { ProductModel } from '../core/data/contracts/models/product.model';
+import type { Product } from '../data/product';
 
-export const productFixture: ProductModel[] = [
+export const productFixture: Product[] = [
   {
     id: 'CL-01',
     name: 'Heritage Workhorse',

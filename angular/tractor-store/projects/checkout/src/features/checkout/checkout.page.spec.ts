@@ -1,83 +1,85 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CART_STORAGE_KEY, CartStore } from '../../core/data/store/cart-store';
-import { provideEnv, LOAD_REMOTE } from '@tractor-store/shared';
+import type { Events, NavigatePayload } from '@tractor-store/contracts';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { CartStore } from '../../data/cart-store';
+import { CART_STORAGE_KEY } from '../../data/cart-storage';
+import { LOAD_REMOTE } from '../../shared/remote-element';
 import { CheckoutPage } from './checkout.page';
-import { installFakeRegistry } from '@tractor-store/shared/testing';
-
-const envFixture = {
-  production: false,
-  apiUrl: '',
-  cdnUrl: '',
-};
 
 describe('CheckoutPage', () => {
-  let bus: ReturnType<typeof installFakeRegistry>;
-
   beforeEach(() => {
     window.localStorage.clear();
-    TestBed.resetTestingModule();
-    bus = installFakeRegistry();
+    TestBed.configureTestingModule({
+      providers: [{ provide: LOAD_REMOTE, useValue: () => Promise.resolve() }],
+    });
   });
 
-  it('creates', async () => {
-    await TestBed.configureTestingModule({
-      imports: [CheckoutPage],
-      providers: [
-        provideRouter([]),
-        { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
-        provideEnv(envFixture),
-      ],
-    }).compileComponents();
+  function render() {
     const fixture = TestBed.createComponent(CheckoutPage);
     fixture.detectChanges();
-    expect(fixture.componentInstance).toBeTruthy();
-    expect(fixture.componentInstance.isReady()).toBe(false);
-  });
+    const root = (fixture.nativeElement as HTMLElement).shadowRoot!;
+    const type = (id: string, value: string) => {
+      const input = root.querySelector<HTMLInputElement>(`#${id}`)!;
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+    };
+    return {
+      fixture,
+      root,
+      type,
+      submit: root.querySelector<HTMLButtonElement>('button[type="submit"]')!,
+    };
+  }
 
-  it('is ready once first name, last name and store id are set', async () => {
-    await TestBed.configureTestingModule({
-      imports: [CheckoutPage],
-      providers: [
-        provideRouter([]),
-        { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
-        provideEnv(envFixture),
-      ],
-    }).compileComponents();
-    const fixture = TestBed.createComponent(CheckoutPage);
-    fixture.detectChanges();
-    const c = fixture.componentInstance;
-    c.form.patchValue({ firstname: 'Alice', lastname: 'Anderson' });
-    expect(c.isReady()).toBe(false);
-    bus.emit('store:selected', { id: 'berlin' });
-    expect(c.isReady()).toBe(true);
-    expect(c.storeId()).toBe('berlin');
-  });
-
-  it('clears the cart and emits navigate intent on submit', async () => {
-    window.localStorage.setItem(CART_STORAGE_KEY, 'AU-03-RD_2');
-    await TestBed.configureTestingModule({
-      imports: [CheckoutPage],
-      providers: [
-        provideRouter([]),
-        { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
-        provideEnv(envFixture),
-      ],
-    }).compileComponents();
-    const fixture = TestBed.createComponent(CheckoutPage);
-    fixture.detectChanges();
-    const c = fixture.componentInstance;
-
-    const navigated = vi.fn();
-    bus.on('nav:navigate', (event) => {
-      navigated((event as { data: unknown }).data);
+  const selectStore = (id: string) =>
+    window.__NF_REGISTRY__!.emit<Events['store:selected']>('store:selected', {
+      id,
     });
 
-    c.form.patchValue({ firstname: 'A', lastname: 'B' });
-    bus.emit('store:selected', { id: 'hamburg' });
-    c.onSubmit(new Event('submit'));
+  it('keeps place order disabled until the form is complete', async () => {
+    const { fixture, type, submit } = render();
+    expect(submit.disabled).toBe(true);
+
+    type('c_firstname', 'Alice');
+    type('c_lastname', 'Anderson');
+    await fixture.whenStable();
+    expect(submit.disabled).toBe(true);
+
+    // Regression: the store id arrives from the bus, outside any template event,
+    // and must still enable the button under zoneless change detection.
+    selectStore('berlin');
+    await fixture.whenStable();
+    expect(submit.disabled).toBe(false);
+  });
+
+  it('fills the read-only store id from a store picked earlier', async () => {
+    selectStore('hamburg');
+    const { fixture, root } = render();
+    // The bus replays the last event in a microtask.
+    await Promise.resolve();
+    await fixture.whenStable();
+    expect(root.querySelector<HTMLInputElement>('#c_storeId')!.value).toBe(
+      'hamburg',
+    );
+  });
+
+  it('clears the cart and asks the host to navigate to thanks on submit', async () => {
+    window.localStorage.setItem(CART_STORAGE_KEY, 'AU-03-RD_2');
+    const navigations: NavigatePayload[] = [];
+    window.__NF_REGISTRY__!.on<Events['nav:navigate']>(
+      'nav:navigate',
+      ({ data }) => navigations.push(data),
+      { replay: 0 },
+    );
+    const { fixture, type, submit } = render();
+    type('c_firstname', 'A');
+    type('c_lastname', 'B');
+    selectStore('hamburg');
+    await fixture.whenStable();
+
+    submit.click();
+
     expect(TestBed.inject(CartStore).lineItems()).toEqual([]);
-    expect(navigated).toHaveBeenCalledWith({ id: 'checkout.thanks' });
+    expect(navigations).toEqual([{ id: 'checkout.thanks' }]);
   });
 });

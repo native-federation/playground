@@ -7,15 +7,13 @@ import {
   inject,
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import {
-  RemoteElementDirective,
-  NavigateToDirective,
-} from '@tractor-store/shared';
-import { TeaserHttp } from '../../core/data/http/teaser-http';
+import { TeaserService } from '../../data/teaser.service';
+import { NavIntentDirective } from '../../shared/nav-intent.directive';
+import { RemoteElementDirective } from '../../shared/remote-element';
 
 @Component({
   selector: 'app-home',
-  imports: [NgOptimizedImage, RemoteElementDirective, NavigateToDirective],
+  imports: [NgOptimizedImage, RemoteElementDirective, NavIntentDirective],
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,11 +22,8 @@ import { TeaserHttp } from '../../core/data/http/teaser-http';
   host: { 'data-boundary-page': 'explore' },
 })
 export class HomePage {
-  private readonly teaserHttp = inject(TeaserHttp);
-
-  private readonly teaserResource = this.teaserHttp.list();
-
-  readonly teasers = computed(() => this.teaserResource.value() ?? []);
-
-  readonly seedSkus: string[] = ['CL-01-GY', 'AU-07-MT'];
+  private readonly teaserResource = inject(TeaserService).list();
+  protected readonly teasers = computed(
+    () => this.teaserResource.value() ?? [],
+  );
 }

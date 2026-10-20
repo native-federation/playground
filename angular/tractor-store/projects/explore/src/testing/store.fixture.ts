@@ -1,6 +1,6 @@
-import type { StoreModel } from '../core/data/contracts/models/store.model';
+import type { Store } from '../data/store';
 
-export const storeFixture: StoreModel[] = [
+export const storeFixture: Store[] = [
   {
     id: 'store-a',
     name: 'Aurora Flagship Store',

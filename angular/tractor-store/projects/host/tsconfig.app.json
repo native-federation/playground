@@ -10,6 +10,7 @@
     "src/main.ts"
   ],
   "include": [
+    "../../libs/contracts/index.ts",
     "src/**/*.d.ts"
   ]
 }

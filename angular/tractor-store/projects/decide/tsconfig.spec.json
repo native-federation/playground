@@ -11,8 +11,10 @@
     "esModuleInterop": true
   },
   "include": [
+    "../../libs/contracts/index.ts",
     "src/**/*.d.ts",
     "src/**/*.spec.ts",
-    "src/**/*.json"
+    "src/**/*.json",
+    "src/testing/setup.ts"
   ]
 }

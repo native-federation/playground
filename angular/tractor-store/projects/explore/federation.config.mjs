@@ -11,12 +11,12 @@ export default withNativeFederation({
     'mfe-footer': './projects/explore/src/features/footer/bootstrap.ts',
     'mfe-recommendations': './projects/explore/src/features/recommendations/bootstrap.ts',
     'mfe-store-picker': './projects/explore/src/features/store-picker/bootstrap.ts',
-    'nav-contribution':  './projects/explore/src/core/nav-contribution.ts',
+    'nav-contribution': './projects/explore/src/nav-contribution.ts',
   },
   shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
-    .patch(['@angular/core'], {includeSecondaries: {keepAll: true}})
+    .patch(['@angular/*'], {includeSecondaries: {keepAll: true}})
     .get(),
-  sharedMappings: ["@tractor-store/shared"],
+  sharedMappings: [],
   skip: [
     'rxjs/ajax',
     'rxjs/fetch',
