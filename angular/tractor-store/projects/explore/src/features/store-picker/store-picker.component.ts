@@ -13,10 +13,11 @@ import type { Events } from '@tractor-store/contracts';
 import type { Store } from '../../data/store';
 import { StoreService } from '../../data/store.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { StoreTileComponent } from '../../shared/components/store-tile/store-tile.component';
 
 @Component({
   selector: 'app-store-picker',
-  imports: [NgOptimizedImage, ButtonComponent],
+  imports: [NgOptimizedImage, ButtonComponent, StoreTileComponent],
   templateUrl: './store-picker.component.html',
   styleUrl: './store-picker.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

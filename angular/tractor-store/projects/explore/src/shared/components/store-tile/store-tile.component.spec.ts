@@ -1,4 +1,5 @@
 import { IMAGE_LOADER } from '@angular/common';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { cdnImageLoader } from '../../../app.config';
@@ -7,6 +8,16 @@ import { storeFixture } from '../../../testing/store.fixture';
 import { StoreTileComponent } from './store-tile.component';
 
 const [store] = storeFixture;
+
+@Component({
+  imports: [StoreTileComponent],
+  template: `<app-store-tile [store]="store"
+    ><button>select</button></app-store-tile
+  >`,
+})
+class HostComponent {
+  protected readonly store = store;
+}
 
 describe('StoreTileComponent', () => {
   beforeEach(() => {
@@ -37,5 +48,14 @@ describe('StoreTileComponent', () => {
       testEnv.cdnUrl + store.image.replace('[size]', String(size));
     expect(img.getAttribute('src')).toBe(at(200));
     expect(img.getAttribute('srcset')).toBe(`${at(200)} 1x, ${at(400)} 2x`);
+  });
+
+  it('renders projected content inside the tile', async () => {
+    const fixture = TestBed.createComponent(HostComponent);
+    await fixture.whenStable();
+    const button = (fixture.nativeElement as HTMLElement).querySelector(
+      '.e_Store button',
+    );
+    expect(button?.textContent).toBe('select');
   });
 });

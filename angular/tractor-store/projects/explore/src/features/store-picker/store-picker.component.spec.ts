@@ -42,7 +42,7 @@ describe('StorePickerComponent', () => {
       )!,
       selectButtons: [
         ...root.querySelectorAll<HTMLButtonElement>(
-          '.e_StorePicker_entry button',
+          'dialog app-store-tile button',
         ),
       ],
     };
@@ -50,11 +50,9 @@ describe('StorePickerComponent', () => {
 
   it('lists every store in the dialog', async () => {
     const { root } = await render();
-    const entries = [...root.querySelectorAll('.e_StorePicker_entry')];
+    const entries = [...root.querySelectorAll('dialog app-store-tile')];
     expect(
-      entries.map(
-        (e) => e.querySelector('.e_StorePicker_address')?.textContent,
-      ),
+      entries.map((e) => e.querySelector('.e_Store_address')?.textContent),
     ).toEqual(storeFixture.map((s) => expect.stringContaining(s.name)));
     expect(entries[0].querySelector('img')?.getAttribute('src')).toBe(
       testEnv.cdnUrl + storeFixture[0].image.replace('[size]', '200'),

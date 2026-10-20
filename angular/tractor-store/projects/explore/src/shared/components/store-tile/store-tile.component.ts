@@ -22,6 +22,7 @@ import type { Store } from '../../../data/store';
           {{ store().city }}
         </p>
       </div>
+      <ng-content />
     </li>
   `,
   styles: [
