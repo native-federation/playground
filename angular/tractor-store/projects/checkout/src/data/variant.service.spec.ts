@@ -37,8 +37,8 @@ describe('VariantService', () => {
       expect(value).toBeUndefined();
     });
 
-    it('does not fire a request when sku is nullish', async () => {
-      const sku = signal<string | undefined | null>(undefined);
+    it('does not fire a request when sku is undefined', async () => {
+      const sku = signal<string | undefined>(undefined);
       const ref = TestBed.runInInjectionContext(() => service.getBySku(sku));
       // resource stays idle and value remains undefined; never reaches 'resolved'
       expect(ref.status()).toBe('idle');

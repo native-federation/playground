@@ -5,8 +5,8 @@ import type { NativeFederationResult } from '@softarc/native-federation-orchestr
 import type { EnvironmentConfig } from '@tractor-store/contracts';
 import { createRemoteLoader, LOAD_REMOTE } from './shared/remote-element';
 
-// Serves images from the CDN and fills the `[size]` segment of a catalog image path. The plain
-// `src` has no width, so it uses loaderParams.size or 200.
+// Fills the `[size]` path segment with the requested width; the plain `src` has none, so it uses
+// loaderParams.size or 200.
 export const cdnImageLoader =
   (cdnUrl: string) =>
   ({ src, width, loaderParams }: ImageLoaderConfig): string =>
@@ -15,7 +15,8 @@ export const cdnImageLoader =
 
 let injector: Promise<Injector> | undefined;
 
-// Every element this remote exposes shares one Angular app, so mini-cart and add-to-cart see the same CartStore.
+// Every element this remote exposes shares one Angular app, so mini-cart and add-to-cart
+// see the same CartStore.
 export const getAppInjector = (
   env: EnvironmentConfig,
   nf: NativeFederationResult,

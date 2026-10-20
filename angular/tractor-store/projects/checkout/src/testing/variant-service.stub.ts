@@ -22,7 +22,7 @@ function fakeResource<T>(value: Signal<T>): FakeResource<T> {
 
 export function fakeVariantService(catalog: Variant[] = variantFixture) {
   return {
-    getBySku(sku: Signal<string | undefined | null>) {
+    getBySku(sku: Signal<string | undefined>) {
       const value = computed(() => catalog.find((v) => v.sku === sku()));
       return fakeResource<Variant | undefined>(value);
     },
