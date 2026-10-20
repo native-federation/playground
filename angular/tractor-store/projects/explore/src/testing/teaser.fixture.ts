@@ -1,6 +1,6 @@
-import type { TeaserModel } from '../core/data/contracts/models/teaser.model';
+import type { Teaser } from '../data/teaser';
 
-export const teaserFixture: TeaserModel[] = [
+export const teaserFixture: Teaser[] = [
   {
     title: 'Classic Tractors',
     image: '/img/[size]/classics.webp',

@@ -6,19 +6,8 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { RecommendationHttp } from '../../core/data/http/recommendation-http';
-import { RecommendationComponent } from '../../shared/components/recommendation/recommendation';
-
-function parseSkus(v: unknown): string[] {
-  if (Array.isArray(v)) return v as string[];
-  if (typeof v === 'string') {
-    return v
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
-  return [];
-}
+import { RecommendationService } from '../../data/recommendation.service';
+import { RecommendationComponent } from '../../shared/components/recommendation/recommendation.component';
 
 @Component({
   selector: 'app-recommendations',
@@ -29,13 +18,18 @@ function parseSkus(v: unknown): string[] {
   encapsulation: ViewEncapsulation.ShadowDom,
 })
 export class RecommendationsComponent {
-  private readonly http = inject(RecommendationHttp);
+  // Comma-separated, set as an attribute: <mfe-recommendations skus="CL-01-GY,AU-07-MT">
+  readonly skus = input('');
 
-  readonly skus = input<string[], unknown>([], {
-    alias: 'skus',
-    transform: parseSkus,
-  });
+  private readonly seedSkus = computed(() =>
+    this.skus()
+      .split(',')
+      .map((sku) => sku.trim())
+      .filter(Boolean),
+  );
 
-  private readonly recoResource = this.http.bySeedSkus(this.skus);
-  readonly items = computed(() => this.recoResource.value() ?? []);
+  private readonly recommendations = inject(RecommendationService).bySeedSkus(
+    this.seedSkus,
+  );
+  protected readonly items = computed(() => this.recommendations.value() ?? []);
 }

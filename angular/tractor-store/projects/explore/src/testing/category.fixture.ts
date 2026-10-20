@@ -1,6 +1,6 @@
-import type { CategoryModel } from '../core/data/contracts/models/category.model';
+import type { Category } from '../data/category';
 
-export const categoryFixture: CategoryModel[] = [
+export const categoryFixture: Category[] = [
   {
     key: 'classic',
     name: 'Classics',

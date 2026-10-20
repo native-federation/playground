@@ -1,56 +1,68 @@
+import { IMAGE_LOADER } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CART_STORAGE_KEY } from '../../core/data/store/cart-store';
-import { VariantHttp } from '../../core/data/http/variant-http';
-import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
-import { fakeVariantHttp } from '../../testing/variant-http.stub';
+import { cdnImageLoader } from '../../app.config';
+import { CART_STORAGE_KEY } from '../../data/cart-storage';
+import { VariantService } from '../../data/variant.service';
+import { LOAD_REMOTE } from '../../shared/remote-element';
+import { testEnv } from '../../testing/env.fixture';
+import { variantFixture } from '../../testing/variant.fixture';
+import { fakeVariantService } from '../../testing/variant-service.stub';
 import { CartPage } from './cart.page';
 
-const envFixture = {
-  production: false,
-  apiUrl: '',
-  cdnUrl: '',
-};
-
-function configure() {
-  return TestBed.configureTestingModule({
-    imports: [CartPage],
-    providers: [
-      provideRouter([]),
-      { provide: VariantHttp, useFactory: () => fakeVariantHttp() },
-      { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
-      provideEnv(envFixture),
-    ],
-  }).compileComponents();
-}
+const [scarlet, verdant] = variantFixture;
 
 describe('CartPage', () => {
   beforeEach(() => {
     window.localStorage.clear();
-    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: VariantService, useFactory: fakeVariantService },
+        { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
+        { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
+      ],
+    });
   });
 
-  it('creates with an empty cart and triggers no variant fetch', async () => {
-    await configure();
+  function render() {
     const fixture = TestBed.createComponent(CartPage);
     fixture.detectChanges();
-    expect(fixture.componentInstance).toBeTruthy();
-    expect(fixture.componentInstance.lineItems()).toEqual([]);
-    expect(fixture.componentInstance.total()).toBe(0);
+    return (fixture.nativeElement as HTMLElement).shadowRoot!;
+  }
+
+  it('renders an empty basket', () => {
+    const root = render();
+    expect(root.querySelectorAll('app-line-item')).toHaveLength(0);
+    expect(root.querySelector('.c_CartPage__total')?.textContent).toBe(
+      'Total: 0,00 Ø',
+    );
   });
 
-  it('derives line items from the cart store', async () => {
-    window.localStorage.setItem(CART_STORAGE_KEY, 'AU-03-RD_2');
-    await configure();
-    const fixture = TestBed.createComponent(CartPage);
-    fixture.detectChanges();
-    const items = fixture.componentInstance.lineItems();
-    expect(items).toHaveLength(1);
-    expect(items[0].sku).toBe('AU-03-RD');
-    expect(items[0].quantity).toBe(2);
-    expect(items[0].total).toBe(3800);
-    expect(fixture.componentInstance.total()).toBe(3800);
-    expect(fixture.componentInstance.skusCsv()).toBe('AU-03-RD');
+  it('renders a line item per cart entry and the total', () => {
+    window.localStorage.setItem(
+      CART_STORAGE_KEY,
+      `${scarlet.sku}_2|${verdant.sku}_1`,
+    );
+    const root = render();
+    expect(root.querySelectorAll('app-line-item')).toHaveLength(2);
+    expect(root.querySelector('.c_CartPage__total')?.textContent).toBe(
+      `Total: ${scarlet.price * 2 + verdant.price},00 Ø`,
+    );
+  });
+
+  it('skips skus that are not in the catalog', () => {
+    window.localStorage.setItem(CART_STORAGE_KEY, `${scarlet.sku}_1|NOPE_1`);
+    expect(render().querySelectorAll('app-line-item')).toHaveLength(1);
+  });
+
+  it('passes the cart skus to the recommendations', () => {
+    window.localStorage.setItem(
+      CART_STORAGE_KEY,
+      `${scarlet.sku}_2|${verdant.sku}_1`,
+    );
+    const recommendations = render().querySelector('mfe-recommendations')!;
+    expect(recommendations.getAttribute('skus')).toBe(
+      `${scarlet.sku},${verdant.sku}`,
+    );
   });
 });

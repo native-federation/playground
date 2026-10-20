@@ -9,41 +9,37 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import { storeSelected, ButtonComponent } from '@tractor-store/shared';
-import type { StoreModel } from '../../core/data/contracts/models/store.model';
-import { StoreHttp } from '../../core/data/http/store-http';
+import type { Events } from '@tractor-store/contracts';
+import type { Store } from '../../data/store';
+import { StoreService } from '../../data/store.service';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { StoreTileComponent } from '../../shared/components/store-tile/store-tile.component';
 
 @Component({
   selector: 'app-store-picker',
-  imports: [NgOptimizedImage, ButtonComponent],
+  imports: [NgOptimizedImage, ButtonComponent, StoreTileComponent],
   templateUrl: './store-picker.component.html',
   styleUrl: './store-picker.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
 })
 export class StorePickerComponent {
-  private readonly storeHttp = inject(StoreHttp);
-
-  readonly selected = signal<StoreModel | null>(null);
-
-  private readonly storesResource = this.storeHttp.list();
-
-  readonly stores = computed(() => this.storesResource.value() ?? []);
-
-  readonly dialogRef =
+  private readonly storesResource = inject(StoreService).list();
+  private readonly dialog =
     viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
 
-  open(): void {
-    const el = this.dialogRef().nativeElement;
-    if (typeof el.showModal === 'function') {
-      el.showModal();
-    }
+  protected readonly stores = computed(() => this.storesResource.value() ?? []);
+  protected readonly selected = signal<Store | null>(null);
+
+  protected open(): void {
+    this.dialog().nativeElement.showModal();
   }
 
-  select(store: StoreModel): void {
+  protected select(store: Store): void {
     this.selected.set(store);
-    const el = this.dialogRef().nativeElement;
-    if (typeof el.close === 'function') el.close();
-    storeSelected.emit({ id: store.id });
+    this.dialog().nativeElement.close();
+    window.__NF_REGISTRY__!.emit<Events['store:selected']>('store:selected', {
+      id: store.id,
+    });
   }
 }

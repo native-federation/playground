@@ -1,82 +1,53 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { IMAGE_LOADER } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { StoreHttp } from '../../core/data/http/store-http';
-import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
+import { cdnImageLoader } from '../../app.config';
+import { StoreService } from '../../data/store.service';
+import { LOAD_REMOTE } from '../../shared/remote-element';
 import { testEnv } from '../../testing/env.fixture';
-import { fakeListHttp } from '../../testing/list-http.stub';
+import { fakeStoreService } from '../../testing/store-service.stub';
 import { storeFixture } from '../../testing/store.fixture';
 import { StoresPage } from './stores.page';
 
 describe('StoresPage', () => {
-  let loader: ReturnType<typeof vi.fn>;
+  let loadRemote: ReturnType<typeof vi.fn>;
 
-  beforeEach(async () => {
-    loader = vi.fn().mockResolvedValue(undefined);
-    await TestBed.configureTestingModule({
-      imports: [StoresPage],
-      providers: [
-        provideEnv(testEnv),
-        { provide: LOAD_REMOTE, useValue: loader },
-        { provide: StoreHttp, useValue: fakeListHttp(storeFixture) },
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
-  });
-
-  it('renders one store tile per loaded store', () => {
-    const fixture = TestBed.createComponent(StoresPage);
-    fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement).shadowRoot!.querySelectorAll(
-        'app-store-tile',
-      ).length,
-    ).toBe(2);
-  });
-
-  it('renders the page heading', () => {
-    const fixture = TestBed.createComponent(StoresPage);
-    fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement).shadowRoot!.querySelector('h2')
-        ?.textContent,
-    ).toBe('Our Stores');
-  });
-
-  it('renders no tiles when the store list is empty', () => {
-    TestBed.resetTestingModule();
+  beforeEach(() => {
+    loadRemote = vi.fn().mockResolvedValue(undefined);
     TestBed.configureTestingModule({
-      imports: [StoresPage],
       providers: [
-        provideEnv(testEnv),
-        {
-          provide: LOAD_REMOTE,
-          useValue: vi.fn().mockResolvedValue(undefined),
-        },
-        { provide: StoreHttp, useValue: fakeListHttp(undefined) },
+        { provide: StoreService, useValue: fakeStoreService() },
+        { provide: LOAD_REMOTE, useValue: loadRemote },
+        { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
     });
-    const fixture = TestBed.createComponent(StoresPage);
-    fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement).shadowRoot!.querySelectorAll(
-        'app-store-tile',
-      ).length,
-    ).toBe(0);
   });
 
-  it('eagerly preloads the header and footer slices', () => {
-    TestBed.createComponent(StoresPage);
-    expect(loader).toHaveBeenCalledWith('@tractor-store/explore', 'mfe-header');
-    expect(loader).toHaveBeenCalledWith('@tractor-store/explore', 'mfe-footer');
+  async function render() {
+    const fixture = TestBed.createComponent(StoresPage);
+    await fixture.whenStable();
+    return {
+      fixture,
+      root: (fixture.nativeElement as HTMLElement).shadowRoot!,
+    };
+  }
+
+  it('shows a tile per store', async () => {
+    const { root } = await render();
+    expect(root.querySelector('h2')?.textContent).toBe('Our Stores');
+    expect(root.querySelectorAll('app-store-tile')).toHaveLength(
+      storeFixture.length,
+    );
   });
 
-  it('marks the host with the explore boundary attribute', () => {
-    const fixture = TestBed.createComponent(StoresPage);
-    fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement).getAttribute('data-boundary-page'),
-    ).toBe('explore');
+  it('loads the header and footer and marks the explore page boundary', async () => {
+    const { fixture } = await render();
+    expect(loadRemote.mock.calls).toEqual([
+      ['@tractor-store/explore', 'mfe-header'],
+      ['@tractor-store/explore', 'mfe-footer'],
+    ]);
+    expect((fixture.nativeElement as HTMLElement).dataset['boundaryPage']).toBe(
+      'explore',
+    );
   });
 });

@@ -1,0 +1,18 @@
+@if (navIntent(); as intent) {
+  <a [class]="buttonClass()" [navIntent]="intent" [attr.title]="title()">
+    <ng-container [ngTemplateOutlet]="inner" />
+  </a>
+} @else {
+  <button
+    [class]="buttonClass()"
+    [type]="type()"
+    [attr.title]="title()"
+    [disabled]="disabled()"
+  >
+    <ng-container [ngTemplateOutlet]="inner" />
+  </button>
+}
+
+<ng-template #inner>
+  <div class="c_Button__inner"><ng-content></ng-content></div>
+</ng-template>

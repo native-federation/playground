@@ -1,61 +1,52 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { IMAGE_LOADER } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
+import { cdnImageLoader } from '../../app.config';
+import { LOAD_REMOTE } from '../../shared/remote-element';
 import { testEnv } from '../../testing/env.fixture';
 import { HeaderComponent } from './header.component';
+import { publishNavResolver } from '../../testing/nav-resolver.stub';
 
 describe('HeaderComponent', () => {
-  let loader: ReturnType<typeof vi.fn>;
+  let loadRemote: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
-    loader = vi.fn().mockResolvedValue(undefined);
-    await TestBed.configureTestingModule({
-      imports: [HeaderComponent],
+    loadRemote = vi.fn().mockResolvedValue(undefined);
+    TestBed.configureTestingModule({
       providers: [
-        provideRouter([]),
-        provideEnv(testEnv),
-        { provide: LOAD_REMOTE, useValue: loader },
+        { provide: LOAD_REMOTE, useValue: loadRemote },
+        { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    });
+    await publishNavResolver((id) => id);
   });
 
-  it('renders the cdn-prefixed logo', () => {
+  async function render() {
     const fixture = TestBed.createComponent(HeaderComponent);
-    fixture.detectChanges();
-    const img = (
-      fixture.nativeElement as HTMLElement
-    ).shadowRoot!.querySelector('.e_Header__logo') as HTMLImageElement;
-    expect(img.getAttribute('src')).toBe('http://cdn.test/cdn/img/logo.svg');
-    expect(img.getAttribute('alt')).toBe('Micro Frontends - Tractor Store');
+    await fixture.whenStable();
+    return (fixture.nativeElement as HTMLElement).shadowRoot!;
+  }
+
+  it('links the logo to the home page', async () => {
+    const link = (await render()).querySelector('.e_Header__link')!;
+    expect(link.getAttribute('href')).toBe('explore.home');
+    expect(link.querySelector('img')?.getAttribute('src')).toBe(
+      `${testEnv.cdnUrl}/cdn/img/logo.svg`,
+    );
   });
 
-  it('embeds the navigation and mini-cart slices', () => {
-    const fixture = TestBed.createComponent(HeaderComponent);
-    fixture.detectChanges();
-    const el: ShadowRoot = (fixture.nativeElement as HTMLElement).shadowRoot!;
-    expect(el.querySelector('app-navigation')).not.toBeNull();
-    expect(el.querySelector('mfe-mini-cart')).not.toBeNull();
+  it('shows the navigation and the mini-cart from checkout', async () => {
+    const root = await render();
+    expect(root.querySelector('app-navigation')).not.toBeNull();
+    expect(root.querySelector('mfe-mini-cart')).not.toBeNull();
+    expect(loadRemote.mock.calls).toEqual([
+      ['@tractor-store/checkout', 'mfe-mini-cart'],
+    ]);
   });
 
-  it('marks the header with the explore boundary attribute', () => {
-    const fixture = TestBed.createComponent(HeaderComponent);
-    fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement)
-        .shadowRoot!.querySelector('header')
-        ?.getAttribute('data-boundary'),
-    ).toBe('explore');
-  });
-
-  it('eagerly preloads the cross-team mini-cart slice from checkout', () => {
-    TestBed.createComponent(HeaderComponent);
-    expect(loader).toHaveBeenCalledTimes(1);
-    expect(loader).toHaveBeenCalledWith(
-      '@tractor-store/checkout',
-      'mfe-mini-cart',
+  it('marks the explore boundary', async () => {
+    expect((await render()).querySelector('header')?.dataset['boundary']).toBe(
+      'explore',
     );
   });
 });

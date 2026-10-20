@@ -33,7 +33,7 @@ same: the caller names *what* it wants to reach, the platform decides
 
 Each remote *exposes* (via `federation.config.mjs`) a
 `nav-contribution` module. It is a single object describing what the
-remote routes (`projects/explore/src/core/nav-contribution.ts`):
+remote routes (`projects/explore/src/nav-contribution.ts`):
 
 ```ts
 export const navContribution: NavContribution = {
@@ -47,115 +47,110 @@ export const navContribution: NavContribution = {
 };
 ```
 
-The shape (`libs/shared/src/nav/contribution.ts`) carries no remote
-name; the host already knows it from the manifest key:
+The shape (`NavContribution` in `libs/contracts/index.ts`) carries no
+remote name; the host already knows it from the manifest key:
 
 - `basePath` — the URL prefix the host will mount the remote under
   (`/explore`, `/decide`, `/checkout`).
-- `intents[]` — every routable destination the remote owns:
+- `intents[]` — every destination the remote owns:
   - `id` — the public name *relative to the remote*. The host prepends
-    `basePath` when it registers each intent, so `explore`'s
-    `{ id: 'home' }` becomes the public `explore.home`. Other remotes
-    link to the full ID, never to a URL.
+    `basePath`, so `explore`'s `{ id: 'home' }` becomes the public
+    `explore.home`. Other remotes link to the full ID, never to a URL.
   - `path` — the path *inside* `basePath`, with optional `{param}`
-    segments (RFC 6570 URI Template syntax — the host's `toRoutePath`
-    converts these to Angular's `:param` form when registering routes,
-    so the contribution stays framework-neutral).
+    segments. The host turns these into Angular's `:param` form when it
+    registers routes, so the contribution stays framework-neutral.
   - `element` — the `mfe-*` custom element to render at that path.
+    Intents without one are link-only.
 
 The full intent ID is the only thing that crosses team boundaries.
 URLs and element tags are an implementation detail of the owning
-team.
+team. Each remote has a spec (`src/nav-contribution.spec.ts`) that
+checks every `element` is actually listed in its `exposes`, because
+the host loads it with `loadRemoteModule(remoteName, element)`.
 
 ## Boot-time wiring
 
 When the host starts, it loads every remote's `nav-contribution` in
-parallel and uses them to build its router config and an _intent map_.
+parallel and uses them to build its router config and a _resolver_: a
+function that turns an intent ID plus payload into a URL.
 
-Two names to keep apart: `window.__NF_REGISTRY__` is _the event bus_
-(see [architecture.md](./architecture.md#2-the-event-bus-window__nf_registry__));
-the host's table of public intent ID → `{ basePath, path }` is _the
-intent map_ (`IntentMap` / `IntentTarget` in
-`libs/shared/src/nav/contribution.ts`).
-
-The orchestration
-(`projects/host/src/app/nav/remote-navigation.ts`) is small enough to
-read in full:
+All of it lives in one file,
+`projects/host/src/app/navigation.ts`, which reads top to bottom:
 
 ```ts
-export const provideRemoteNavigation = (
+export const provideNavigation = (
   nf: NativeFederationResult,
   manifest: FederationManifest,
-  fallbackRedirect = 'explore',
 ): EnvironmentProviders =>
   provideAppInitializer(async () => {
     const router = inject(Router);
-    const loaded = await loadContributions(nf, manifest);
-    const intents = buildIntentMap(loaded);
+    const registry = window.__NF_REGISTRY__!;
+    const contributions = await loadContributions(nf, manifest);
 
-    navIntents.publish(intents);
-    navigateTo.on(({ id, payload }) => {
-      const target = intents.get(id);
-      if (!target) {
-        console.error(`[nav] unknown intent "${id}"`);
-        return;
-      }
-      try {
-        void router.navigateByUrl(resolveIntentUrl(target, payload));
-      } catch (err) {
-        console.error(
-          `[nav] cannot navigate to intent "${id}": ${(err as Error).message}`,
-        );
-      }
-    });
+    const routes = toRoutes(contributions);
+    // Unknown URLs go to the store's home, or to any page that still loaded when explore is down.
+    const fallback =
+      routes.find((route) => route.path === 'explore') ??
+      routes.find((route) => !route.path?.includes(':'));
+    router.resetConfig(
+      fallback ? [...routes, { path: '**', redirectTo: fallback.path }] : routes,
+    );
 
-    router.resetConfig([
-      ...buildRemoteRoutes(loaded),
-      { path: '**', redirectTo: fallbackRedirect },
-    ]);
+    const resolve = createResolver(contributions);
+    // see Events['nav:resolve']
+    await registry.register<Events['nav:resolve']>('nav:resolve', () => resolve);
+
+    registry.on<Events['nav:navigate']>(
+      'nav:navigate',
+      ({ data: { id, payload } }) => {
+        const url = resolve(id, payload);
+        if (url === null) console.error(`[nav] cannot navigate to "${id}"`);
+        else void router.navigateByUrl(url);
+      },
+      { replay: 0 },
+    );
   });
 ```
 
-It does five things:
+It does four things:
 
-1. **Loads contributions.** `loadContributions` (`projects/host/src/app/nav/load-contributions.ts`)
-   uses `Promise.allSettled` so a broken remote does not break the
-   whole shell — it just disappears from the intent map with a
-   console warning.
-2. **Builds the intent map.** `buildIntentMap` (same file) prefixes
-   each intent ID with its contribution's `basePath` and warns about
-   duplicates. It is a plain function with no Angular dependency, so it
-   is trivially unit-testable.
-3. **Publishes the intent map on `nav:intents`.** The channel is a
-   resource, so a `NavigateToDirective` that renders later still gets
-   the map synchronously. The directive uses it to render real `href`
-   attributes on anchor tags (so middle-click, "copy link", and
-   screen-reader URL announcements work).
-4. **Subscribes to `nav:navigate`** and listens for click intents.
-   Every `[appNavigateTo]` click in any remote lands here, is resolved
-   by `resolveIntentUrl`, and finally hits the Router.
-5. **Resets the Angular Router config** with one route per intent
-   that has an `element`. Every route lazy-loads the same
-   `RemoteShellComponent`; only the route data differs
-   (`projects/host/src/app/nav/remote-routes.ts`):
+1. **Loads contributions.** `loadContributions` uses
+   `Promise.allSettled`, so a broken remote does not break the whole
+   shell. It is skipped with a console warning.
+2. **Resets the Angular Router config** with one route per intent that
+   has an `element`. Every route lazy-loads the same
+   `RemoteShellComponent`; only the route data differs. Unknown URLs
+   redirect to explore's home, or to the first page without params if
+   explore failed to load:
 
    ```ts
-   routes.push({
-     path: toRoutePath(contribution.basePath, intent.path),
-     loadComponent: loadRemoteShell,
-     data: { remoteName, element: intent.element },
-   });
+   {
+     path: 'explore/products/:category',
+     loadComponent: () => import('./remote-shell.component').then((m) => m.RemoteShellComponent),
+     data: { remoteName: '@tractor-store/explore', element: 'mfe-category' },
+   }
    ```
 
-Because all of this runs in one `provideAppInitializer`, by the time
-the user sees the first frame the intent map is published and routing
-is wired.
+3. **Publishes the resolver as `nav:resolve`.** It is a registry
+   _resource_, so a link that renders later still receives it at once.
+   The remotes use it to render real `href` attributes on anchors (so
+   middle-click, "copy link", and screen-reader URL announcements
+   work). `register()` would call a function argument as a provider,
+   hence `() => resolve`.
+4. **Handles `nav:navigate`.** Every `[navIntent]` click and every
+   programmatic navigation in any remote lands here, is resolved, and
+   hits the Router. It subscribes with `replay: 0`, so an old command
+   is never replayed.
 
-## The intent map as a hub
+Because all of this runs in one `provideAppInitializer`, by the time
+the user sees the first frame the resolver is published and routing is
+wired.
+
+## The host as the hub
 
 ```mermaid
 flowchart TB
-    Reg[("Intent map<br/>(intent ID → URL template)")]
+    Res[("Resolver<br/>(intent ID → URL)")]
 
     subgraph Contributions["Boot-time: contributions in"]
         EC[explore<br/>nav-contribution]
@@ -164,140 +159,144 @@ flowchart TB
     end
 
     subgraph Resolution["Run-time: intents in, URLs out"]
-        EL["[appNavigateTo]<br/>in explore"]
-        DL["[appNavigateTo]<br/>in decide"]
-        CL["[appNavigateTo]<br/>in checkout"]
+        EL["[navIntent]<br/>in explore"]
+        DL["[navIntent]<br/>in decide"]
+        CL["[navIntent]<br/>in checkout"]
     end
 
-    EC --> Reg
-    DC --> Reg
-    CC --> Reg
+    EC --> Res
+    DC --> Res
+    CC --> Res
 
-    Reg -- "nav:intents resource<br/>(rendering real href)" --> EL
-    Reg -- "nav:intents resource" --> DL
-    Reg -- "nav:intents resource" --> CL
+    Res -- "nav:resolve resource<br/>(rendering real href)" --> EL
+    Res -- "nav:resolve resource" --> DL
+    Res -- "nav:resolve resource" --> CL
 
-    EL -- "emits 'nav:navigate'" --> Reg
-    DL -- "emits 'nav:navigate'" --> Reg
-    CL -- "emits 'nav:navigate'" --> Reg
-    Reg -- "Router.navigateByUrl" --> Router((Angular<br/>Router))
+    EL -- "emits 'nav:navigate'" --> Res
+    DL -- "emits 'nav:navigate'" --> Res
+    CL -- "emits 'nav:navigate'" --> Res
+    Res -- "Router.navigateByUrl" --> Router((Angular<br/>Router))
 ```
 
-Contributions flow into the intent map once, at startup. The host
-then publishes it to the remotes so their directives can render real
-anchors. After that, every click in every remote routes through the
-single host-owned listener. Remotes only ever speak the public intent
-ID; they read the map but never change it.
+Contributions flow into the host once, at startup. The host then
+publishes its resolver so the remotes can render real anchors. After
+that, every click in every remote routes through the single
+host-owned listener. Remotes only ever speak the public intent ID; all
+URL knowledge, including how `{param}` templates are filled in, stays
+in the host.
 
-## Linking from a remote: `[appNavigateTo]`
+## Linking from a remote: `[navIntent]`
 
-Remotes never type a URL and never inject `Router`. They use a
-directive shipped from `@tractor-store/shared`:
+Remotes never type a URL and never inject `Router`. Each remote that
+renders links has its own `NavIntentDirective`
+(`src/shared/nav-intent.directive.ts`; the copies in explore, decide
+and checkout are identical, and so are their specs):
 
 ```html
-<a [appNavigateTo]="'checkout.cart'">Cart</a>
+<a [navIntent]="'checkout.cart'">Cart</a>
 
-<button
-  [appNavigateTo]="'decide.product'"
-  [navPayload]="{ id: product.id }">
+<a [navIntent]="'decide.product'" [navPayload]="{ id: product.id }">
   See details
-</button>
+</a>
 ```
 
-The directive
-(`libs/shared/src/nav/navigate-to.directive.ts`) does three
-things on top of "emit on click":
+The whole directive:
 
 ```ts
 @Directive({
-  selector: '[appNavigateTo]',
+  selector: '[navIntent]',
   host: {
-    '[attr.href]': 'href()',
+    '[attr.href]': 'isAnchor ? url() : null',
     '[attr.aria-disabled]': 'url() === null ? "true" : null',
-    '(click)': 'onClick($event)',
+    '(click)': 'navigate($event)',
   },
 })
-export class NavigateToDirective {
-  readonly appNavigateTo = input.required<string>();
+export class NavIntentDirective {
+  readonly navIntent = input.required<string>();
   readonly navPayload = input<NavPayload>({});
 
-  // 1. Receives the intent map from the nav:intents resource.
-  private readonly intents = signal<IntentMap>(new Map());
-
-  // 2. Resolves the intent + payload to a real URL (path and query).
-  protected readonly url = computed(() => { /* resolveIntentUrl(…) or null */ });
-
-  // 3. Binds the URL to [attr.href] on anchors so href-y features work.
-  protected readonly href = computed(() => (this.isAnchor ? this.url() : null));
+  private readonly resolve = signal<NavResolver | undefined>(undefined);
+  protected readonly isAnchor =
+    inject<ElementRef<HTMLElement>>(ElementRef).nativeElement.tagName === 'A';
+  protected readonly url = computed(
+    () => this.resolve()?.(this.navIntent(), this.navPayload()) ?? null,
+  );
 
   constructor() {
-    listenTo(navIntents, (intents) => this.intents.set(intents));
+    const stop = window.__NF_REGISTRY__!.onReady<Events['nav:resolve']>(
+      'nav:resolve',
+      (resolve) => this.resolve.set(resolve),
+    );
+    inject(DestroyRef).onDestroy(stop);
   }
 
-  protected onClick(event: MouseEvent): void {
+  protected navigate(event: MouseEvent): void {
     // Leave new-tab and new-window clicks on real links to the browser.
     if (this.isAnchor && isModifiedClick(event)) return;
-
-    const id = this.appNavigateTo();
-    // … return if the intent is unknown or a path param is missing …
+    if (this.url() === null) return;
     event.preventDefault();
-    navigateTo.emit({ id, payload: this.navPayload() });
+    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
+      id: this.navIntent(),
+      payload: this.navPayload(),
+    });
   }
 }
 ```
 
-That listener-side resolution is what makes anchors behave naturally.
-A plain left-click is intercepted and converted into a `nav:navigate`
-event (no full reload). A middle-click, `Ctrl+click`, or "Copy link
-address" is *not* intercepted — the real `href` is on the element, so
-the browser does the right thing.
+That is what makes anchors behave naturally. A plain left-click is
+intercepted and converted into a `nav:navigate` event (no full
+reload). A middle-click, `Ctrl+click`, or "Copy link address" is *not*
+intercepted: the real `href` is on the element, so the browser does
+the right thing.
 
-A `[appNavigateTo]` to an unknown intent emits nothing, and the
-element gets `aria-disabled="true"` so it is announced as unavailable
-(it stays visible). A subscriber-side mistake — an unknown intent
-making it to the host — is logged by the host listener:
-`[nav] unknown intent "…"`. A half-deployed system fails *visibly in
-the console* rather than silently in the URL bar.
+When the resolver returns `null` (an unknown intent, or a missing path
+param), the link emits nothing and gets `aria-disabled="true"`, so it
+is announced as unavailable while staying visible. If an unknown
+intent still reaches the host (from a programmatic emit), the host
+logs `[nav] cannot navigate to "…"`. A half-deployed system fails
+*visibly in the console* rather than silently in the URL bar.
 
 ## Reading params on the receiving end
 
 Once the host's route activates, `RemoteShellComponent` mounts the
 right custom element and writes a `routeParams` object onto it. The
-remote component reads it through Angular's component-input binding:
+remote component reads it through a normal input:
 
 ```ts
 // projects/decide/src/features/product/product.page.ts
+const param = (params: RouteParams, key: string) =>
+  typeof params[key] === 'string' ? params[key] : undefined;
+
 readonly routeParams = input<RouteParams>({});
 
-readonly id  = computed(() => param(this.routeParams(), 'id'));
-readonly sku = computed(() => param(this.routeParams(), 'sku'));
+private readonly id = computed(() => param(this.routeParams(), 'id'));
+private readonly sku = computed(() => param(this.routeParams(), 'sku'));
 ```
 
-`param`, `requiredParam`, `paramList`, and `sameRouteParams` are tiny
-helpers from `libs/shared/src/nav/route-params.ts`. They handle the
-single-value-vs-array shape (multi-value query params come through as
-arrays) and throw helpful errors for missing required params.
+Repeated query params arrive as arrays (`RouteParams` is
+`Record<string, string | readonly string[]>`); `param` only accepts a
+single value.
 
-## End-to-end: a click in `decide` becomes a URL change
+## End-to-end: a click in `checkout` becomes a URL change
 
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant DV as decide button<br/>([appNavigateTo]="checkout.cart")
-    participant ND as NavigateToDirective<br/>(@tractor-store/shared)
-    participant Bus as window.__NF_REGISTRY__<br/>("nav:navigate" channel)
-    participant SN as provideRemoteNavigation<br/>(host listener)
+    participant DV as checkout mini-cart<br/>([navIntent]="checkout.cart")
+    participant ND as NavIntentDirective<br/>(checkout's copy)
+    participant Bus as window.__NF_REGISTRY__
+    participant SN as provideNavigation<br/>(host listener)
     participant AR as Angular Router (host)
     participant RS as RemoteShellComponent
     participant SL as createRemoteLoader
     participant CC as <mfe-cart>
 
     U->>DV: click (left, no modifier)
-    DV->>ND: onClick(event)
-    ND->>ND: url() = '/checkout/cart' (from nav:intents)
+    DV->>ND: navigate(event)
+    ND->>ND: url() = '/checkout/cart' (via nav:resolve)
     ND->>Bus: emit('nav:navigate', {id: 'checkout.cart'})
-    Bus->>SN: deliver event (via navigateTo.on)
-    SN->>SN: resolveIntentUrl(intents.get('checkout.cart')) → '/checkout/cart'
+    Bus->>SN: deliver event
+    SN->>SN: resolve('checkout.cart') → '/checkout/cart'
     SN->>AR: navigateByUrl('/checkout/cart')
     AR->>RS: activate route, inputs: {remoteName, element: 'mfe-cart'}
     RS->>SL: loadRemote('@tractor-store/checkout', 'mfe-cart')
@@ -305,101 +304,82 @@ sequenceDiagram
     RS->>CC: createElement + el.routeParams = {…}
 ```
 
-Notice what *isn't* in the diagram: no import from `decide` to
-`checkout`, no shared `Router` instance, no string `'/checkout/cart'`
-typed anywhere inside `decide`'s code. The only thing crossing the
-boundary is the literal `'checkout.cart'`.
+The mini-cart sits inside explore's header, but the link and the page
+it opens both belong to checkout. Notice what *isn't* in the diagram:
+no import between remotes, no shared `Router` instance, no string
+`'/checkout/cart'` typed anywhere in a remote. The only thing crossing
+the boundary is the literal `'checkout.cart'`.
 
 ## Programmatic navigation: emit directly
 
-`[appNavigateTo]` is for templates. From TypeScript, a remote
-navigates by importing the same channel handle and emitting through
-it:
+`[navIntent]` is for templates. From TypeScript, a remote emits the
+same event the directive does:
 
 ```ts
 // projects/checkout/src/features/checkout/checkout.page.ts
-import { navigateTo } from '@tractor-store/shared';
-
-onSubmit(event: Event): void {
-  event.preventDefault();
+protected submit(): void {
   if (!this.isReady()) return;
   this.cart.clear();
-  navigateTo.emit({ id: 'checkout.thanks' });
+  window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
+    id: 'checkout.thanks',
+  });
 }
 ```
 
-This is the same channel the directive uses, so any future
-intent-related feature (param validation, deep-link auditing,
-analytics) only needs to be added once at the host listener.
+Both end up in the same host listener, so any future intent-related
+feature (param validation, deep-link auditing, analytics) only needs
+to be added once, in `navigation.ts`.
 
 ## Resolving params and query strings
 
 Two kinds of parameters can travel with an intent:
 
 - **Path params** — placeholders in the intent's `path`, e.g.
-  `/product/{id}`. They are filled in from `navPayload`.
+  `/product/{id}`. They are filled in from `navPayload` and
+  URL-encoded.
 - **Query params** — anything in `navPayload` that wasn't consumed by
-  a placeholder gets appended as a query string.
-
-The split happens in `resolveIntentUrl`
-(`libs/shared/src/nav/intent-url.ts`):
-
-```ts
-export const resolveIntentUrl = (
-  target: IntentTarget,
-  payload: NavPayload = {},
-): string => {
-  const path = joinPath(target.basePath, resolveTemplate(target.path, payload));
-  const pathParams = new Set(splitIntentParams(target.path));
-  const query = Object.fromEntries(
-    Object.entries(payload).filter(([key]) => !pathParams.has(key)),
-  );
-  return appendQueryString(path, query);
-};
-```
+  a placeholder is appended as a query string.
 
 So an emit like
 
 ```ts
-navigateTo.emit({
+window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
   id: 'decide.product',
-  payload: { id: '123', sku: 'BLUE-XL' },
+  payload: { id: 'CL-01', sku: 'CL-01-GR' },
 });
 ```
 
 with the contribution `{ id: 'product', path: '/product/{id}', element: 'mfe-product' }`
-resolves to `/decide/product/123?sku=BLUE-XL`. The remote then reads
+resolves to `/decide/product/CL-01?sku=CL-01-GR`. The remote then reads
 `id` and `sku` off `routeParams` on its custom element.
 
-`joinPath`, `resolveTemplate`, `splitIntentParams`, and
-`appendQueryString` are internal helpers in `libs/shared/src/nav/`
-(`path-template.ts`, `query.ts`). `resolveIntentUrl` is shared because
-both the host (navigating) and the directive (rendering anchors) need
-to apply the *same* template logic — so an anchor's `href` includes
-the query string too.
+The split happens in `createResolver` in
+`projects/host/src/app/navigation.ts`. Because the remotes ask the
+host's resolver for their `href`s instead of filling templates
+themselves, an anchor's `href` and the URL the host navigates to can
+never disagree.
 
 ## What this design buys you
 
-Several payoffs fall out of the design:
-
 - **Independent deploys.** A team can rename `/checkout/cart` to
   `/cart` by editing one path in their own `nav-contribution.ts`. No
-  other remote needs to know — `checkout.cart` still resolves, just
-  to a different URL.
-- **No router import in remotes.** Remotes don't depend on
-  `@angular/router` for navigation. The directive ships in a small
-  shared library; the actual Router lives only in the host.
+  other remote needs to know: `checkout.cart` still resolves, just to a
+  different URL.
+- **No router in remotes.** Remotes don't depend on `@angular/router`
+  for navigation. The directive is ~50 lines in each remote; the Router
+  lives only in the host.
 - **The host owns zero remote-specific knowledge.** It iterates over
-  the contributions it loaded and builds routes generically — there
-  is no `if (remoteName === 'checkout')` anywhere in the host code.
+  the contributions it loaded and builds routes generically. There is
+  no `if (remoteName === 'checkout')` anywhere in the host code.
 - **Testable in isolation.** Each remote runs standalone on its own
-  port with the same `federation.manifest.json`. When `decide` boots
-  on `:4202` it loads `mfe-header` from `:4201` (explore) and
+  port with the same `federation.manifest.json`. When `decide` boots on
+  `:4202` it loads `mfe-header` from `:4201` (explore) and
   `mfe-add-to-cart` from `:4203` (checkout) just like the host would.
+  (Without a host there is no resolver, so links render without an
+  `href`.)
 - **Standards-friendly.** All cross-app messaging goes through one
-  tiny global (`window.__NF_REGISTRY__`). The bus is plain pub/sub;
-  the only Angular-specific piece, `NavigateToDirective`, is ~70
-  lines.
+  tiny global (`window.__NF_REGISTRY__`), typed by one interface
+  (`Events`).
 
 The intent system is what turns "three Angular apps loaded into one
 page" into "three independently-evolving products that happen to

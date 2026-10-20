@@ -1,6 +1,6 @@
-import type { VariantModel } from '../core/data/contracts/models/variant.model';
+import type { Variant } from '../data/variant';
 
-export const variantFixture: VariantModel[] = [
+export const variantFixture: Variant[] = [
   {
     id: 'AU-03',
     sku: 'AU-03-RD',

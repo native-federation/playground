@@ -7,7 +7,7 @@ the remotes ship UI as web components and link to each other through
 _intent IDs_ instead of hard-coded URLs. All composition happens at
 runtime — there is no build-time wiring between apps.
 
-The runtime is [Native Federation v4][nf]. It is built on ECMAScript
+The runtime is [Native Federation][nf]. It is built on ECMAScript
 Modules and Import Maps, so what we ship is plain browser-native code
 with a small orchestration layer on top.
 
@@ -35,19 +35,21 @@ Three ideas carry the weight in this repo:
    rest. The contract is plain HTML — no Angular import crosses team
    boundaries.
 2. **A central event bus** (`window.__NF_REGISTRY__`). Remotes
-   publish and subscribe to small, _typed_ channels instead of
-   calling each other directly. Each channel is defined once with
-   `defineChannel<Payload>(name)` in `@tractor-store/shared`;
-   emitter and listener then share the same compile-time contract.
-   Navigation and store selection ride on this bus.
+   publish and subscribe to small, _typed_ events instead of calling
+   each other directly. Each event's payload type is listed once in
+   the `Events` interface in `libs/contracts/index.ts`; emitter and
+   listener then share the same compile-time contract. Navigation and
+   store selection ride on this bus.
 3. **Intent-based navigation.** A button in the _decide_ micro frontend that should
    open the cart never types `'/checkout/cart'`. It uses the
-   `[appNavigateTo]` directive with the intent `'checkout.cart'`,
+   `[navIntent]` directive with the intent `'checkout.cart'`,
    and the host translates that to a URL. A team can rename its
    routes without touching anyone else's code.
 
-Together these three keep the apps decoupled. The rest of this doc
-set explains how each piece is implemented.
+Together these three keep the apps decoupled. The apps share no
+runtime code at all: each one writes out its own bootstrap, loader
+and directives, so its flow can be read in its own folder. The rest
+of this doc set explains how each piece is implemented.
 
 [blueprint]: https://github.com/neuland/tractor-store-blueprint
 [mfo]: https://micro-frontends.org/
@@ -92,8 +94,8 @@ custom element inside its own page without going through the host.
 
 - **[Architecture](./architecture.md)** — what the host owns, what
   each remote owns, and the three decoupling mechanisms (custom
-  elements, the event bus, intent-based navigation) plus how the
-  shared library is scoped.
+  elements, the event bus, intent-based navigation) plus why only
+  types are shared.
 - **[Navigation](./navigation.md)** — the intent-based navigation
   system and why it is the load-bearing piece of the host/remote
   decoupling.
@@ -106,28 +108,19 @@ custom element inside its own page without going through the host.
 | Concern                                      | File / module                                                                 |
 | -------------------------------------------- | ----------------------------------------------------------------------------- |
 | Bootstrap & federation init (every app)      | `projects/<app>/src/main.ts`                                                  |
-| Host DI providers & Router setup             | `projects/host/src/app/app.config.ts`                                         |
-| App-initializer that loads contributions     | `projects/host/src/app/nav/remote-navigation.ts` (`provideRemoteNavigation`)  |
-| Building routes from contributions           | `projects/host/src/app/nav/remote-routes.ts` (`buildRemoteRoutes`)            |
-| Building the intent map                      | `projects/host/src/app/nav/remote-navigation.ts` (`buildIntentMap`)           |
-| Loading a remote's custom element            | `libs/shared/src/federation/remote-loader.ts` (`createRemoteLoader`)          |
-| Embedding a foreign `mfe-*` element          | `libs/shared/src/federation/remote-element.directive.ts` (`[mfeRemote]`)      |
-| `ENV` / `LOAD_REMOTE` tokens                 | `libs/shared/src/federation/env.ts`, `remote-loader.ts`, `provide-env.ts`     |
-| CDN image loader (`ngSrc`)                   | `libs/shared/src/ui/cdn-image-loader.ts`                                      |
-| Host route → element mount                   | `projects/host/src/app/loader/remote-shell.component.ts`                      |
-| Cross-MFE link directive (`[appNavigateTo]`) | `libs/shared/src/nav/navigate-to.directive.ts`                                |
-| Intent → URL resolution                      | `libs/shared/src/nav/intent-url.ts` (`resolveIntentUrl`)                      |
-| Event-bus channel factory                    | `libs/shared/src/bus/channel.ts` (`defineChannel`, `defineResource`, `listenTo`) |
-| Navigation channels                          | `libs/shared/src/bus/nav-channels.ts` (`nav:navigate`, `nav:intents`)         |
-| Store-selected channel                       | `libs/shared/src/bus/store-channels.ts` (`store:selected`)                    |
-| Cart state & cross-tab sync                  | `projects/checkout/src/core/data/store/cart-store.ts`                         |
-| Path/query helpers (shared)                  | `libs/shared/src/nav/path-template.ts`, `query.ts`, `route-params.ts`         |
-| `NavPayload` / `RouteParams` types           | `libs/shared/src/nav/nav-payload.ts`, `route-params.ts`                       |
-| Nav contribution / intent map types          | `libs/shared/src/nav/contribution.ts`                                         |
-| Remote bootstrap (custom-element)            | `projects/<remote>/src/features/<feature>/bootstrap.ts`                       |
-| Per-remote Angular application               | `projects/<remote>/src/core/remote-app.ts` (`defineRemoteApp`)                |
-| Remote nav contribution                      | `projects/<remote>/src/core/nav-contribution.ts`                              |
-| Fake event bus for tests                     | `libs/shared/src/testing/install-registry-stub.ts`                            |
+| Host providers, CDN assets, Angular bootstrap | `projects/host/src/app/bootstrap.ts`                                         |
+| Loading contributions, routes, resolver, `nav:navigate` | `projects/host/src/app/navigation.ts` (`provideNavigation`)        |
+| Host route → element mount                   | `projects/host/src/app/remote-shell.component.ts`                             |
+| Loading a remote's custom element            | `projects/host/src/app/load-remote.ts`, `projects/<remote>/src/shared/remote-element.ts` (`createRemoteLoader`) |
+| Embedding a foreign `mfe-*` element          | `projects/<remote>/src/shared/remote-element.ts` (`[mfeRemote]`)              |
+| Per-remote Angular application, CDN image loader | `projects/<remote>/src/app.config.ts` (`getAppInjector`, `cdnImageLoader`) |
+| Remote bootstrap (custom element)            | `projects/<remote>/src/features/<feature>/bootstrap.ts`                       |
+| Remote nav contribution                      | `projects/<remote>/src/nav-contribution.ts`                                   |
+| Cross-MFE link directive (`[navIntent]`)     | `projects/<remote>/src/shared/nav-intent.directive.ts`                        |
+| Shared types: env, contributions, params, `Events` | `libs/contracts/index.ts`                                               |
+| Cart state & cross-tab sync                  | `projects/checkout/src/data/cart-store.ts`                                    |
+| Mock backend data                            | `projects/<remote>/src/data/<entity>.data.ts`                                 |
+| Event bus for tests (real registry)          | `projects/<app>/src/testing/setup.ts`                                         |
 | Federation config (per app)                  | `projects/<app>/federation.config.mjs`                                        |
 | Runtime remote discovery                     | `projects/<app>/public/federation.manifest.json`                              |
 | Per-environment values                       | `projects/<app>/public/env.config.json`                                       |

@@ -32,6 +32,10 @@ Promise.all([
     });
     const product = await import('./features/product/bootstrap');
     await product.bootstrap(env, nf);
+    // Standalone dev has no host to set routeParams from the URL, so show a fixed product.
+    Object.assign(document.querySelector('mfe-product')!, {
+      routeParams: { id: 'CL-01' },
+    });
   })
   .catch((err) => {
     console.error('Failed to load app!');

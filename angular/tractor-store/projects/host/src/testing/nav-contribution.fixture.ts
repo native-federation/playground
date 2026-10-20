@@ -1,4 +1,4 @@
-import type { NavContribution } from '@tractor-store/shared';
+import type { NavContribution } from '@tractor-store/contracts';
 
 export const exploreContribution: NavContribution = {
   basePath: 'explore',

@@ -5,11 +5,9 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import {
-  RemoteElementDirective,
-  NavigateToDirective,
-} from '@tractor-store/shared';
-import { NavigationComponent } from '../../shared/components/navigation/navigation';
+import { NavIntentDirective } from '../../shared/nav-intent.directive';
+import { RemoteElementDirective } from '../../shared/remote-element';
+import { NavigationComponent } from '../../shared/components/navigation/navigation.component';
 
 @Component({
   selector: 'app-header',
@@ -17,7 +15,7 @@ import { NavigationComponent } from '../../shared/components/navigation/navigati
     NgOptimizedImage,
     RemoteElementDirective,
     NavigationComponent,
-    NavigateToDirective,
+    NavIntentDirective,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',

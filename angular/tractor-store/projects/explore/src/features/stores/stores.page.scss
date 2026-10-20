@@ -1,4 +1,6 @@
-:host { display: block; }
+:host {
+  display: block;
+}
 
 .e_StoresPage {
   max-width: calc(1000px + var(--outer-space) * 2);
@@ -16,4 +18,6 @@
   flex-wrap: wrap;
 }
 
-.e_StoresPage p { max-width: 80ch; }
+.e_StoresPage p {
+  max-width: 80ch;
+}

@@ -1,4 +1,17 @@
-import { remoteApp } from '../../core/remote-app';
+import { createCustomElement } from '@angular/elements';
+import type { NativeFederationResult } from '@softarc/native-federation-orchestrator';
+import type { EnvironmentConfig } from '@tractor-store/contracts';
+import { getAppInjector } from '../../app.config';
 import { CategoryPage } from './category.page';
 
-export const bootstrap = remoteApp.expose('mfe-category', CategoryPage);
+export const bootstrap = async (
+  env: EnvironmentConfig,
+  nf: NativeFederationResult,
+): Promise<void> => {
+  const injector = await getAppInjector(env, nf);
+  if (customElements.get('mfe-category')) return;
+  customElements.define(
+    'mfe-category',
+    createCustomElement(CategoryPage, { injector }),
+  );
+};

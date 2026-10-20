@@ -53,7 +53,7 @@
           "options": {
             "buildTarget": "host:esbuild:development",
             "setupFiles": [
-              "libs/shared/src/testing/install-registry-stub.ts"
+              "projects/host/src/testing/setup.ts"
             ]
           }
         },
@@ -174,7 +174,7 @@
           "options": {
             "buildTarget": "explore:esbuild:development",
             "setupFiles": [
-              "libs/shared/src/testing/install-registry-stub.ts"
+              "projects/explore/src/testing/setup.ts"
             ]
           }
         },
@@ -291,7 +291,7 @@
           "options": {
             "buildTarget": "decide:esbuild:development",
             "setupFiles": [
-              "libs/shared/src/testing/install-registry-stub.ts"
+              "projects/decide/src/testing/setup.ts"
             ]
           }
         },
@@ -408,7 +408,7 @@
           "options": {
             "buildTarget": "checkout:esbuild:development",
             "setupFiles": [
-              "libs/shared/src/testing/install-registry-stub.ts"
+              "projects/checkout/src/testing/setup.ts"
             ]
           }
         },
@@ -468,24 +468,6 @@
           "defaultConfiguration": "development",
           "options": {
             "port": 4203
-          }
-        }
-      }
-    },
-    "shared": {
-      "projectType": "library",
-      "root": "libs/shared",
-      "sourceRoot": "libs/shared/src",
-      "prefix": "ts",
-      "architect": {
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "buildTarget": "host:esbuild:development",
-            "tsConfig": "libs/shared/tsconfig.spec.json",
-            "setupFiles": [
-              "libs/shared/src/testing/install-registry-stub.ts"
-            ]
           }
         }
       }

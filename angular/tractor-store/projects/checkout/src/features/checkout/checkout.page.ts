@@ -2,20 +2,22 @@ import {
   ChangeDetectionStrategy,
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
+  DestroyRef,
   ViewEncapsulation,
+  computed,
   inject,
-  signal,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
-  RemoteElementDirective,
-  ButtonComponent,
-  listenTo,
-  navigateTo,
-  storeSelected,
-} from '@tractor-store/shared';
-import { CartStore } from '../../core/data/store/cart-store';
-import { CompactHeaderComponent } from '../../shared/components/compact-header/compact-header';
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import type { Events } from '@tractor-store/contracts';
+import { CartStore } from '../../data/cart-store';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { CompactHeaderComponent } from '../../shared/components/compact-header/compact-header.component';
+import { RemoteElementDirective } from '../../shared/remote-element';
 
 @Component({
   selector: 'app-checkout',
@@ -33,35 +35,32 @@ import { CompactHeaderComponent } from '../../shared/components/compact-header/c
   host: { 'data-boundary-page': 'checkout' },
 })
 export class CheckoutPage {
-  private readonly fb = inject(FormBuilder);
   private readonly cart = inject(CartStore);
 
-  constructor() {
-    listenTo(storeSelected, ({ id }) => this.applyStoreId(id));
-  }
-
-  readonly storeId = signal<string>('');
-
-  readonly form = this.fb.nonNullable.group({
+  protected readonly form = inject(NonNullableFormBuilder).group({
     firstname: ['', Validators.required],
     lastname: ['', Validators.required],
-    storeId: [{ value: '', disabled: false }, Validators.required],
+    storeId: ['', Validators.required],
   });
 
-  isReady(): boolean {
-    const { firstname, lastname, storeId } = this.form.getRawValue();
-    return !!firstname && !!lastname && !!storeId;
+  private readonly status = toSignal(this.form.statusChanges, {
+    initialValue: this.form.status,
+  });
+  protected readonly isReady = computed(() => this.status() === 'VALID');
+
+  constructor() {
+    const stop = window.__NF_REGISTRY__!.on<Events['store:selected']>(
+      'store:selected',
+      ({ data }) => this.form.controls.storeId.setValue(data.id),
+    );
+    inject(DestroyRef).onDestroy(stop);
   }
 
-  onSubmit(event: Event): void {
-    event.preventDefault();
+  protected submit(): void {
     if (!this.isReady()) return;
     this.cart.clear();
-    navigateTo.emit({ id: 'checkout.thanks' });
-  }
-
-  private applyStoreId(id: string): void {
-    this.storeId.set(id);
-    this.form.controls.storeId.setValue(id);
+    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
+      id: 'checkout.thanks',
+    });
   }
 }

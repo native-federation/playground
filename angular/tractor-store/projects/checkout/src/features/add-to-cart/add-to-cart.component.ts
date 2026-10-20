@@ -1,53 +1,41 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ViewEncapsulation,
   computed,
-  effect,
   inject,
   input,
   signal,
 } from '@angular/core';
-import {
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { NavigateToDirective, ButtonComponent } from '@tractor-store/shared';
-import { VariantHttp } from '../../core/data/http/variant-http';
-import { CartStore } from '../../core/data/store/cart-store';
+import { CartStore } from '../../data/cart-store';
+import { VariantService } from '../../data/variant.service';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { NavIntentDirective } from '../../shared/nav-intent.directive';
 
 @Component({
   selector: 'app-add-to-cart',
-  imports: [ButtonComponent, NavigateToDirective, ReactiveFormsModule],
+  imports: [ButtonComponent, NavIntentDirective],
   templateUrl: './add-to-cart.component.html',
   styleUrl: './add-to-cart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.ShadowDom,
   host: { 'data-boundary': 'checkout' },
 })
 export class AddToCartComponent {
   private readonly cart = inject(CartStore);
-  private readonly variantHttp = inject(VariantHttp);
-  private readonly fb = inject(NonNullableFormBuilder);
 
-  readonly sku = input.required<string>();
+  // Optional: @angular/elements runs the first change detection before the sku attribute arrives.
+  readonly sku = input<string>();
 
-  readonly form = this.fb.group({
-    sku: this.fb.control('', Validators.required),
-  });
+  private readonly variantResource = inject(VariantService).getBySku(this.sku);
+  protected readonly variant = this.variantResource.value;
+  protected readonly isLoading = this.variantResource.isLoading;
+  protected readonly outOfStock = computed(
+    () => (this.variant()?.inventory ?? 0) === 0,
+  );
+  protected readonly confirmed = signal(false);
 
-  private readonly variantResource = this.variantHttp.getBySku(this.sku);
-  readonly variant = this.variantResource.value;
-  readonly isLoading = this.variantResource.isLoading;
-  readonly outOfStock = computed(() => (this.variant()?.inventory ?? 0) === 0);
-  readonly confirmed = signal(false);
-
-  constructor() {
-    effect(() => this.form.controls.sku.setValue(this.sku()));
-  }
-
-  onSubmit(): void {
-    if (this.outOfStock() || this.form.invalid) return;
-    const { sku } = this.form.getRawValue();
+  protected add(sku: string): void {
     this.cart.add(sku);
     this.confirmed.set(true);
   }

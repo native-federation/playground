@@ -1,5 +1,5 @@
 /* Global styles for the checkout micro frontend */
-@use './styles/app';
+@use "./styles/app";
 
 :root {
   --outer-space: 1.5rem;
@@ -12,7 +12,7 @@
 }
 
 html {
-  font-family: raleway, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: raleway, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
 }
 

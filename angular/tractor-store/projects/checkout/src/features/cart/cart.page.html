@@ -3,17 +3,24 @@
   <h2>Basket</h2>
   <ul class="c_CartPage__lineItems" role="list">
     @for (item of lineItems(); track item.sku) {
-    <app-line-item [item]="item"></app-line-item>
+      <app-line-item [item]="item"></app-line-item>
     }
   </ul>
   <hr />
-  <p class="c_CartPage__total">Total: {{ total() }} Ø</p>
+  <p class="c_CartPage__total">Total: {{ total() }},00 Ø</p>
 
   <div class="c_CartPage__buttons">
-    <ts-button variant="primary" [appNavigateTo]="'checkout.checkout'">Checkout</ts-button>
-    <ts-button variant="secondary" [appNavigateTo]="'explore.home'">Continue Shopping</ts-button>
+    <app-button variant="primary" [navIntent]="'checkout.checkout'"
+      >Checkout</app-button
+    >
+    <app-button variant="secondary" [navIntent]="'explore.home'"
+      >Continue Shopping</app-button
+    >
   </div>
 
-  <mfe-recommendations mfeRemote="@tractor-store/explore" [attr.skus]="skusCsv()"></mfe-recommendations>
+  <mfe-recommendations
+    mfeRemote="@tractor-store/explore"
+    [attr.skus]="skusCsv()"
+  ></mfe-recommendations>
 </main>
 <mfe-footer mfeRemote="@tractor-store/explore"></mfe-footer>

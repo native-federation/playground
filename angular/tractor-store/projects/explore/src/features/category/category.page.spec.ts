@@ -1,119 +1,102 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { IMAGE_LOADER } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import type { RouteParams } from '@tractor-store/contracts';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CategoryHttp } from '../../core/data/http/category-http';
-import { LOAD_REMOTE, provideEnv } from '@tractor-store/shared';
+import { cdnImageLoader } from '../../app.config';
+import type { Category } from '../../data/category';
+import { CategoryService } from '../../data/category.service';
+import { LOAD_REMOTE } from '../../shared/remote-element';
 import { categoryFixture } from '../../testing/category.fixture';
 import { testEnv } from '../../testing/env.fixture';
-import { fakeCategoryHttp } from '../../testing/list-http.stub';
+import { fakeCategoryService } from '../../testing/category-service.stub';
 import { CategoryPage } from './category.page';
 
+const [classic] = categoryFixture;
+const allProducts = categoryFixture.flatMap((c) => c.products);
+
 describe('CategoryPage', () => {
-  let loader: ReturnType<typeof vi.fn>;
+  let loadRemote: ReturnType<typeof vi.fn>;
 
-  beforeEach(async () => {
-    loader = vi.fn().mockResolvedValue(undefined);
-    await TestBed.configureTestingModule({
-      imports: [CategoryPage],
+  function configure(categories: Category[]) {
+    loadRemote = vi.fn().mockResolvedValue(undefined);
+    TestBed.configureTestingModule({
       providers: [
-        provideRouter([]),
-        provideEnv(testEnv),
-        { provide: LOAD_REMOTE, useValue: loader },
-        { provide: CategoryHttp, useValue: fakeCategoryHttp(categoryFixture) },
+        { provide: CategoryService, useValue: fakeCategoryService(categories) },
+        { provide: LOAD_REMOTE, useValue: loadRemote },
+        { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
-  });
-
-  function create(routeParams: Record<string, string> = {}) {
-    const fixture = TestBed.createComponent(CategoryPage);
-    fixture.componentRef.setInput('routeParams', routeParams);
-    fixture.detectChanges();
-    return fixture;
+    });
   }
 
-  it('shows "All Machines" and every product when no category is selected', () => {
-    const cmp = create().componentInstance;
-    expect(cmp.title()).toBe('All Machines');
-    expect(cmp.products().length).toBe(3);
-  });
+  beforeEach(() => configure(categoryFixture));
 
-  it('shows the matching category title and only its products when a category is selected', () => {
-    const cmp = create({ category: 'classic' }).componentInstance;
-    expect(cmp.title()).toBe('Classics');
-    expect(cmp.products().map((p) => p.id)).toEqual(['CL-01', 'CL-02']);
-  });
-
-  it('falls back to "All Machines" when the category param is unknown', () => {
-    const cmp = create({ category: 'nonexistent' }).componentInstance;
-    expect(cmp.title()).toBe('All Machines');
-    expect(cmp.products().length).toBe(3);
-  });
-
-  it('sorts products by descending startPrice', () => {
-    const products = create().componentInstance.products();
-    const prices = products.map((p) => p.startPrice);
-    expect(prices).toEqual([...prices].sort((a, b) => b - a));
-  });
-
-  it('builds the filter list with All + every category, marking the active one', () => {
-    const filters = create({ category: 'classic' }).componentInstance.filters();
-    expect(filters.map((f) => f.name)).toEqual([
-      'All',
-      'Classics',
-      'Autonomous',
-    ]);
-    expect(filters.map((f) => f.active)).toEqual([false, true, false]);
-  });
-
-  it('marks "All" as active when no category is selected', () => {
-    const filters = create().componentInstance.filters();
-    expect(filters[0]).toMatchObject({ name: 'All', active: true });
-    expect(filters.slice(1).every((f) => !f.active)).toBe(true);
-  });
-
-  it('renders a product tile per product and a filter component', () => {
-    const el: ShadowRoot = (
-      create({ category: 'classic' }).nativeElement as HTMLElement
-    ).shadowRoot!;
-    expect(el.querySelectorAll('app-product-tile').length).toBe(2);
-    expect(el.querySelector('app-filter')).not.toBeNull();
-    expect(el.querySelector('h2')?.textContent).toBe('Classics');
-  });
-
-  it('eagerly preloads the header and footer slices', () => {
-    create();
-    expect(loader).toHaveBeenCalledWith('@tractor-store/explore', 'mfe-header');
-    expect(loader).toHaveBeenCalledWith('@tractor-store/explore', 'mfe-footer');
-  });
-
-  it('marks the host with the explore boundary attribute', () => {
-    expect(
-      (create().nativeElement as HTMLElement).getAttribute(
-        'data-boundary-page',
+  async function render(routeParams: RouteParams = {}) {
+    const fixture = TestBed.createComponent(CategoryPage);
+    fixture.componentRef.setInput('routeParams', routeParams);
+    await fixture.whenStable();
+    const root = (fixture.nativeElement as HTMLElement).shadowRoot!;
+    return {
+      root,
+      title: root.querySelector('h2')?.textContent,
+      products: [...root.querySelectorAll('.e_Product_name')].map(
+        (el) => el.textContent,
       ),
-    ).toBe('explore');
+      activeFilter: root.querySelector('.e_Filter__filter--active')
+        ?.textContent,
+    };
+  }
+
+  it('shows all machines, most expensive first, without a category', async () => {
+    const page = await render();
+    expect(page.title).toBe('All Machines');
+    expect(page.activeFilter).toBe('All');
+    expect(page.products).toEqual(
+      [...allProducts]
+        .sort((a, b) => b.startPrice - a.startPrice)
+        .map((p) => p.name),
+    );
   });
 
-  it('renders no products when the categories list is empty', () => {
+  it('shows only the products of the category route param', async () => {
+    const page = await render({ category: classic.key });
+    expect(page.title).toBe(classic.name);
+    expect(page.activeFilter).toBe(classic.name);
+    expect(page.products).toEqual(classic.products.map((p) => p.name));
+    expect(page.root.textContent).toContain(
+      `${classic.products.length} products`,
+    );
+  });
+
+  it('falls back to all machines for an unknown category', async () => {
+    const page = await render({ category: 'nonexistent' });
+    expect(page.title).toBe('All Machines');
+    expect(page.products).toHaveLength(allProducts.length);
+  });
+
+  it('offers a filter per category', async () => {
+    const { root } = await render();
+    expect(
+      [...root.querySelectorAll('.e_Filter li')].map((li) =>
+        li.textContent?.trim(),
+      ),
+    ).toEqual(['All', ...categoryFixture.map((c) => c.name)]);
+  });
+
+  it('renders no products when there are no categories', async () => {
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [CategoryPage],
-      providers: [
-        provideRouter([]),
-        provideEnv(testEnv),
-        {
-          provide: LOAD_REMOTE,
-          useValue: vi.fn().mockResolvedValue(undefined),
-        },
-        { provide: CategoryHttp, useValue: fakeCategoryHttp([]) },
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    });
-    const cmp = TestBed.createComponent(CategoryPage);
-    cmp.componentRef.setInput('routeParams', {});
-    cmp.detectChanges();
-    expect(cmp.componentInstance.products().length).toBe(0);
+    configure([]);
+    expect((await render()).products).toEqual([]);
+  });
+
+  it('loads the header and footer and marks the explore page boundary', async () => {
+    const fixture = TestBed.createComponent(CategoryPage);
+    await fixture.whenStable();
+    expect(loadRemote.mock.calls).toEqual([
+      ['@tractor-store/explore', 'mfe-header'],
+      ['@tractor-store/explore', 'mfe-footer'],
+    ]);
+    expect((fixture.nativeElement as HTMLElement).dataset['boundaryPage']).toBe(
+      'explore',
+    );
   });
 });
