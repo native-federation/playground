@@ -3,6 +3,8 @@ allowBuilds:
   esbuild: true
   lmdb: true
   msgpackr-extract: true
+overrides:
+  esbuild: ^0.28.0
 packages:
   - apps/*
   - projects/*
