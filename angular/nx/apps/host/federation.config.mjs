@@ -3,7 +3,7 @@ import {withNativeFederation, fromPackageJson} from '@angular-architects/native-
 export default withNativeFederation({
   name: "host",
   shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
-    .patch(['@angular/core'], {includeSecondaries: {keepAll: true}})
+    .patch(['@angular/*'], {includeSecondaries: {keepAll: true}, pool: "ng-core"})
     .get(),
   skip: [
     'rxjs/ajax', 
@@ -12,6 +12,7 @@ export default withNativeFederation({
     'rxjs/webSocket',
     // Add further packages you don't need at runtime
   ],
+  sharedMappings: [],
 
   features: { 
     ignoreUnusedDeps: true, // by default now

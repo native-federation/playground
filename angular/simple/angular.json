@@ -17,9 +17,9 @@
 				"build": {
 					"builder": "@angular-architects/native-federation:build",
 					"options": {
-            			"tsConfig": "projects/mfe1/tsconfig.federation.json",
-                        "cacheExternalArtifacts": true
-                    },
+						"tsConfig": "projects/mfe1/tsconfig.federation.json",
+						"cacheExternalArtifacts": true
+					},
 					"configurations": {
 						"production": {
 							"target": "mfe1:esbuild:production"
@@ -35,7 +35,7 @@
 					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"target": "mfe1:serve-original:development",
-            			"tsConfig": "projects/mfe1/tsconfig.federation.json",
+						"tsConfig": "projects/mfe1/tsconfig.federation.json",
 						"cacheExternalArtifacts": true,
 						"rebuildDelay": 500,
 						"dev": true,
@@ -129,9 +129,9 @@
 				"build": {
 					"builder": "@angular-architects/native-federation:build",
 					"options": {
-            			"tsConfig": "projects/mfe2/tsconfig.federation.json",
-                        "cacheExternalArtifacts": true
-                    },
+						"tsConfig": "projects/mfe2/tsconfig.federation.json",
+						"cacheExternalArtifacts": true
+					},
 					"configurations": {
 						"production": {
 							"target": "mfe2:esbuild:production"
@@ -147,7 +147,7 @@
 					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"target": "mfe2:serve-original:development",
-            			"tsConfig": "projects/mfe2/tsconfig.federation.json",
+						"tsConfig": "projects/mfe2/tsconfig.federation.json",
 						"cacheExternalArtifacts": false,
 						"rebuildDelay": 500,
 						"dev": true,
@@ -160,8 +160,7 @@
 				"test": {
 					"builder": "@angular/build:karma",
 					"options": {
-						"polyfills": [
-						],
+						"polyfills": [],
 						"tsConfig": "projects/mfe2/tsconfig.spec.json",
 						"inlineStyleLanguage": "scss",
 						"assets": [
@@ -254,10 +253,12 @@
 				"build": {
 					"builder": "@angular-architects/native-federation:build",
 					"options": {
-                        "cacheExternalArtifacts": false,
-            			"tsConfig": "projects/host/tsconfig.federation.json",
-						"entryPoints": ["projects/host/src/main.ts"]
-                    },
+						"cacheExternalArtifacts": false,
+						"tsConfig": "projects/host/tsconfig.federation.json",
+						"entryPoints": [
+							"projects/host/src/main.ts"
+						]
+					},
 					"configurations": {
 						"production": {
 							"target": "host:esbuild:production"
@@ -273,7 +274,7 @@
 					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"target": "host:serve-original:development",
-            			"tsConfig": "projects/host/tsconfig.federation.json",
+						"tsConfig": "projects/host/tsconfig.federation.json",
 						"cacheExternalArtifacts": false,
 						"rebuildDelay": 500,
 						"dev": true,
@@ -286,8 +287,7 @@
 				"test": {
 					"builder": "@angular/build:karma",
 					"options": {
-						"polyfills": [
-						],
+						"polyfills": [],
 						"tsConfig": "projects/host/tsconfig.spec.json",
 						"inlineStyleLanguage": "scss",
 						"assets": [
@@ -380,9 +380,9 @@
 				"build": {
 					"builder": "@angular-architects/native-federation:build",
 					"options": {
-             			"tsConfig": "projects/mfe3/tsconfig.federation.json",
-                       	"cacheExternalArtifacts": true
-                    },
+						"tsConfig": "projects/mfe3/tsconfig.federation.json",
+						"cacheExternalArtifacts": true
+					},
 					"configurations": {
 						"production": {
 							"target": "mfe3:esbuild:production"
@@ -398,7 +398,7 @@
 					"builder": "@angular-architects/native-federation:build",
 					"options": {
 						"target": "mfe3:serve-original:development",
-            			"tsConfig": "projects/mfe3/tsconfig.federation.json",
+						"tsConfig": "projects/mfe3/tsconfig.federation.json",
 						"cacheExternalArtifacts": true,
 						"rebuildDelay": 500,
 						"dev": true,
@@ -411,8 +411,7 @@
 				"test": {
 					"builder": "@angular/build:karma",
 					"options": {
-						"polyfills": [
-						],
+						"polyfills": [],
 						"tsConfig": "projects/mfe3/tsconfig.spec.json",
 						"inlineStyleLanguage": "scss",
 						"assets": [
@@ -487,6 +486,139 @@
 					"defaultConfiguration": "development",
 					"options": {
 						"port": 4203
+					}
+				}
+			}
+		},
+		"bug191": {
+			"projectType": "application",
+			"schematics": {
+				"@schematics/angular:component": {
+					"style": "scss"
+				}
+			},
+			"root": "projects/bug191",
+			"sourceRoot": "projects/bug191/src",
+			"prefix": "app",
+			"architect": {
+				"build": {
+					"builder": "@angular-architects/native-federation:build",
+					"options": {
+						"tsConfig": "projects/bug191/tsconfig.federation.json",
+						"cacheExternalArtifacts": true
+					},
+					"configurations": {
+						"production": {
+							"target": "bug191:esbuild:production"
+						},
+						"development": {
+							"target": "bug191:esbuild:development",
+							"dev": true
+						}
+					},
+					"defaultConfiguration": "production"
+				},
+				"serve": {
+					"builder": "@angular-architects/native-federation:build",
+					"options": {
+						"target": "bug191:serve-original:development",
+						"tsConfig": "projects/bug191/tsconfig.federation.json",
+						"cacheExternalArtifacts": false,
+						"rebuildDelay": 500,
+						"dev": true,
+						"port": 4291
+					}
+				},
+				"extract-i18n": {
+					"builder": "@angular/build:extract-i18n"
+				},
+				"esbuild": {
+					"builder": "@angular/build:application",
+					"options": {
+						"outputPath": "dist/bug191",
+						"verbose": false,
+						"index": "projects/bug191/src/index.html",
+						"browser": "projects/bug191/src/main.ts",
+						"polyfills": [
+							"es-module-shims"
+						],
+						"tsConfig": "projects/bug191/tsconfig.app.json",
+						"inlineStyleLanguage": "scss",
+						"assets": [
+							{
+								"glob": "**/*",
+								"input": "projects/bug191/public"
+							}
+						],
+						"styles": [
+							"projects/bug191/src/styles.scss"
+						],
+						"scripts": []
+					},
+					"configurations": {
+						"production": {
+							"budgets": [
+								{
+									"type": "initial",
+									"maximumWarning": "500kB",
+									"maximumError": "1MB"
+								},
+								{
+									"type": "anyComponentStyle",
+									"maximumWarning": "4kB",
+									"maximumError": "8kB"
+								}
+							],
+							"outputHashing": "all"
+						},
+						"development": {
+							"optimization": false,
+							"extractLicenses": false,
+							"sourceMap": true
+						}
+					},
+					"defaultConfiguration": "production"
+				},
+				"serve-original": {
+					"builder": "@angular/build:dev-server",
+					"configurations": {
+						"production": {
+							"buildTarget": "bug191:esbuild:production"
+						},
+						"development": {
+							"buildTarget": "bug191:esbuild:development"
+						}
+					},
+					"defaultConfiguration": "development",
+					"options": {
+						"port": 4292
+					}
+				},
+				"serve-original-nohmr": {
+					"builder": "@angular/build:dev-server",
+					"configurations": {
+						"production": {
+							"buildTarget": "bug191:esbuild:production"
+						},
+						"development": {
+							"buildTarget": "bug191:esbuild:development"
+						}
+					},
+					"defaultConfiguration": "development",
+					"options": {
+						"port": 4292,
+						"hmr": false
+					}
+				},
+				"serve-nohmr": {
+					"builder": "@angular-architects/native-federation:build",
+					"options": {
+						"target": "bug191:serve-original-nohmr:development",
+						"tsConfig": "projects/bug191/tsconfig.federation.json",
+						"cacheExternalArtifacts": false,
+						"rebuildDelay": 500,
+						"dev": true,
+						"port": 4293
 					}
 				}
 			}

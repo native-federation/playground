@@ -43,8 +43,8 @@ importers:
         version: 0.15.1
     devDependencies:
       '@angular-architects/native-federation':
-        specifier: ~22.2.2
-        version: 22.2.2(@angular/build@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4(supports-color@7.2.0))(postcss@8.5.28)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(yaml@2.9.0))(chokidar@5.0.0)
+        specifier: ~22.2.4
+        version: 22.2.4(@angular/build@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4(supports-color@7.2.0))(postcss@8.5.28)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(yaml@2.9.0))(chokidar@5.0.0)
       '@angular/build':
         specifier: ~22.2.0
         version: 22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4(supports-color@7.2.0))(postcss@8.5.28)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(yaml@2.9.0)
@@ -58,8 +58,8 @@ importers:
         specifier: ^23.1.1
         version: 23.2.1(@angular-devkit/core@22.2.0(chokidar@5.0.0))(@angular-devkit/schematics@22.2.0(chokidar@5.0.0))(@angular/build@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4(supports-color@7.2.0))(postcss@8.5.28)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(yaml@2.9.0))(@babel/traverse@7.29.8)(@schematics/angular@22.2.0(chokidar@5.0.0))(@zkochan/js-yaml@0.0.7)(eslint@10.11.0)(nx@23.2.1)(rxjs@7.8.2)(supports-color@7.2.0)(typescript@6.0.3)
       '@softarc/native-federation-orchestrator':
-        specifier: ~4.7.0
-        version: 4.7.0
+        specifier: ~4.9.0
+        version: 4.9.0(@softarc/native-federation@4.9.0)
       '@types/jasmine':
         specifier: ~5.1.0
         version: 5.1.15
@@ -94,10 +94,14 @@ packages:
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
 
-  '@angular-architects/native-federation@22.2.2':
-    resolution: {integrity: sha512-/NRFpdJlHAELIzt/8D+cjTGgjqcpw3qS6OJlHzSCY6PelV981a5sG4vk3wBIvSYqxKF1QzYEOXGXw/ioJhRlNA==}
+  '@angular-architects/native-federation@22.2.4':
+    resolution: {integrity: sha512-Bn5KgMLblnfqgmx5Y/riwBpn4NPyy2CzR37JiDSzUdg/dywTTx1ASop521aUxi6WgwimfT7Uj0bGMdaw05NWnQ==}
     peerDependencies:
       '@angular/build': ~22.2.0
+      '@angular/localize': ~22.2.0
+    peerDependenciesMeta:
+      '@angular/localize':
+        optional: true
 
   '@angular-devkit/architect@0.2202.0':
     resolution: {integrity: sha512-HxY8JxLd3WxFj45BtDUHZ9I6hO4KebTz32UQ4ZkPh0EMK/TZdspbSgwd2lo1jE6a90knRAQkAsnBTKwWvGSm3A==}
@@ -1943,12 +1947,17 @@ packages:
   '@socket.io/component-emitter@3.1.2':
     resolution: {integrity: sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==}
 
-  '@softarc/native-federation-orchestrator@4.7.0':
-    resolution: {integrity: sha512-aIRYUSECaNxoGW+bfJJ5zesmIQ5NbAPzrYZgIGvNJXkpWcZgZvadZ7oQtox0D6qeD4q8IS9ovu9MtplyOTGfUw==}
+  '@softarc/native-federation-orchestrator@4.9.0':
+    resolution: {integrity: sha512-qPe4SrIgdLC6k3Hpcb7v+rFrtHEpIOYUfIj6OsmaAL8z1hUKd9YSliTRE7Q12spFfDj2x9jG+RPebrtj2ImDjw==}
     engines: {node: '>=24.16.0'}
+    peerDependencies:
+      '@softarc/native-federation': ^4.8.0
+    peerDependenciesMeta:
+      '@softarc/native-federation':
+        optional: true
 
-  '@softarc/native-federation@4.7.1':
-    resolution: {integrity: sha512-HweqMCrm0JSxh/66MqXWH16+EdnxUc+nOEjBmcVz/yXJbedyh19T4YQ7KVg+ZmvHLD+n6wGijZ0CCAt7T2WePw==}
+  '@softarc/native-federation@4.9.0':
+    resolution: {integrity: sha512-XwXxZprCd69C6DC0NFBTLqqpVVvcwzhTU+Nka4Mom/1av6ofTHYcZAu/tcr22Rtenj87LB2LN/uEAMbWLiHgkg==}
 
   '@softarc/sheriff-core@0.20.0':
     resolution: {integrity: sha512-dTm5dOUMOGTV3ql7ZIuI8rE+gZawIcJLEluqRYX3KDVJ215vfUzpC9LlSL4pTW0lAAeNLelmPZBzY57jLvOPpg==}
@@ -4173,15 +4182,15 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
 
-  '@angular-architects/native-federation@22.2.2(@angular/build@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4(supports-color@7.2.0))(postcss@8.5.28)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(yaml@2.9.0))(chokidar@5.0.0)':
+  '@angular-architects/native-federation@22.2.4(@angular/build@22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4(supports-color@7.2.0))(postcss@8.5.28)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(yaml@2.9.0))(chokidar@5.0.0)':
     dependencies:
       '@angular-devkit/architect': 0.2202.0(chokidar@5.0.0)
       '@angular-devkit/core': 22.2.0(chokidar@5.0.0)
       '@angular-devkit/schematics': 22.2.0(chokidar@5.0.0)
       '@angular/build': 22.2.0(@angular/compiler-cli@22.2.0(@angular/compiler@22.2.0)(typescript@6.0.3))(@angular/compiler@22.2.0)(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@26.6.2)(karma@6.4.4(supports-color@7.2.0))(postcss@8.5.28)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(yaml@2.9.0)
       '@chialab/esbuild-plugin-commonjs': 0.19.1
-      '@softarc/native-federation': 4.7.1
-      '@softarc/native-federation-orchestrator': 4.7.0
+      '@softarc/native-federation': 4.9.0
+      '@softarc/native-federation-orchestrator': 4.9.0(@softarc/native-federation@4.9.0)
       es-module-shims: 2.8.4
       esbuild: 0.28.2
       jsonc-parser: 3.3.1
@@ -6005,17 +6014,18 @@ snapshots:
 
   '@socket.io/component-emitter@3.1.2': {}
 
-  '@softarc/native-federation-orchestrator@4.7.0':
+  '@softarc/native-federation-orchestrator@4.9.0(@softarc/native-federation@4.9.0)':
     dependencies:
       semver: 7.8.5
+    optionalDependencies:
+      '@softarc/native-federation': 4.9.0
 
-  '@softarc/native-federation@4.7.1':
+  '@softarc/native-federation@4.9.0':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
       '@softarc/sheriff-core': 0.20.0(typescript@6.0.3)
       chalk: 6.0.0
       es-module-lexer: 2.3.2
-      esbuild: 0.28.2
       tinyglobby: 0.2.17
       typescript: 6.0.3
 

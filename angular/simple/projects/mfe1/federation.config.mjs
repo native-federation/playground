@@ -11,9 +11,9 @@ export default withNativeFederation({
     .get(),
 
   skip: [
-    // @angular/animations is not installed; see native-federation/native-federation-core#195
-    '@angular/platform-browser/animations',
-    '@angular/platform-browser/animations/async',
+    // // @angular/animations is not installed; see native-federation/native-federation-core#195
+    // '@angular/platform-browser/animations',
+    // '@angular/platform-browser/animations/async',
     'rxjs/ajax', 
     'rxjs/fetch',
     'rxjs/testing',

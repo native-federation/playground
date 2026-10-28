@@ -9,9 +9,5 @@
   ],
   "exclude": [
     "src/**/*.spec.ts"
-  ],
-  "files": [
-    "src/app/app.component.ts",
-    "src/bootstrap.ts"
   ]
 }

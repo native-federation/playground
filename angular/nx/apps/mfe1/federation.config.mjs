@@ -7,7 +7,7 @@ export default withNativeFederation({
     './Component': './apps/mfe1/src/bootstrap.ts',
   },
   shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
-    .patch(['@angular/core'], {includeSecondaries: {keepAll: true}})
+    .patch(['@angular/*'], {includeSecondaries: {keepAll: true}, pool: "ng-core"})
     .get(),
 
   skip: [
