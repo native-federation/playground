@@ -1,4 +1,4 @@
-import {withNativeFederation, shareAll} from '@angular-architects/native-federation-v4/config';
+import {withNativeFederation, fromPackageJson} from '@angular-architects/native-federation-v4/config';
 
 export default withNativeFederation({
 
@@ -11,17 +11,9 @@ export default withNativeFederation({
 
   // Ensures scoping of all dependencies on different "ng21" scope. 
   shareScope: "ng21",
-  shared: {
-    ...shareAll(
-      { singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' },
-      {
-        overrides: {
-          '@angular/core': { singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package',  includeSecondaries: {keepAll: true}},
-
-        }
-      }
-    ),
-  },
+  shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
+    .patch(['@angular/*'], {includeSecondaries: {keepAll: true}})
+    .get(),
   skip: [
     'rxjs/ajax', 
     'rxjs/fetch',
@@ -33,6 +25,7 @@ export default withNativeFederation({
   features: { 
     ignoreUnusedDeps: true, // by default now
     denseChunking: true,
+    denseExternals: true,
     integrityHashes: true
   }
 });

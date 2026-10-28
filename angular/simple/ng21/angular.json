@@ -17,11 +17,11 @@
 				"build": {
 					"builder": "@angular-architects/native-federation-v4:build",
 					"options": {
-                       	"cacheExternalArtifacts": true
+						"tsConfig": "projects/mfe5/tsconfig.federation.json",
+						"cacheExternalArtifacts": true
 					},
 					"configurations": {
 						"production": {
-							"tsConfig": "projects/mfe5/tsconfig.app.json",
 							"target": "mfe5:esbuild:production"
 						},
 						"development": {
@@ -35,7 +35,7 @@
 					"builder": "@angular-architects/native-federation-v4:build",
 					"options": {
 						"target": "mfe5:serve-original:development",
-						"tsConfig": "projects/mfe5/tsconfig.app.json",
+						"tsConfig": "projects/mfe5/tsconfig.federation.json",
 						"cacheExternalArtifacts": true,
 						"rebuildDelay": 500,
 						"dev": true,

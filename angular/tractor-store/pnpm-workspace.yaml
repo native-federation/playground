@@ -3,12 +3,14 @@ allowBuilds:
   esbuild: true
   lmdb: true
   msgpackr-extract: true
+overrides:
+  esbuild: ^0.28.0
 packages:
   - apps/*
   - projects/*
 minimumReleaseAgeExclude:
   - "@softarc/native-federation*"
-  - '@angular-architects/native-federation@22.0.6 || 22.2.0 || 22.2.2 || 22.2.3'
+  - '@angular-architects/native-federation@22.0.6 || 22.2.0 || 22.2.2 || 22.2.3 || 22.2.4'
   - '@angular-devkit/architect@0.2202.0'
   - '@angular-devkit/core@22.2.0'
   - '@angular-devkit/schematics@22.2.0'

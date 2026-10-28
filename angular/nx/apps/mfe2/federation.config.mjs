@@ -9,7 +9,7 @@ export default withNativeFederation({
   },
 
   shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
-    .patch(['@angular/core'], {includeSecondaries: {keepAll: true}})
+    .patch(['@angular/*'], {includeSecondaries: {keepAll: true}, pool: "ng-core"})
     .get(),
 
   skip: [
@@ -19,6 +19,7 @@ export default withNativeFederation({
     'rxjs/webSocket',
     // Add further packages you don't need at runtime
   ],
+  sharedMappings: [],
 
   features: { 
     ignoreUnusedDeps: true, // by default now

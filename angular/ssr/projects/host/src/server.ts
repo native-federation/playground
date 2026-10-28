@@ -44,6 +44,10 @@ app.use(
     maxAge: '1y',
     index: false,
     redirect: false,
+    // remoteEntry.json and the manifest keep their name across builds; the hashed files they point to can stay cached
+    setHeaders: (res, path) => {
+      if (path.endsWith('.json')) res.setHeader('Cache-Control', 'no-cache');
+    },
   }),
 );
 

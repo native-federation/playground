@@ -4,10 +4,6 @@
     "outDir": "../../out-tsc/app",
     "types": []
   },
-  "files": [
-    "../../libs/internal/src/logging/index.ts",
-    "src/bootstrap.ts"
-  ],
   "include": [
     "src/**/*.d.ts",
     "../../libs/internal/src/logging/index.ts"

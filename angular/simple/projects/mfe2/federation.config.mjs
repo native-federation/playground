@@ -22,6 +22,7 @@ export default withNativeFederation({
     'rxjs/webSocket',
     // Add further packages you don't need at runtime
   ],
+  sharedMappings: [],
 
   features: { 
     ignoreUnusedDeps: true, // by default now
