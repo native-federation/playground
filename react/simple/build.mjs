@@ -1,9 +1,13 @@
 import { createServer } from 'http';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, rmSync } from 'fs';
 import { extname, join } from 'path';
 import { runEsBuildBuilder } from '@softarc/native-federation-esbuild';
 
 const isDev = process.argv.includes('--dev');
+
+// Hashed bundles from earlier builds would otherwise pile up next to the new ones.
+rmSync('dist', { recursive: true, force: true });
+mkdirSync('dist', { recursive: true });
 
 const federation = await runEsBuildBuilder('federation.config.js', {
   outputPath: 'dist',
