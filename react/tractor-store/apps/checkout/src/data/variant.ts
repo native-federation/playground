@@ -1,4 +1,4 @@
-import { variantCatalog } from './variants-fixtures';
+import { variantCatalog } from './variant.data';
 
 export interface Variant {
   id: string;

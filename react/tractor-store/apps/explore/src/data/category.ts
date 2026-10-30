@@ -1,12 +1,12 @@
-import type { NavTarget } from '@react-internal/navigation';
-import { categoryCatalog } from './categories-fixtures';
+import type { NavLink } from './nav-link';
+import { categoryCatalog } from './category.data';
 
 export interface Product {
   id: string;
   name: string;
   image: string;
   startPrice: number;
-  link: NavTarget;
+  link: NavLink;
 }
 
 export interface Category {

@@ -1,5 +1,5 @@
-import type { NavTarget } from '@react-internal/navigation';
-import { recommendationCatalog } from './recommendations-fixtures';
+import type { NavLink } from './nav-link';
+import { recommendationCatalog } from './recommendation.data';
 
 // Seed SKUs used by the homepage recommendations rail. Lives here because
 // it's data shape, not presentation.
@@ -9,7 +9,7 @@ export interface Recommendation {
   sku: string;
   name: string;
   image: string;
-  link: NavTarget;
+  link: NavLink;
   rgb: readonly [number, number, number];
 }
 

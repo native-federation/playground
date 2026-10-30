@@ -1,32 +1,26 @@
-import { useEffect } from 'react';
-import { param, type RouteParams } from '@react-internal/url';
-import { getProductById } from '../../api/products';
-import { useAsync } from '@react-internal/mfe-runtime';
-import { useCdnBase, useRemoteLoader } from '@react-internal/mfe-runtime';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
-import { imgSrc, imgSrcset } from '@react-internal/mfe-runtime';
+import type { RouteParams } from '@tractor-store/contracts';
+import { useCdn, useStyles } from '../../app';
+import { getProductById } from '../../data/product';
+import { useRemoteElement } from '../../shared/remote-element';
+import { useAsync } from '../../shared/use-async';
 import { VariantOption } from './VariantOption';
 import { productStyles } from './product-styles';
 
-export function Product({ routeParams = {} }: { routeParams?: RouteParams }) {
-  useScopedStyles('decide-product', productStyles);
+const param = (params: RouteParams, key: string) =>
+  typeof params[key] === 'string' ? params[key] : undefined;
 
-  const { prefetchElement } = useRemoteLoader();
-  useEffect(() => {
-    void prefetchElement('mfe-header');
-    void prefetchElement('mfe-footer');
-    void prefetchElement('mfe-recommendations');
-    void prefetchElement('mfe-add-to-cart');
-  }, [prefetchElement]);
+export function Product({ routeParams = {} }: { routeParams?: RouteParams }) {
+  useStyles(productStyles);
+  useRemoteElement('@tractor-store/explore', 'mfe-header');
+  useRemoteElement('@tractor-store/checkout', 'mfe-add-to-cart');
+  useRemoteElement('@tractor-store/explore', 'mfe-recommendations');
+  useRemoteElement('@tractor-store/explore', 'mfe-footer');
+  const cdn = useCdn();
 
   const id = param(routeParams, 'id');
-  const skuParam = param(routeParams, 'sku');
-  const base = useCdnBase();
+  const sku = param(routeParams, 'sku');
 
-  const { value: product, isLoading, error } = useAsync(
-    () => getProductById(id),
-    [id],
-  );
+  const { value: product, isLoading, error } = useAsync(() => getProductById(id), [id]);
 
   if (error || !product) {
     return (
@@ -46,8 +40,7 @@ export function Product({ routeParams = {} }: { routeParams?: RouteParams }) {
     );
   }
 
-  const selected =
-    product.variants.find((v) => v.sku === skuParam) ?? product.variants[0];
+  const selected = product.variants.find((v) => v.sku === sku) ?? product.variants[0];
 
   return (
     <div data-boundary-page="decide">
@@ -56,8 +49,8 @@ export function Product({ routeParams = {} }: { routeParams?: RouteParams }) {
         <div className="d_ProductPage__details">
           <img
             className="d_ProductPage__productImage"
-            src={selected ? imgSrc(selected.image, 400, base) : ''}
-            srcSet={selected ? imgSrcset(selected.image, [400, 800], base) : undefined}
+            src={selected ? cdn.src(selected.image, 400) : ''}
+            srcSet={selected ? cdn.srcSet(selected.image, [400, 800]) : undefined}
             sizes="400px"
             width={400}
             height={400}

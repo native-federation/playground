@@ -1,19 +1,14 @@
-import { useEffect } from 'react';
-import { getStores } from '../../api/stores';
-import { useAsync } from '@react-internal/mfe-runtime';
-import { useRemoteLoader } from '@react-internal/mfe-runtime';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
-import { StoreTile } from './StoreTile';
+import { useStyles } from '../../app';
+import { getStores } from '../../data/store';
+import { StoreTile } from '../../shared/components/StoreTile';
+import { useRemoteElement } from '../../shared/remote-element';
+import { useAsync } from '../../shared/use-async';
 import { storesStyles } from './stores-styles';
 
 export function Stores() {
-  useScopedStyles('explore-stores', storesStyles);
-
-  const { prefetchElement } = useRemoteLoader();
-  useEffect(() => {
-    void prefetchElement('mfe-header');
-    void prefetchElement('mfe-footer');
-  }, [prefetchElement]);
+  useStyles(storesStyles);
+  useRemoteElement('@tractor-store/explore', 'mfe-header');
+  useRemoteElement('@tractor-store/explore', 'mfe-footer');
 
   const { value: stores, error } = useAsync(() => getStores(), []);
 

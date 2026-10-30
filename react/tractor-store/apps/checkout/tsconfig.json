@@ -1,17 +1,4 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "paths": {
-      "@react-internal/event-bus": ["../../libs/event-bus/src/index.ts"],
-      "@react-internal/mfe-runtime": ["../../libs/mfe-runtime/src/index.ts"],
-      "@react-internal/navigation": ["../../libs/navigation/src/index.ts"],
-      "@react-internal/ui": ["../../libs/ui/src/index.ts"],
-      "@react-internal/url": ["../../libs/url/src/index.ts"]
-    }
-  },
-  "include": [
-    "src",
-    "src/global.d.ts",
-    "../../libs/navigation/src/types/jsx-mfe.d.ts"
-  ]
+  "include": ["src", "../../libs/contracts"]
 }

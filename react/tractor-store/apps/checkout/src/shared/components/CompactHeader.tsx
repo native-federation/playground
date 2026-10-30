@@ -1,23 +1,21 @@
-import { NavigateLink } from '@react-internal/navigation';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
-import { useCdnBase } from '@react-internal/mfe-runtime';
-import { cdnUrl } from '@react-internal/mfe-runtime';
+import { useCdn, useStyles } from '../../app';
+import { NavLink } from '../nav-intent';
 import { compactHeaderStyles } from './compact-header-styles';
 
 export function CompactHeader() {
-  useScopedStyles('checkout-compact-header', compactHeaderStyles);
-  const base = useCdnBase();
+  useStyles(compactHeaderStyles);
+  const cdn = useCdn();
 
   return (
     <header className="c_CompactHeader" role="banner">
       <div className="c_CompactHeader__inner">
-        <NavigateLink intent="explore.home" className="c_CompactHeader__link">
+        <NavLink intent="explore.home" className="c_CompactHeader__link">
           <img
             className="c_CompactHeader__logo"
-            src={cdnUrl('/cdn/img/logo.svg', base)}
+            src={cdn.src('/cdn/img/logo.svg')}
             alt="Micro Frontends - Tractor Store"
           />
-        </NavigateLink>
+        </NavLink>
       </div>
     </header>
   );

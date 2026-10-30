@@ -1,7 +1,6 @@
-import type { NavContribution } from '@react-internal/navigation';
+import type { NavContribution } from '@tractor-store/contracts';
 
 export const navContribution: NavContribution = {
-  source: '@tractor-store/explore',
   basePath: 'explore',
   intents: [
     { id: 'home', path: '/', element: 'mfe-home' },
@@ -13,5 +12,4 @@ export const navContribution: NavContribution = {
     },
     { id: 'stores', path: '/stores', element: 'mfe-stores' },
   ],
-  chromeElements: ['mfe-header', 'mfe-footer', 'mfe-recommendations', 'mfe-store-picker'],
 };

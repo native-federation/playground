@@ -1,15 +1,16 @@
-import { NavigateLink, type NavTarget } from '@react-internal/navigation';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
+import { useStyles } from '../../app';
+import type { NavLink as Link } from '../../data/nav-link';
+import { NavLink } from '../../shared/nav-intent';
 import { filterStyles } from './filter-styles';
 
 export interface FilterItem {
-  readonly link: NavTarget;
+  readonly link: Link;
   readonly name: string;
   readonly active: boolean;
 }
 
 export function Filter({ filters }: { filters: readonly FilterItem[] }) {
-  useScopedStyles('explore-filter', filterStyles);
+  useStyles(filterStyles);
   return (
     <div className="e_Filter">
       Filter:
@@ -21,9 +22,9 @@ export function Filter({ filters }: { filters: readonly FilterItem[] }) {
             </li>
           ) : (
             <li key={f.name}>
-              <NavigateLink intent={f.link.intent} params={f.link.params ?? {}}>
+              <NavLink intent={f.link.intent} payload={f.link.params}>
                 {f.name}
-              </NavigateLink>
+              </NavLink>
             </li>
           ),
         )}

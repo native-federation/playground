@@ -1,26 +1,24 @@
-import { type FormEvent } from 'react';
-import { NavigateLink } from '@react-internal/navigation';
-import { Button } from '@react-internal/ui';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
-import { useCdnBase } from '@react-internal/mfe-runtime';
-import { useCart } from '../../cart/use-cart';
-import { imgSrc, imgSrcset } from '@react-internal/mfe-runtime';
+import type { FormEvent } from 'react';
+import { useCdn, useStyles } from '../../app';
+import { useCart } from '../../data/cart-store';
+import { NavLink } from '../nav-intent';
+import { Button } from './Button';
 import { lineItemStyles } from './line-item-styles';
 
 export interface LineItemView {
-  id: string;
-  name: string;
-  sku: string;
-  quantity: number;
-  total: number;
-  image: string;
+  readonly id: string;
+  readonly name: string;
+  readonly sku: string;
+  readonly quantity: number;
+  readonly total: number;
+  readonly image: string;
 }
 
 export function LineItem({ item }: { item: LineItemView }) {
-  useScopedStyles('checkout-line-item', lineItemStyles);
+  useStyles(lineItemStyles);
   const cart = useCart();
-  const base = useCdnBase();
-  const params = { id: item.id, sku: item.sku };
+  const cdn = useCdn();
+  const payload = { id: item.id, sku: item.sku };
 
   const onRemove = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -29,22 +27,22 @@ export function LineItem({ item }: { item: LineItemView }) {
 
   return (
     <li className="c_LineItem" role="listitem">
-      <NavigateLink intent="decide.product" params={params} className="c_LineItem__image">
+      <NavLink intent="decide.product" payload={payload} className="c_LineItem__image">
         <img
-          src={imgSrc(item.image, 200, base)}
-          srcSet={imgSrcset(item.image, [200, 400], base)}
+          src={cdn.src(item.image, 200)}
+          srcSet={cdn.srcSet(item.image, [200, 400])}
           sizes="200px"
           alt={item.name}
           width={200}
           height={200}
         />
-      </NavigateLink>
+      </NavLink>
       <div className="c_LineItem__details">
-        <NavigateLink intent="decide.product" params={params} className="c_LineItem__name">
+        <NavLink intent="decide.product" payload={payload} className="c_LineItem__name">
           <strong>{item.name}</strong>
           <br />
           {item.sku}
-        </NavigateLink>
+        </NavLink>
         <div className="c_LineItem__quantity">
           <span>{item.quantity}</span>
           <form onSubmit={onRemove}>

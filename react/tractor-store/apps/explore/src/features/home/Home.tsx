@@ -1,25 +1,17 @@
-import { useEffect } from 'react';
-import { NavigateLink } from '@react-internal/navigation';
-import { getTeasers } from '../../api/teasers';
-import { HOME_SEED_SKUS } from '../../api/recommendations';
-import { useAsync } from '@react-internal/mfe-runtime';
-import { useCdnBase, useRemoteLoader } from '@react-internal/mfe-runtime';
-import { imgSrc, imgSrcset } from '@react-internal/mfe-runtime';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
+import { useCdn, useStyles } from '../../app';
+import { HOME_SEED_SKUS } from '../../data/recommendation';
+import { getTeasers } from '../../data/teaser';
+import { NavLink } from '../../shared/nav-intent';
+import { useRemoteElement } from '../../shared/remote-element';
+import { useAsync } from '../../shared/use-async';
 import { homeStyles } from './home-styles';
 
 export function Home() {
-  useScopedStyles('explore-home', homeStyles);
-
-  const base = useCdnBase();
-  const { prefetchElement } = useRemoteLoader();
-
-  useEffect(() => {
-    // Pre-warm sibling chrome fragments so the page paints with them ready.
-    void prefetchElement('mfe-header');
-    void prefetchElement('mfe-footer');
-    void prefetchElement('mfe-recommendations');
-  }, [prefetchElement]);
+  useStyles(homeStyles);
+  useRemoteElement('@tractor-store/explore', 'mfe-header');
+  useRemoteElement('@tractor-store/explore', 'mfe-recommendations');
+  useRemoteElement('@tractor-store/explore', 'mfe-footer');
+  const cdn = useCdn();
 
   const { value: teasers, error } = useAsync(() => getTeasers(), []);
 
@@ -31,20 +23,20 @@ export function Home() {
           <p role="alert">Failed to load teasers. Please refresh.</p>
         ) : (
           (teasers ?? []).map((t) => (
-            <NavigateLink
+            <NavLink
               key={t.title}
               intent={t.link.intent}
-              params={t.link.params ?? {}}
+              payload={t.link.params}
               className="e_HomePage__categoryLink"
             >
               <img
-                src={imgSrc(t.image, 500, base)}
-                srcSet={imgSrcset(t.image, [500, 1000], base)}
+                src={cdn.src(t.image, 500)}
+                srcSet={cdn.srcSet(t.image, [500, 1000])}
                 sizes="100vw, (min-width: 500px) 50vw"
                 alt=""
               />
               {t.title}
-            </NavigateLink>
+            </NavLink>
           ))
         )}
         <div className="e_HomePage__recommendations">

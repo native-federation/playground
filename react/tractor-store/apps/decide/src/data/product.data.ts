@@ -1,4 +1,4 @@
-import type { Product } from './products';
+import type { Product } from './product';
 
 type RawProduct = Omit<Product, 'highlights'> & { highlights?: string[] };
 

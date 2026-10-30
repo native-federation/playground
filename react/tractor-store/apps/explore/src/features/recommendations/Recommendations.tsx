@@ -1,32 +1,21 @@
-import { getRecommendationsBySeedSkus } from '../../api/recommendations';
-import { useAsync } from '@react-internal/mfe-runtime';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
+import { useStyles } from '../../app';
+import { getRecommendationsBySeedSkus } from '../../data/recommendation';
+import { useAsync } from '../../shared/use-async';
 import { RecommendationTile } from './RecommendationTile';
 import { recommendationsStyles } from './recommendations-styles';
 
-const parseSkus = (v: string | string[] | undefined | null): string[] => {
-  if (!v) return [];
-  if (Array.isArray(v)) return v;
-  return v
+// `skus` is the comma-separated attribute of <mfe-recommendations>.
+export function Recommendations({ skus = '' }: { skus?: string }) {
+  useStyles(recommendationsStyles);
+
+  const seeds = skus
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-};
-
-interface Props {
-  /** Comma-separated SKUs (when received as a custom-element attribute). */
-  readonly skus?: string | string[];
-}
-
-export function Recommendations({ skus }: Props) {
-  useScopedStyles('explore-recommendations', recommendationsStyles);
-
-  const parsed = parseSkus(skus);
-  const seedKey = parsed.join(',');
 
   const { value, error } = useAsync(
-    () => getRecommendationsBySeedSkus(parsed),
-    [seedKey],
+    () => getRecommendationsBySeedSkus(seeds),
+    [seeds.join(',')],
   );
   const items = value ?? [];
 

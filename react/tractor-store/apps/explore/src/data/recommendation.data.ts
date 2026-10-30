@@ -1,4 +1,4 @@
-import type { Recommendation } from './recommendations';
+import type { Recommendation } from './recommendation';
 
 export const recommendationCatalog: Record<string, Recommendation> = {
   'AU-01-SI': { name: 'TerraFirma AutoCultivator T-300 Silver', sku: 'AU-01-SI', image: '/cdn/img/product/[size]/AU-01-SI.webp', link: { intent: 'decide.product', params: { id: 'AU-01', sku: 'AU-01-SI' } }, rgb: [192, 192, 192] },

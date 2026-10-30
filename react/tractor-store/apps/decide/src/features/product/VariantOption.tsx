@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
-import { NavigateLink } from '@react-internal/navigation';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
+import { useStyles } from '../../app';
+import { NavLink } from '../../shared/nav-intent';
 import { variantOptionStyles } from './variant-option-styles';
 
 interface Props {
@@ -12,9 +12,9 @@ interface Props {
 }
 
 export function VariantOption({ id, sku, name, color, selected = false }: Props) {
-  useScopedStyles('decide-variant-option', variantOptionStyles);
+  useStyles(variantOptionStyles);
 
-  // CSS custom property — React types require the cast.
+  // React's CSSProperties has no custom properties.
   const style = { '--variant-color': color } as CSSProperties;
 
   return (
@@ -23,9 +23,9 @@ export function VariantOption({ id, sku, name, color, selected = false }: Props)
       {selected ? (
         <strong>{name}</strong>
       ) : (
-        <NavigateLink intent="decide.product" params={{ id, sku }}>
+        <NavLink intent="decide.product" payload={{ id, sku }}>
           {name}
-        </NavigateLink>
+        </NavLink>
       )}
     </li>
   );

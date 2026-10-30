@@ -1,4 +1,4 @@
-import type { Variant } from './variants';
+import type { Variant } from './variant';
 
 export const variantCatalog: Variant[] = [
   { id: 'AU-01', name: 'TerraFirma AutoCultivator T-300 Silver', sku: 'AU-01-SI', price: 1000, image: '/cdn/img/product/[size]/AU-01-SI.webp', inventory: 8 },

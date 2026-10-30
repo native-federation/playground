@@ -1,5 +1,5 @@
 {
-  "@tractor-store/explore": "http://localhost:4001/remoteEntry.json",
-  "@tractor-store/decide": "http://localhost:4002/remoteEntry.json",
-  "@tractor-store/checkout": "http://localhost:4003/remoteEntry.json"
+  "@tractor-store/explore": "http://localhost:4301/remoteEntry.json",
+  "@tractor-store/decide": "http://localhost:4302/remoteEntry.json",
+  "@tractor-store/checkout": "http://localhost:4303/remoteEntry.json"
 }

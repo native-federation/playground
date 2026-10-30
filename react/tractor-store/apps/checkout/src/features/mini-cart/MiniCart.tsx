@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@react-internal/ui';
-import { useCart } from '../../cart/use-cart';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
+import { useStyles } from '../../app';
+import { useCart } from '../../data/cart-store';
+import { ButtonLink } from '../../shared/components/Button';
 import { miniCartStyles } from './mini-cart-styles';
 
 export function MiniCart() {
-  // Inside the shadow root: adopt as a constructable stylesheet. CDN reset
-  // and font cascade in via inheritable rules (font-family) and CSS vars
-  // (--outer-space), so no need for ensureGlobalContract here.
-  useScopedStyles('checkout-mini-cart', miniCartStyles);
+  useStyles(miniCartStyles);
 
   const { totalQuantity } = useCart();
   const [highlight, setHighlight] = useState(false);
@@ -33,11 +30,11 @@ export function MiniCart() {
       className={highlight ? 'c_MiniCart c_MiniCart--highlight' : 'c_MiniCart'}
       data-boundary="checkout"
     >
-      <Button
+      <ButtonLink
         variant="secondary"
         rounded
-        navigateTo="checkout.cart"
-        extraClass="c_MiniCart__button"
+        intent="checkout.cart"
+        className="c_MiniCart__button"
         title="View Cart"
       >
         <svg
@@ -68,7 +65,7 @@ export function MiniCart() {
             {totalQuantity}
           </div>
         ) : null}
-      </Button>
+      </ButtonLink>
     </div>
   );
 }

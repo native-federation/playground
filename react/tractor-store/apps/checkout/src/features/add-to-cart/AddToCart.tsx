@@ -1,28 +1,23 @@
 import { useState, type FormEvent } from 'react';
-import { NavigateLink } from '@react-internal/navigation';
-import { Button } from '@react-internal/ui';
-import { getVariantBySku } from '../../api/variants';
-import { useAsync } from '@react-internal/mfe-runtime';
-import { useCart } from '../../cart/use-cart';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
+import { useStyles } from '../../app';
+import { useCart } from '../../data/cart-store';
+import { getVariantBySku } from '../../data/variant';
+import { Button } from '../../shared/components/Button';
+import { NavLink } from '../../shared/nav-intent';
+import { useAsync } from '../../shared/use-async';
 import { addToCartStyles } from './add-to-cart-styles';
 
-// The MFE element may connect before the host assigns the `sku` attribute,
-// so the wrapper gates the inner component on a non-empty sku.
-// Keying Inner on `sku` resets local state (notably the "confirmed" toast)
-// whenever the user picks a different variant.
+// The element can connect before its `sku` attribute is set. Keying on the sku
+// also resets the "Tractor was added" message when another variant is picked.
 export function AddToCart({ sku }: { sku?: string }) {
   return sku ? <Inner key={sku} sku={sku} /> : null;
 }
 
 function Inner({ sku }: { sku: string }) {
-  useScopedStyles('checkout-add-to-cart', addToCartStyles);
+  useStyles(addToCartStyles);
 
   const cart = useCart();
-  const { value: variant, isLoading, error } = useAsync(
-    () => getVariantBySku(sku),
-    [sku],
-  );
+  const { value: variant, isLoading, error } = useAsync(() => getVariantBySku(sku), [sku]);
   const [confirmed, setConfirmed] = useState(false);
 
   if (error) {
@@ -58,17 +53,10 @@ function Inner({ sku }: { sku: string }) {
             {variant.inventory} in stock, free shipping
           </p>
         ) : (
-          <p className="c_AddToCart__stock c_AddToCart__stock--empty">
-            out of stock
-          </p>
+          <p className="c_AddToCart__stock c_AddToCart__stock--empty">out of stock</p>
         )}
       </div>
-      <Button
-        type="submit"
-        variant="primary"
-        extraClass="c_AddToCart__button"
-        disabled={outOfStock}
-      >
+      <Button type="submit" variant="primary" className="c_AddToCart__button" disabled={outOfStock}>
         add to basket
       </Button>
       <div
@@ -80,9 +68,9 @@ function Inner({ sku }: { sku: string }) {
         aria-live="polite"
       >
         <p>Tractor was added.</p>
-        <NavigateLink intent="checkout.cart" className="c_AddToCart__link">
+        <NavLink intent="checkout.cart" className="c_AddToCart__link">
           View in basket.
-        </NavigateLink>
+        </NavLink>
       </div>
     </form>
   );

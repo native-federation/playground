@@ -1,9 +1,9 @@
-import type { NavTarget } from '@react-internal/navigation';
+import type { NavLink } from './nav-link';
 
 export interface Teaser {
   title: string;
   image: string;
-  link: NavTarget;
+  link: NavLink;
 }
 
 const teasers: Teaser[] = [

@@ -1,4 +1,4 @@
-import { productCatalog } from './products-fixtures';
+import { productCatalog } from './product.data';
 
 export interface Variant {
   sku: string;

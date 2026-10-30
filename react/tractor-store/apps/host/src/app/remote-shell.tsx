@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { type RouteParams, sameRouteParams } from '@react-internal/url';
-import { ErrorBoundary, Spinner } from '@react-internal/ui';
-import { useLoader } from './context';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useParams, useSearchParams, type Params } from 'react-router-dom';
+import type { RouteParams } from '@tractor-store/contracts';
+import { LoadRemoteContext } from './load-remote';
 
 interface RemoteElement extends HTMLElement {
   routeParams?: RouteParams;
@@ -10,90 +9,121 @@ interface RemoteElement extends HTMLElement {
 
 interface Props {
   readonly remoteName: string;
-  readonly elementTag: string;
+  readonly element: string;
 }
 
-/**
- * Mount point for a routed remote fragment. Calls the slice loader, then
- * `document.createElement(elementTag)` and writes a `routeParams` property
- * carrying path + query params. Re-assigns `routeParams` when URL params
- * change, with structural equality to avoid spurious re-renders.
- */
-export function RemoteShell({ remoteName, elementTag }: Props) {
-  const loader = useLoader();
-  const hostRef = useRef<HTMLDivElement | null>(null);
-  const elRef = useRef<RemoteElement | null>(null);
-  const lastParamsRef = useRef<RouteParams | undefined>(undefined);
-
-  const [loaded, setLoaded] = useState(false);
-  const [errored, setErrored] = useState(false);
+// Mounted by every remote route (see navigation.tsx).
+export function RemoteShell({ remoteName, element }: Props) {
+  const loadRemote = useContext(LoadRemoteContext)!;
+  const host = useRef<HTMLDivElement>(null);
+  const mounted = useRef<RemoteElement>();
+  const [status, setStatus] = useState<'loading' | 'loaded' | 'failed'>('loading');
 
   const params = useParams();
-  const [searchParams] = useSearchParams();
-
-  const routeParams = useMemo<RouteParams>(() => {
-    const out: Record<string, string | readonly string[]> = {};
-    for (const [k, v] of Object.entries(params)) {
-      if (typeof v === 'string') out[k] = v;
-    }
-    for (const k of new Set(searchParams.keys())) {
-      if (k in out) continue;
-      const all = searchParams.getAll(k);
-      out[k] = all.length > 1 ? all : all[0];
-    }
-    return out;
-  }, [params, searchParams]);
+  const [query] = useSearchParams();
+  // The custom element only sees a new object when a value actually changed.
+  const json = JSON.stringify(toRouteParams(params, query));
+  const routeParams = useMemo<RouteParams>(() => JSON.parse(json), [json]);
+  const latestParams = useRef(routeParams);
+  latestParams.current = routeParams;
 
   useEffect(() => {
     let cancelled = false;
-    setLoaded(false);
-    setErrored(false);
-
-    loader(remoteName, elementTag)
-      .then(() => {
-        if (cancelled || !hostRef.current) return;
-        const el = document.createElement(elementTag) as RemoteElement;
-        hostRef.current.appendChild(el);
-        elRef.current = el;
-        el.routeParams = routeParams;
-        lastParamsRef.current = routeParams;
-        setLoaded(true);
-      })
-      .catch((err) => {
+    setStatus('loading');
+    loadRemote(remoteName, element).then(
+      () => {
         if (cancelled) return;
-        console.error(`Failed to load remote ${remoteName}`, err);
-        setErrored(true);
-      });
-
+        const el: RemoteElement = document.createElement(element);
+        el.routeParams = latestParams.current;
+        host.current!.appendChild(el);
+        mounted.current = el;
+        setStatus('loaded');
+      },
+      (err) => {
+        // The page only shows that it failed; keep the cause for developers.
+        console.error(`[host] failed to load <${element}> from "${remoteName}"`, err);
+        if (!cancelled) setStatus('failed');
+      },
+    );
     return () => {
       cancelled = true;
-      const el = elRef.current;
-      if (el && el.parentNode) el.parentNode.removeChild(el);
-      elRef.current = null;
+      mounted.current?.remove();
+      mounted.current = undefined;
     };
-    // routeParams is handled by the next effect; mounting only depends on tag.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remoteName, elementTag, loader]);
+  }, [loadRemote, remoteName, element]);
 
   useEffect(() => {
-    const el = elRef.current;
-    if (!el) return;
-    if (lastParamsRef.current && sameRouteParams(lastParamsRef.current, routeParams)) {
-      return;
-    }
-    el.routeParams = routeParams;
-    lastParamsRef.current = routeParams;
+    if (mounted.current) mounted.current.routeParams = routeParams;
   }, [routeParams]);
 
   return (
-    <ErrorBoundary label={`shell:${remoteName}`}>
-      <div ref={hostRef} />
-      {errored && (
+    <>
+      <div ref={host} />
+      {status === 'failed' ? (
         <p role="alert" className="remote-shell__error">
           Failed to load <strong>{remoteName}</strong>. Please refresh.
         </p>
-      )}
-      {!loaded && !errored && <Spinner label={`Loading ${remoteName}…`} />}
-    </ErrorBoundary>
+      ) : status === 'loading' ? (
+        <div className="spinner" role="status" aria-label={`Loading ${remoteName}…`}>
+          <style>{spinnerStyles}</style>
+          <span className="spinner__circle" aria-hidden="true"></span>
+          <span className="spinner__label">Loading {remoteName}…</span>
+        </div>
+      ) : null}
+    </>
   );
 }
+
+const toRouteParams = (params: Params, query: URLSearchParams): RouteParams => {
+  const out: Record<string, string | readonly string[]> = {};
+  for (const key of new Set(query.keys())) {
+    const all = query.getAll(key);
+    out[key] = all.length > 1 ? all : all[0];
+  }
+  // Path params win on a name collision.
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) out[key] = value;
+  }
+  return out;
+};
+
+const spinnerStyles = `
+.spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 1rem;
+  min-height: 50vh;
+  color: #ff5a55;
+}
+
+.spinner__circle {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 90, 85, 0.15);
+  border-top-color: #ff5a55;
+  border-radius: 50%;
+  animation: spinner-spin 0.8s linear infinite;
+}
+
+.spinner__label {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+@keyframes spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner__circle {
+    animation-duration: 2.4s;
+  }
+}
+`;

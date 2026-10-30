@@ -1,21 +1,19 @@
-import { useEffect } from 'react';
-import { param, type RouteParams } from '@react-internal/url';
-import { getCategories } from '../../api/categories';
-import { useAsync } from '@react-internal/mfe-runtime';
-import { useRemoteLoader } from '@react-internal/mfe-runtime';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
+import type { RouteParams } from '@tractor-store/contracts';
+import { useStyles } from '../../app';
+import { getCategories } from '../../data/category';
+import { useRemoteElement } from '../../shared/remote-element';
+import { useAsync } from '../../shared/use-async';
 import { ProductTile } from './ProductTile';
 import { Filter, type FilterItem } from './Filter';
 import { categoryStyles } from './category-styles';
 
-export function Category({ routeParams = {} }: { routeParams?: RouteParams }) {
-  useScopedStyles('explore-category', categoryStyles);
+const param = (params: RouteParams, key: string) =>
+  typeof params[key] === 'string' ? params[key] : undefined;
 
-  const { prefetchElement } = useRemoteLoader();
-  useEffect(() => {
-    void prefetchElement('mfe-header');
-    void prefetchElement('mfe-footer');
-  }, [prefetchElement]);
+export function Category({ routeParams = {} }: { routeParams?: RouteParams }) {
+  useStyles(categoryStyles);
+  useRemoteElement('@tractor-store/explore', 'mfe-header');
+  useRemoteElement('@tractor-store/explore', 'mfe-footer');
 
   const categoryKey = param(routeParams, 'category');
 

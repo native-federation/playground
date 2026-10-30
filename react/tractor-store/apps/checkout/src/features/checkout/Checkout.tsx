@@ -1,27 +1,29 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { navigateTo, storeSelected } from '@react-internal/event-bus';
-import { Button } from '@react-internal/ui';
-import { useCart } from '../../cart/use-cart';
-import { useRemoteLoader } from '@react-internal/mfe-runtime';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
-import { CompactHeader } from './CompactHeader';
+import type { Events } from '@tractor-store/contracts';
+import { useStyles } from '../../app';
+import { useCart } from '../../data/cart-store';
+import { Button, ButtonLink } from '../../shared/components/Button';
+import { CompactHeader } from '../../shared/components/CompactHeader';
+import { useRemoteElement } from '../../shared/remote-element';
 import { checkoutStyles } from './checkout-styles';
 
 export function Checkout() {
-  useScopedStyles('checkout-checkout', checkoutStyles);
-
-  const { prefetchElement } = useRemoteLoader();
-  useEffect(() => {
-    void prefetchElement('mfe-store-picker');
-    void prefetchElement('mfe-footer');
-  }, [prefetchElement]);
+  useStyles(checkoutStyles);
+  useRemoteElement('@tractor-store/explore', 'mfe-store-picker');
+  useRemoteElement('@tractor-store/explore', 'mfe-footer');
 
   const cart = useCart();
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [storeId, setStoreId] = useState('');
 
-  useEffect(() => storeSelected.on(({ id }) => setStoreId(id)), []);
+  useEffect(
+    () =>
+      window.__NF_REGISTRY__!.on<Events['store:selected']>('store:selected', ({ data }) =>
+        setStoreId(data.id),
+      ),
+    [],
+  );
 
   const isReady = Boolean(firstname && lastname && storeId);
 
@@ -29,7 +31,9 @@ export function Checkout() {
     event.preventDefault();
     if (!isReady) return;
     cart.clear();
-    navigateTo.emit({ id: 'checkout.thanks', payload: {} });
+    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
+      id: 'checkout.thanks',
+    });
   };
 
   return (
@@ -93,9 +97,9 @@ export function Checkout() {
             <Button type="submit" variant="primary" disabled={!isReady}>
               place order
             </Button>
-            <Button variant="secondary" navigateTo="checkout.cart">
+            <ButtonLink variant="secondary" intent="checkout.cart">
               back to cart
-            </Button>
+            </ButtonLink>
           </div>
         </form>
       </main>
