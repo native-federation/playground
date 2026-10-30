@@ -1,72 +1,76 @@
 # The Tractor Store — React & Native Federation
 
 A reference micro-frontend (MFE) implementation of [The Tractor Store][tractor-store],
-built with React 18, [Native Federation v4][nf-v4], and Web
-Components. It follows the [Tractor Store Blueprint][blueprint] so it
-can be compared head-to-head with implementations in other
-frameworks.
+built with React 18, [Native Federation][nf], and Web Components. It
+follows the [Tractor Store Blueprint][blueprint] so it can be compared
+head-to-head with implementations in other frameworks — in particular
+with the [Angular version](../../angular/tractor-store/), which has the
+same architecture file for file.
 
 [tractor-store]: https://micro-frontends.org/tractor-store/
-[nf-v4]: https://www.npmjs.com/package/@softarc/native-federation
+[nf]: https://www.npmjs.com/package/@softarc/native-federation
 [blueprint]: https://github.com/neuland/tractor-store-blueprint
 
 ## What this project demonstrates
 
 Three teams ship three React applications into one page, deploy them
-independently, and never import each other's code. Three ideas hold
-the boundary in place:
+independently, and never import each other's code. Three ideas hold the
+boundary in place:
 
-- **Custom elements as the integration surface.** Every remote
-  registers its UI as `<mfe-*>` web components via the `defineMfe`
-  helper from `@react-internal/mfe-runtime`. Other apps drop the tag
-  into JSX — no React component, hook, or context crosses the line.
-- **A central event bus on `window.__NF_REGISTRY__`.** Remotes
-  publish and subscribe to small, stable, *typed* channels instead
-  of calling each other directly. Navigation, store selection, and
-  cart sync all ride on this bus, and every channel is defined the
-  same way: `defineChannel<Payload>('channel:name')`.
-- **Intent-based navigation.** A link in *decide* that should open
-  the cart never types `'/checkout/cart'`. It emits the intent
-  `'checkout.cart'` via the `<NavigateLink>` component (or
-  `useNavigateTo()` hook); the host owns the URL.
+- **Custom elements as the integration surface.** Every remote registers
+  its UI as `<mfe-*>` web components. Other apps drop the tag into their
+  JSX — no React component, hook, or context crosses the line.
+- **A central event bus on `window.__NF_REGISTRY__`.** Remotes publish
+  and subscribe to small, stable, *typed* events instead of calling
+  each other directly. Navigation and store selection ride on this
+  bus; every event's payload type is listed in one `Events` interface
+  in `libs/contracts`.
+- **Intent-based navigation.** A link in *decide* that should open the
+  cart never types `'/checkout/cart'`. It renders
+  `<NavLink intent="checkout.cart">`; the host owns the URL.
 
-Each idea is documented in detail under [`docs/`](./docs/) — start
-there if you want the why and how.
+The apps share **no runtime code**: only a types-only contracts file.
+Every app's bootstrap, remote loader and link component is written out
+in that app, so you can follow the whole flow without leaving its
+folder.
+
+Each idea is documented in detail under [`docs/`](./docs/) — start there
+if you want the why and how.
 
 ## Documentation
 
-| Document                                       | What's in it                                                                                                                                  |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| [docs/README.md](./docs/README.md)             | Overview, mental model, and a "where does X live" index. **Start here.**                                                                      |
-| [docs/architecture.md](./docs/architecture.md) | The host/remote contract, the three decoupling mechanisms (custom elements, event bus, intent navigation), and the shared-libraries policy.   |
-| [docs/navigation.md](./docs/navigation.md)     | The intent-based navigation system — how `<NavigateLink>` + a host-owned registry replace cross-MFE URL hard-coding.                          |
-| [docs/features.md](./docs/features.md)         | Catalogue of what each team ships, the events they speak, and the cross-remote dependencies between them.                                     |
+| Document                                       | What's in it                                                                                                       |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [docs/README.md](./docs/README.md)             | Overview, mental model, and a "where does X live" index. **Start here.**                                           |
+| [docs/architecture.md](./docs/architecture.md) | The host/remote contract, the three decoupling mechanisms (custom elements, event bus, intent navigation), and the contracts-only sharing policy. |
+| [docs/navigation.md](./docs/navigation.md)     | The intent-based navigation system — how `<NavLink>` + a host-owned resolver replace cross-MFE URL hard-coding.   |
+| [docs/features.md](./docs/features.md)         | Catalogue of what each team ships, the events they speak, and the cross-remote dependencies between them.          |
 
 ## Technologies at a glance
 
-| Aspect                      | Solution                                                |
-| --------------------------- | ------------------------------------------------------- |
-| Frameworks, libraries       | [React 18][react], [native-federation][nf-v4]           |
-| Rendering                   | CSR (client-side rendering)                             |
-| Application shell           | Host app with route-based `RemoteShell` components      |
-| Client-side integration     | Custom elements (`defineMfe`) loaded as remote slices   |
-| Server-side integration     | None (static hosting)                                   |
-| Communication               | Typed event channels on `window.__NF_REGISTRY__`        |
-| Navigation                  | SPA inside host (react-router), intent IDs across remotes |
-| Styling                     | Shadow DOM per fragment, shared CSS variables           |
-| Design system               | Shared UI library (`@react-internal/ui`)                |
-| Discovery                   | Runtime manifest (`federation.manifest.json`) + slice index |
-| Local development           | [esbuild], [vite-style dev servers], [concurrently], [http-server] |
+| Aspect                      | Solution                                                  |
+| --------------------------- | --------------------------------------------------------- |
+| 🛠️ Frameworks, libraries    | [React 18][react], [native-federation][nf]                |
+| 📝 Rendering                | CSR (client-side rendering)                               |
+| 🐚 Application shell        | Host app with route-based shell components (react-router) |
+| 🧩 Client-side integration  | Custom elements wrapping React roots, loaded as remotes   |
+| 🧩 Server-side integration  | None (static hosting)                                     |
+| 📣 Communication            | Typed events on `window.__NF_REGISTRY__`                  |
+| 🗺️ Navigation               | SPA inside host, intent IDs across remotes                |
+| 🎨 Styling                  | CSS strings adopted into each element's shadow root       |
+| 🍱 Design system            | None shared: each remote owns its components              |
+| 🔮 Discovery                | Runtime manifest (`federation.manifest.json`)             |
+| 👩‍💻 Local development        | [esbuild], [concurrently], [http-server]                  |
 
 [react]: https://react.dev/
 [esbuild]: https://esbuild.github.io/
 [concurrently]: https://github.com/open-cli-tools/concurrently
 [http-server]: https://github.com/http-party/http-server
-[vite-style dev servers]: https://github.com/softarc-consulting/native-federation
 
 ## Project structure
 
-The workspace contains four React applications and six libraries:
+The workspace contains four React applications and one types-only
+contracts file:
 
 ```
 tractor-store/
@@ -76,19 +80,26 @@ tractor-store/
 │   ├── decide/       # Product detail page
 │   └── checkout/     # Cart, checkout flow, mini-cart, add-to-cart
 ├── libs/
-│   ├── event-bus/    # @react-internal/event-bus    — defineChannel factory, nav/store/cart channels
-│   ├── navigation/   # @react-internal/navigation   — <NavigateLink>, useNavigateTo, NavContribution types
-│   ├── url/          # @react-internal/url          — RouteParams, path-template, query helpers
-│   ├── ui/           # @react-internal/ui           — Button, Spinner, ErrorBoundary, scoped-style hook
-│   ├── mfe-runtime/  # @react-internal/mfe-runtime  — defineMfe, RemoteContext, hooks (use-async, cdn, price)
-│   └── federation/   # @react-internal/federation   — env config, slice loader, slice index
-└── cdn-content/      # Static fonts, images, helper script (served at :3000 in dev)
+│   └── contracts/    # @tractor-store/contracts — types the teams agree on
+└── public/cdn/       # Static fonts and images (served at :3000 in dev)
 ```
 
-Each remote exposes a handful of fragments (e.g. `mfe-cart`,
-`mfe-header`, `mfe-mini-cart`) registered as custom elements via
-`defineMfe`. The host loads these on demand through Native
-Federation and renders them inside route-based shell components.
+The three remotes share one layout:
+
+```
+src/
+├── main.tsx                   # standalone dev entry
+├── app.tsx                    # getApp(), createCustomElement(), useStyles(), useCdn()
+├── nav-contribution.ts        # the routes/intents this remote offers the host
+├── features/<name>/
+│   ├── bootstrap.tsx          # defines the <mfe-name> custom element
+│   └── <Name>.tsx             # the page or fragment component (+ its styles)
+├── shared/                    # useRemoteElement, NavLink, useAsync, local components
+└── data/                      # <entity>.ts, <entity>.data.ts
+```
+
+The host reads `main.tsx → app/bootstrap.tsx → app/navigation.tsx →
+app/remote-shell.tsx`.
 
 ## How to run locally
 
@@ -105,40 +116,53 @@ pnpm start:all
 
 | Service         | Port |
 | --------------- | ---- |
-| host (shell)    | 4200 |
-| explore         | 4201 |
-| decide          | 4202 |
-| checkout        | 4203 |
+| host (shell)    | 4300 |
+| explore         | 4301 |
+| decide          | 4302 |
+| checkout        | 4303 |
 | cdn (fonts/img) | 3000 |
 
-Open <http://localhost:4200> to see the integrated application.
-Each remote can also be opened standalone on its own port — the
-remote parses a `?fragment=` query param to pick which `mfe-*` to
-mount, so e.g. <http://localhost:4201/?fragment=home> shows
-`<mfe-home>` directly.
+Open <http://localhost:4300> to see the integrated application. Each
+remote can also be opened standalone on its own port — Native Federation
+will load the sibling fragments it needs from the URLs declared in that
+remote's `public/federation.manifest.json`. Only the host loads the CDN's
+global stylesheet and font, so a standalone remote looks plainer than the
+integrated store.
 
-You can also start a single workspace package:
+The ports deliberately differ from the [Angular store](../../angular/tractor-store/)
+(4200–4203), so both can run side by side. They share the same remote
+names, contracts and `mfe-*` tags, so you can hot-swap a remote: point
+`@tractor-store/explore` in one host's `public/federation.manifest.json`
+at the other store's explore (`:4201` ↔ `:4301`).
+
+You can also start a single app:
 
 ```bash
 pnpm -F @tractor-store/host start          # or explore / decide / checkout
 ```
 
+Each app is built by its own `build.mjs`: the Native Federation esbuild
+builder emits the remote entry, shared packages and exposed modules, and
+a second esbuild pass bundles `src/main.tsx` with every shared package
+marked external.
+
 ### Testing
 
-Unit tests are written with [Vitest]. Run the suites:
+Unit tests are written with [Vitest]. Run every app's suite, or type-check:
 
 ```bash
 pnpm test
+pnpm typecheck
 ```
 
 [Vitest]: https://vitest.dev/
 
 ## Scope and limitations
 
-This implementation focuses on the micro-frontend aspects. The
-backend is mocked with in-memory fixtures, error boundaries are
-minimal, and bundle-size or chunking optimisations are out of scope.
-In a real-world project these aspects deserve more attention.
+This implementation focuses on the micro-frontend aspects. The backend is
+mocked with in-memory fixtures, error boundaries are minimal, and
+bundle-size or chunking optimisations are out of scope. In a real-world
+project these aspects deserve more attention.
 
 ## About the authors
 

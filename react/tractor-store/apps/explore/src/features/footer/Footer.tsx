@@ -1,12 +1,9 @@
-import { useScopedStyles } from '@react-internal/mfe-runtime';
-import { useCdnBase } from '@react-internal/mfe-runtime';
-import { cdnUrl } from '@react-internal/mfe-runtime';
+import { useCdn, useStyles } from '../../app';
 import { footerStyles } from './footer-styles';
 
 export function Footer() {
-  useScopedStyles('explore-footer', footerStyles);
-
-  const base = useCdnBase();
+  useStyles(footerStyles);
+  const cdn = useCdn();
 
   return (
     <footer className="e_Footer" data-boundary="explore">
@@ -14,7 +11,7 @@ export function Footer() {
         <div className="e_Footer__inner">
           <div className="e_Footer__initiative">
             <img
-              src={cdnUrl('/cdn/img/neulandlogo.svg', base)}
+              src={cdn.src('/cdn/img/neulandlogo.svg')}
               alt="neuland - Büro für Informatik"
               width={45}
               height={40}

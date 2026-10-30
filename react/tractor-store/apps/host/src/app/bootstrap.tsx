@@ -1,66 +1,49 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
-import {
-  type FederationManifest,
-  type NativeFederationResult,
+import type {
+  FederationManifest,
+  NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
-import {
-  type EnvironmentConfig,
-  createSliceLoader,
-  toCdnUrl,
-} from '@react-internal/federation';
-import { AppProvider } from './context';
-import { setupShellNavigation } from './nav/setup-shell-nav';
-
-const loadRalewayFont = (cdnUrl: string): void => {
-  if (!('FontFace' in window)) return;
-  const url = toCdnUrl('/cdn/font/raleway-regular.woff2', cdnUrl);
-  const face = new FontFace('Raleway', `url(${url}) format('woff2')`, {
-    weight: 'normal',
-    style: 'normal',
-    display: 'swap',
-  });
-  face
-    .load()
-    .then((loaded) => document.fonts.add(loaded))
-    .catch((err) => console.warn('[host] failed to load Raleway font', err));
-};
-
-const loadHelperScript = (cdnUrl: string): void => {
-  const script = document.createElement('script');
-  script.type = 'module';
-  script.src = toCdnUrl('/cdn/js/helper.js', cdnUrl);
-  document.head.appendChild(script);
-};
-
-const loadGlobalStylesheet = (cdnUrl: string): void => {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = toCdnUrl('/cdn/css/global.css', cdnUrl);
-  document.head.appendChild(link);
-};
+import type { EnvironmentConfig } from '@tractor-store/contracts';
+import { createRemoteLoader, LoadRemoteContext } from './load-remote';
+import { createNavigation } from './navigation';
 
 export const bootstrap = async (
   env: EnvironmentConfig,
   nf: NativeFederationResult,
   manifest: FederationManifest,
 ): Promise<void> => {
-  loadGlobalStylesheet(env.cdnUrl);
-  loadRalewayFont(env.cdnUrl);
-  loadHelperScript(env.cdnUrl);
+  const cdnUrl = env.cdnUrl.replace(/\/+$/, '');
 
-  const loadRemoteSlice = createSliceLoader(env, nf, manifest);
-  const { router } = await setupShellNavigation({ nf, manifest });
+  const stylesheet = document.createElement('link');
+  stylesheet.rel = 'stylesheet';
+  stylesheet.href = `${cdnUrl}/cdn/css/global.css`;
+  document.head.appendChild(stylesheet);
 
-  const container = document.getElementById('root');
-  if (!container) throw new Error('No #root element');
+  if ('FontFace' in window) {
+    new FontFace(
+      'Raleway',
+      `url(${cdnUrl}/cdn/font/raleway-regular.woff2) format('woff2')`,
+      { weight: 'normal', style: 'normal', display: 'swap' },
+    )
+      .load()
+      .then((font) => document.fonts.add(font))
+      .catch((err) => console.warn('[host] failed to load Raleway font', err));
+  }
 
-  createRoot(container).render(
+  const helper = document.createElement('script');
+  helper.type = 'module';
+  helper.src = `${cdnUrl}/cdn/js/helper.js`;
+  document.head.appendChild(helper);
+
+  const router = await createNavigation(nf, manifest);
+
+  createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <AppProvider value={{ env, manifest, nf, loadRemoteSlice }}>
+      <LoadRemoteContext.Provider value={createRemoteLoader(env, nf)}>
         <RouterProvider router={router} />
-      </AppProvider>
+      </LoadRemoteContext.Provider>
     </StrictMode>,
   );
 };

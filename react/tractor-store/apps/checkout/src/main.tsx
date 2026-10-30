@@ -1,38 +1,25 @@
 import { initFederation } from '@softarc/native-federation-orchestrator';
 import {
-  useShimImportMap,
   consoleLogger,
   globalThisStorageEntry,
+  useShimImportMap,
 } from '@softarc/native-federation-orchestrator/options';
-import { createSliceLoader } from '@react-internal/federation';
-import {
-  createRegistry,
-  NFEventRegistry,
-} from '@softarc/native-federation-orchestrator/registry';
+import { createRegistry } from '@softarc/native-federation-orchestrator/registry';
 
-declare global {
-  interface Window {
-    __NF_REGISTRY__: NFEventRegistry;
-  }
-}
+// The event bus must exist before any remote code runs.
+window.__NF_REGISTRY__ ??= Object.freeze(
+  createRegistry({ maxStreams: 20, maxEvents: 1, removePercentage: 0.25 })(),
+);
 
-// Standalone mode needs the bus installed before the dynamic
-// `import('./features/.../bootstrap')` pulls in `@react-internal/event-bus`
-// — channels throw on construction if `__NF_REGISTRY__` is missing.
-(function (): void {
-  if (window.__NF_REGISTRY__) return;
-  const registry = createRegistry({
-    maxStreams: 10,
-    maxEvents: 10,
-    removePercentage: 0.5,
-  });
-  window.__NF_REGISTRY__ = Object.freeze(registry());
-})();
+// Always revalidate: these files differ per deployment.
+const fetchJson = (url: string) =>
+  fetch(url, { cache: 'no-cache' }).then((resp) => resp.json());
 
 let showErrors = false;
+
 Promise.all([
-  fetch('./env.config.json').then((r) => r.json()),
-  fetch('./federation.manifest.json').then((r) => r.json()),
+  fetchJson('./env.config.json'),
+  fetchJson('./federation.manifest.json'),
 ])
   .then(async ([env, manifest]) => {
     showErrors = !env.production;
@@ -43,44 +30,8 @@ Promise.all([
       hostRemoteEntry: './remoteEntry.json',
       logLevel: 'debug',
     });
-    const loadRemoteSlice = createSliceLoader(env, nf, manifest);
-
-    // Standalone mode: `?fragment=<name>&sku=<sku>` mounts any exposed fragment.
-    // Defaults to mfe-cart so /:4203 shows something useful out of the box.
-    const params = new URLSearchParams(window.location.search);
-    const fragment = params.get('fragment') ?? 'cart';
-    let bootstrap: (e: typeof env, l: typeof loadRemoteSlice) => Promise<void>;
-    switch (fragment) {
-      case 'cart':
-        bootstrap = (await import('./features/cart/bootstrap')).bootstrap;
-        break;
-      case 'checkout':
-        bootstrap = (await import('./features/checkout/bootstrap')).bootstrap;
-        break;
-      case 'thanks':
-        bootstrap = (await import('./features/thanks/bootstrap')).bootstrap;
-        break;
-      case 'mini-cart':
-        bootstrap = (await import('./features/mini-cart/bootstrap')).bootstrap;
-        break;
-      case 'add-to-cart':
-        bootstrap = (await import('./features/add-to-cart/bootstrap')).bootstrap;
-        break;
-      default:
-        throw new Error(`[checkout] unknown fragment "${fragment}"`);
-    }
-    await bootstrap(env, loadRemoteSlice);
-
-    const root = document.getElementById('root');
-    if (root) {
-      root.innerHTML = '';
-      const el = document.createElement(`mfe-${fragment}`) as HTMLElement & {
-        routeParams?: Record<string, string>;
-      };
-      const sku = params.get('sku');
-      if (sku) el.setAttribute('sku', sku);
-      root.appendChild(el);
-    }
+    const cart = await import('./features/cart/bootstrap');
+    await cart.bootstrap(env, nf);
   })
   .catch((err) => {
     console.error('Failed to load app!');

@@ -1,72 +1,63 @@
-import { useEffect, useMemo } from 'react';
-import { Button } from '@react-internal/ui';
-import { getVariantsBySkus } from '../../api/variants';
-import { useCart } from '../../cart/use-cart';
-import { useAsync } from '@react-internal/mfe-runtime';
-import { useRemoteLoader } from '@react-internal/mfe-runtime';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
-import { LineItem, type LineItemView } from './LineItem';
+import { useStyles } from '../../app';
+import { useCart } from '../../data/cart-store';
+import { getVariantsBySkus } from '../../data/variant';
+import { ButtonLink } from '../../shared/components/Button';
+import { LineItem, type LineItemView } from '../../shared/components/LineItem';
+import { useRemoteElement } from '../../shared/remote-element';
+import { useAsync } from '../../shared/use-async';
 import { cartStyles } from './cart-styles';
 
 export function Cart() {
-  useScopedStyles('checkout-cart', cartStyles);
-
-  const { prefetchElement } = useRemoteLoader();
-  useEffect(() => {
-    void prefetchElement('mfe-header');
-    void prefetchElement('mfe-footer');
-    void prefetchElement('mfe-recommendations');
-  }, [prefetchElement]);
+  useStyles(cartStyles);
+  useRemoteElement('@tractor-store/explore', 'mfe-header');
+  useRemoteElement('@tractor-store/explore', 'mfe-recommendations');
+  useRemoteElement('@tractor-store/explore', 'mfe-footer');
 
   const { lineItems } = useCart();
-  // SKUs only — quantity changes don't trigger a refetch because variant
-  // lookup is independent of quantity. Renamed from `skusKey` to make this
-  // explicit so a future reader doesn't think quantity should be included.
-  const skusOnlyKey = lineItems.map((i) => i.sku).join(',');
+  const skus = lineItems.map((item) => item.sku);
+  // Only the skus decide which variants to load, not the quantities.
+  const { value: variants, error } = useAsync(() => getVariantsBySkus(skus), [skus.join(',')]);
 
-  const { value: variants, error } = useAsync(
-    () => getVariantsBySkus(lineItems.map((i) => i.sku)),
-    [skusOnlyKey],
-  );
+  const bySku = new Map((variants ?? []).map((v) => [v.sku, v]));
+  const items: LineItemView[] = lineItems.flatMap(({ sku, quantity }) => {
+    const variant = bySku.get(sku);
+    if (!variant) return [];
+    return [
+      {
+        id: variant.id,
+        name: variant.name,
+        sku: variant.sku,
+        image: variant.image,
+        quantity,
+        total: variant.price * quantity,
+      },
+    ];
+  });
 
-  const items: LineItemView[] = useMemo(() => {
-    if (!variants?.length) return [];
-    const bySku = new Map(variants.map((v) => [v.sku, v]));
-    return lineItems.flatMap(({ sku, quantity }) => {
-      const v = bySku.get(sku);
-      return v
-        ? [{ id: v.id, name: v.name, sku: v.sku, image: v.image, quantity, total: v.price * quantity }]
-        : [];
-    });
-  }, [lineItems, variants]);
-
-  const total = items.reduce((sum, i) => sum + i.total, 0);
-  const skusCsv = items.map((i) => i.sku).join(',');
+  const total = items.reduce((sum, item) => sum + item.total, 0);
 
   return (
     <div data-boundary-page="checkout">
       <mfe-header></mfe-header>
       <main className="c_CartPage">
         <h2>Basket</h2>
-        {error ? (
-          <p role="alert">Failed to load basket items. Please refresh.</p>
-        ) : null}
+        {error ? <p role="alert">Failed to load basket items. Please refresh.</p> : null}
         <ul className="c_CartPage__lineItems" role="list">
-          {items.map((i) => (
-            <LineItem key={i.sku} item={i} />
+          {items.map((item) => (
+            <LineItem key={item.sku} item={item} />
           ))}
         </ul>
         <hr />
         <p className="c_CartPage__total">Total: {total} Ø</p>
         <div className="c_CartPage__buttons">
-          <Button variant="primary" navigateTo="checkout.checkout">
+          <ButtonLink variant="primary" intent="checkout.checkout">
             Checkout
-          </Button>
-          <Button variant="secondary" navigateTo="explore.home">
+          </ButtonLink>
+          <ButtonLink variant="secondary" intent="explore.home">
             Continue Shopping
-          </Button>
+          </ButtonLink>
         </div>
-        <mfe-recommendations skus={skusCsv}></mfe-recommendations>
+        <mfe-recommendations skus={items.map((item) => item.sku).join(',')}></mfe-recommendations>
       </main>
       <mfe-footer></mfe-footer>
     </div>

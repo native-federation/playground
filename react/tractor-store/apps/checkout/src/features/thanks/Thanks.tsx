@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { Button } from '@react-internal/ui';
-import { useRemoteLoader } from '@react-internal/mfe-runtime';
-import { useScopedStyles } from '@react-internal/mfe-runtime';
+import { useStyles } from '../../app';
+import { ButtonLink } from '../../shared/components/Button';
+import { useRemoteElement } from '../../shared/remote-element';
 import { thanksStyles } from './thanks-styles';
 
 type ConfettiFn = (options: Record<string, unknown>) => void;
@@ -9,13 +9,9 @@ type ConfettiFn = (options: Record<string, unknown>) => void;
 const CONFETTI_URL = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/+esm';
 
 export function Thanks() {
-  useScopedStyles('checkout-thanks', thanksStyles);
-
-  const { prefetchElement } = useRemoteLoader();
-  useEffect(() => {
-    void prefetchElement('mfe-header');
-    void prefetchElement('mfe-footer');
-  }, [prefetchElement]);
+  useStyles(thanksStyles);
+  useRemoteElement('@tractor-store/explore', 'mfe-header');
+  useRemoteElement('@tractor-store/explore', 'mfe-footer');
 
   useEffect(() => {
     // `new Function(...)` keeps the URL a runtime string so esbuild won't
@@ -55,9 +51,9 @@ export function Thanks() {
       <main className="c_Thanks">
         <h2 className="c_Thanks__title">Thanks for your order!</h2>
         <p className="c_Thanks__text">We'll notify you, when its ready for pickup.</p>
-        <Button variant="secondary" navigateTo="explore.home">
+        <ButtonLink variant="secondary" intent="explore.home">
           Continue Shopping
-        </Button>
+        </ButtonLink>
       </main>
       <mfe-footer></mfe-footer>
     </div>

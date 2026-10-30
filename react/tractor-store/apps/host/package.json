@@ -7,15 +7,11 @@
     "build": "node build.mjs",
     "start": "node build.mjs --dev",
     "preview": "node build.mjs --preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@react-internal/event-bus": "workspace:*",
-    "@react-internal/federation": "workspace:*",
-    "@react-internal/navigation": "workspace:*",
-    "@react-internal/ui": "workspace:*",
-    "@react-internal/url": "workspace:*",
-    "@softarc/native-federation-orchestrator": "~4.7.0",
+    "@softarc/native-federation-orchestrator": "~4.9.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@softarc/native-federation-orchestrator':
-        specifier: ~4.7.0
-        version: 4.7.0
+        specifier: ~4.9.0
+        version: 4.9.0(@softarc/native-federation@4.9.0)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -22,11 +22,11 @@ importers:
         specifier: ^0.19.1
         version: 0.19.1
       '@softarc/native-federation':
-        specifier: ~4.7.1
-        version: 4.7.1
+        specifier: ~4.9.0
+        version: 4.9.0
       '@softarc/native-federation-esbuild':
-        specifier: ~4.2.0
-        version: 4.2.0(@softarc/native-federation@4.7.1)
+        specifier: ~4.3.0
+        version: 4.3.0(@softarc/native-federation@4.9.0)
       '@types/react':
         specifier: ^18.3.18
         version: 18.3.29
@@ -356,17 +356,22 @@ packages:
     resolution: {integrity: sha512-Ejx1P/mj+kMjQb8/y5XxDUn4reGdr+WyKYloBljpppUy8gs42T+BNoEOuRYqDVdgPc6NxduzIDoJS9pOFfV5Ew==}
     engines: {node: ^12.18.3 || >=14}
 
-  '@softarc/native-federation-esbuild@4.2.0':
-    resolution: {integrity: sha512-u6HS5BStjU60NezjfJP+/O9X73/xY9WF/56YXs2x8QI3EhC3+osnfR+s7iugVlbi10DvEru6gB2vaxE43wOX8Q==}
+  '@softarc/native-federation-esbuild@4.3.0':
+    resolution: {integrity: sha512-lMwlw3dmMCP8+64sBkWd9617ci3hArAXNQ/A6EymJndqQ7qjILFD4GG7CICLOS2mQfjbesgPFWroismImcOPMw==}
     peerDependencies:
-      '@softarc/native-federation': ~4.7.0
+      '@softarc/native-federation': ~4.9.0
 
-  '@softarc/native-federation-orchestrator@4.7.0':
-    resolution: {integrity: sha512-aIRYUSECaNxoGW+bfJJ5zesmIQ5NbAPzrYZgIGvNJXkpWcZgZvadZ7oQtox0D6qeD4q8IS9ovu9MtplyOTGfUw==}
+  '@softarc/native-federation-orchestrator@4.9.0':
+    resolution: {integrity: sha512-qPe4SrIgdLC6k3Hpcb7v+rFrtHEpIOYUfIj6OsmaAL8z1hUKd9YSliTRE7Q12spFfDj2x9jG+RPebrtj2ImDjw==}
     engines: {node: '>=24.16.0'}
+    peerDependencies:
+      '@softarc/native-federation': ^4.8.0
+    peerDependenciesMeta:
+      '@softarc/native-federation':
+        optional: true
 
-  '@softarc/native-federation@4.7.1':
-    resolution: {integrity: sha512-HweqMCrm0JSxh/66MqXWH16+EdnxUc+nOEjBmcVz/yXJbedyh19T4YQ7KVg+ZmvHLD+n6wGijZ0CCAt7T2WePw==}
+  '@softarc/native-federation@4.9.0':
+    resolution: {integrity: sha512-XwXxZprCd69C6DC0NFBTLqqpVVvcwzhTU+Nka4Mom/1av6ofTHYcZAu/tcr22Rtenj87LB2LN/uEAMbWLiHgkg==}
 
   '@softarc/sheriff-core@0.20.0':
     resolution: {integrity: sha512-dTm5dOUMOGTV3ql7ZIuI8rE+gZawIcJLEluqRYX3KDVJ215vfUzpC9LlSL4pTW0lAAeNLelmPZBzY57jLvOPpg==}
@@ -652,22 +657,23 @@ snapshots:
     dependencies:
       detect-libc: 1.0.3
 
-  '@softarc/native-federation-esbuild@4.2.0(@softarc/native-federation@4.7.1)':
+  '@softarc/native-federation-esbuild@4.3.0(@softarc/native-federation@4.9.0)':
     dependencies:
-      '@softarc/native-federation': 4.7.1
+      '@softarc/native-federation': 4.9.0
       esbuild: 0.28.2
 
-  '@softarc/native-federation-orchestrator@4.7.0':
+  '@softarc/native-federation-orchestrator@4.9.0(@softarc/native-federation@4.9.0)':
     dependencies:
       semver: 7.8.1
+    optionalDependencies:
+      '@softarc/native-federation': 4.9.0
 
-  '@softarc/native-federation@4.7.1':
+  '@softarc/native-federation@4.9.0':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
       '@softarc/sheriff-core': 0.20.0(typescript@5.9.3)
       chalk: 6.0.1
       es-module-lexer: 2.3.2
-      esbuild: 0.28.2
       tinyglobby: 0.2.17
       typescript: 5.9.3
 

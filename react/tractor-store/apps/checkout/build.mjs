@@ -1,5 +1,5 @@
 import { createServer } from 'http';
-import { readFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, rmSync } from 'fs';
 import { extname, join } from 'path';
 import * as esbuild from 'esbuild';
 import { runEsBuildBuilder } from '@softarc/native-federation-esbuild';
@@ -7,8 +7,10 @@ import { runEsBuildBuilder } from '@softarc/native-federation-esbuild';
 const isDev = process.argv.includes('--dev');
 const isPreview = process.argv.includes('--preview');
 
-const PORT = 4003;
+const PORT = 4303;
 
+// Hashed bundles from earlier builds would otherwise pile up next to the new ones.
+rmSync('dist', { recursive: true, force: true });
 mkdirSync('dist', { recursive: true });
 
 const federation = await runEsBuildBuilder('federation.config.mjs', {

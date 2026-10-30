@@ -5,49 +5,12 @@
     <title>Tractor Store · Explore</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      .app-boot {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-        min-height: 100vh;
-        color: #ff5a55;
-        font-family: system-ui, sans-serif;
-      }
-      .app-boot__circle {
-        width: 48px;
-        height: 48px;
-        border: 4px solid rgba(255, 90, 85, 0.15);
-        border-top-color: #ff5a55;
-        border-radius: 50%;
-        animation: app-boot-spin 0.8s linear infinite;
-      }
-      .app-boot__label {
-        font-size: 0.85rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        opacity: 0.85;
-      }
-      @keyframes app-boot-spin {
-        to { transform: rotate(360deg); }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .app-boot__circle { animation-duration: 2.4s; }
-      }
-    </style>
 
     <script type="esms-options">{ "shimMode": true }</script>
     <script async src="https://ga.jspm.io/npm:es-module-shims@2.8.0/dist/es-module-shims.js"></script>
     <script type="module-shim" src="/main.js"></script>
   </head>
   <body>
-    <div id="root">
-      <div class="app-boot" role="status" aria-label="Loading…">
-        <span class="app-boot__circle" aria-hidden="true"></span>
-        <span class="app-boot__label">Loading…</span>
-      </div>
-    </div>
+    <mfe-home></mfe-home>
   </body>
 </html>

@@ -1,38 +1,25 @@
 import { initFederation } from '@softarc/native-federation-orchestrator';
 import {
-  useShimImportMap,
   consoleLogger,
   globalThisStorageEntry,
+  useShimImportMap,
 } from '@softarc/native-federation-orchestrator/options';
-import {
-  createRegistry,
-  NFEventRegistry,
-} from '@softarc/native-federation-orchestrator/registry';
+import { createRegistry } from '@softarc/native-federation-orchestrator/registry';
 
-declare global {
-  interface Window {
-    __NF_REGISTRY__: NFEventRegistry;
-  }
-}
+// The event bus must exist before any remote code runs.
+window.__NF_REGISTRY__ ??= Object.freeze(
+  createRegistry({ maxStreams: 20, maxEvents: 1, removePercentage: 0.25 })(),
+);
 
-// Install the cross-MFE event bus before any module that calls
-// `defineChannel(...)` is imported — every channel handle is created (and
-// frozen) at module load time and throws if the bus is missing. The dynamic
-// `import('./app/bootstrap')` below is what first pulls in `@react-internal/event-bus`,
-// by which point this IIFE has already populated `window.__NF_REGISTRY__`.
-(function (): void {
-  const registry = createRegistry({
-    maxStreams: 20,
-    maxEvents: 1,
-    removePercentage: 0.25,
-  });
-  window.__NF_REGISTRY__ = Object.freeze(registry());
-})();
+// Always revalidate: these files differ per deployment.
+const fetchJson = (url: string) =>
+  fetch(url, { cache: 'no-cache' }).then((resp) => resp.json());
 
 let showErrors = false;
+
 Promise.all([
-  fetch('./env.config.json').then((r) => r.json()),
-  fetch('./federation.manifest.json').then((r) => r.json()),
+  fetchJson('./env.config.json'),
+  fetchJson('./federation.manifest.json'),
 ])
   .then(async ([env, manifest]) => {
     showErrors = !env.production;

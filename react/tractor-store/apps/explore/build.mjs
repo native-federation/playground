@@ -1,5 +1,5 @@
 import { createServer } from 'http';
-import { readFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, rmSync } from 'fs';
 import { extname, join } from 'path';
 import * as esbuild from 'esbuild';
 import { runEsBuildBuilder } from '@softarc/native-federation-esbuild';
@@ -7,11 +7,13 @@ import { runEsBuildBuilder } from '@softarc/native-federation-esbuild';
 const isDev = process.argv.includes('--dev');
 const isPreview = process.argv.includes('--preview');
 
-const PORT = 4001;
+const PORT = 4301;
 
 // native-federation-esbuild's cache-persistence step copies files into dist/
 // before its own bundling has emitted anything there, so the directory must
 // already exist when the builder runs.
+// Hashed bundles from earlier builds would otherwise pile up next to the new ones.
+rmSync('dist', { recursive: true, force: true });
 mkdirSync('dist', { recursive: true });
 
 const federation = await runEsBuildBuilder('federation.config.mjs', {
