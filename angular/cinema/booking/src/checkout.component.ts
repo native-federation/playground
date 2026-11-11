@@ -1,13 +1,19 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
+  Injector,
   input,
   linkedSignal,
+  viewChild,
 } from '@angular/core';
 import { MatButton } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
+import { MatCard } from '@angular/material/card';
+import { MatChip, MatChipSet } from '@angular/material/chips';
+import { MatDivider } from '@angular/material/divider';
 import { BOOKING_REF } from './booking-ref';
 import type { Events, RouteParams } from './contracts';
 
@@ -22,7 +28,7 @@ const parseSeats = (seats = ''): readonly string[] => {
 
 @Component({
   selector: 'app-checkout',
-  imports: [MatCardModule, MatButton],
+  imports: [MatCard, MatButton, MatChipSet, MatChip, MatDivider],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,11 +37,25 @@ export class CheckoutComponent {
   readonly routeParams = input<RouteParams>({});
 
   private readonly newBookingRef = inject(BOOKING_REF);
+  private readonly injector = inject(Injector);
+  private readonly heading = viewChild<ElementRef<HTMLElement>>('confirmedHeading');
 
-  protected readonly ticketPrice = ticketPrice;
   protected readonly screeningId = computed(() => this.routeParams()['screeningId'] ?? '');
   protected readonly seats = computed(() => parseSeats(this.routeParams()['seats']));
   protected readonly total = computed(() => this.seats().length * ticketPrice);
+  private readonly ticketsText = computed(() => {
+    const count = this.seats().length;
+    return count === 1 ? '1 ticket' : `${count} tickets`;
+  });
+  protected readonly lineText = computed(() => `${this.ticketsText()} × €${ticketPrice}`);
+  protected readonly summary = computed(() =>
+    [
+      `Screening ${this.screeningId()}`,
+      `Seats ${this.seats().join(', ')}`,
+      this.ticketsText(),
+      `€${this.total()}`,
+    ].join(' · '),
+  );
   private readonly hold = computed(
     () => `${this.screeningId()}/${this.routeParams()['seats'] ?? ''}`,
   );
@@ -55,5 +75,7 @@ export class CheckoutComponent {
       bookingRef,
       ticketCount: this.seats().length,
     });
+    // The Confirm button is gone after this render; move focus to the result instead of <body>.
+    afterNextRender(() => this.heading()?.nativeElement.focus(), { injector: this.injector });
   }
 }

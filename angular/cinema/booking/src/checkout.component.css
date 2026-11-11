@@ -1,3 +1,130 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-large);
+}
+
 mat-card {
-  max-width: 40rem;
+  max-width: 520px;
+  box-sizing: border-box;
+  padding: 24px;
+  gap: 20px;
+  --mat-card-outlined-container-shape: var(--mat-sys-corner-large);
+}
+
+mat-card.done {
+  padding: 32px 24px;
+}
+
+dl,
+dd,
+p {
+  margin: 0;
+}
+
+.label {
+  font: var(--mat-sys-body-small);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.facts div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.facts .seats {
+  gap: 8px;
+}
+
+.value {
+  font: var(--mat-sys-title-large);
+}
+
+mat-chip-set {
+  --mat-chip-elevated-container-color: var(--mat-sys-primary-container);
+  --mat-chip-label-text-color: var(--mat-sys-on-primary-container);
+  --mat-chip-outline-width: 0;
+}
+
+.price {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font: var(--mat-sys-body-large);
+}
+
+.price div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.line dt {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.price .total {
+  font: var(--mat-sys-title-large);
+  font-weight: 500;
+}
+
+.confirm {
+  --mat-button-filled-container-height: 48px;
+  --mat-button-filled-label-text-size: var(--mat-sys-body-large-size);
+}
+
+.confirmed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+h2 {
+  margin: 0;
+  font: var(--mat-sys-headline-medium);
+}
+
+.ref {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.code {
+  font: var(--mat-sys-headline-large);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--mat-sys-primary);
+}
+
+.summary {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
 }

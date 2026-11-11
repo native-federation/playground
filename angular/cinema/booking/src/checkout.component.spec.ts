@@ -27,16 +27,20 @@ describe('CheckoutComponent', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     const confirmButton = () =>
-      [...el.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Confirm');
+      [...el.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Confirm booking');
     return { fixture, el, confirmButton };
   };
 
   it('prices the hold at €12 per ticket', async () => {
     const { el } = await render({ screeningId: 's-101', seats: seatsParamExample });
-    expect(el.textContent).toContain('Screening s-101');
-    expect(el.textContent).toContain('A1, A2');
-    expect(el.textContent).toContain('2 tickets');
-    expect(el.textContent).toContain('€24');
+    expect(el.querySelector('dd.value')?.textContent?.trim()).toBe('s-101');
+    const chips = el.querySelectorAll('[role="list"][aria-label="Seats"] [role="listitem"]');
+    expect([...chips].map((c) => c.textContent?.trim())).toEqual([
+      'A1',
+      'A2',
+    ]);
+    expect(el.textContent).toContain('2 tickets × €12');
+    expect(el.querySelector('.total dd')?.textContent?.trim()).toBe('€24');
   });
 
   it('publishes booking:confirmed once and shows the ref', async () => {
@@ -52,7 +56,12 @@ describe('CheckoutComponent', () => {
       Object.keys(bookingConfirmedExample).sort(),
     );
     expect(confirmations).toEqual([{ bookingRef: 'BR-0001', ticketCount: 2 }]);
-    expect(el.querySelector('[role="status"]')?.textContent).toContain('BR-0001');
+    const status = el.querySelector('[role="status"]')?.textContent;
+    expect(status).toContain('BR-0001');
+    expect(status).toContain('Screening s-101 · Seats A1, A2 · 2 tickets · €24');
+    // The button is removed, so focus moves to the result heading instead of <body>.
+    expect(document.activeElement?.tagName).toBe('H2');
+    expect(document.activeElement?.textContent?.trim()).toBe('Booking confirmed');
     expect(confirmButton()).toBeUndefined();
   });
 
@@ -109,7 +118,7 @@ describe('CheckoutComponent', () => {
     await fixture.whenStable();
     expect(el.textContent).not.toContain('BR-0001');
     expect(el.textContent).toContain('1 ticket ×');
-    expect(el.textContent).toContain('Total €12');
+    expect(el.querySelector('.total dd')?.textContent?.trim()).toBe('€12');
     expect(confirmButton()).toBeDefined();
   });
 });
