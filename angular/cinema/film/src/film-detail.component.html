@@ -1,0 +1,15 @@
+@if (film(); as film) {
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <span mat-card-avatar class="poster" aria-hidden="true">{{ film.poster }}</span>
+      <h1 mat-card-title>{{ film.title }}</h1>
+      <mat-card-subtitle>{{ film.runtimeMinutes }} min · {{ film.ageRating }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p>{{ film.synopsis }}</p>
+    </mat-card-content>
+  </mat-card>
+} @else {
+  <p role="status">Film not found.</p>
+}
+<a mat-button navIntent="programme.list">Back to programme</a>

@@ -168,6 +168,17 @@ here once; the other documents link to it.
     `ng21` share scope: one second copy for the three of them, loaded
     without warnings. This is **intended**: it shows what a lagging team
     costs (a second Angular download) and that the page still works.
+    Verified with film: the import map gets a scope for the first ng21
+    remote's origin (`http://localhost:4302/`), so `@angular/core` loads
+    twice (22 from the shell, 21 from film). The scope covers *every*
+    shared package, so `rxjs`, `tslib` and the used Material/CDK parts load
+    twice too. No version warning appears, because the two scopes are never
+    compared. The shell's Material 22 theme tokens style the Material 21
+    components.
+  - Tooling cost: the `-v4` builder depends on
+    `@angular-devkit/build-angular` (webpack), so the Angular 21 repos
+    install it and a second esbuild. That is not a mistake in the repo, so
+    it is not overridden.
   - Unplanned minor or major drift in the default scope is loud: a remote
     whose strict range rejects the shell's version logs a warning and loads
     its own copy of Angular. (With the orchestrator's
