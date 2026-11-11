@@ -1,9 +1,14 @@
 .toast {
-  /* offsets and padding as Material's snack bar */
+  /* 100vw - 32px keeps a 16px margin either side on a phone */
   position: fixed;
-  bottom: 24px;
+  z-index: 1;
+  bottom: 72px;
   left: 50%;
   translate: -50% 0;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: min(288px, 100vw - 32px);
+  max-width: min(560px, 100vw - 32px);
   margin: 0;
   padding: 14px 16px;
   border-radius: var(--mat-sys-corner-extra-small);
