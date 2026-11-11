@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
+import { MatCard } from '@angular/material/card';
 import { PointsStore, pointsPerTicket } from './points.store';
 
 @Component({
   selector: 'app-points-page',
-  imports: [MatCardModule],
+  imports: [MatCard],
   templateUrl: './points-page.component.html',
   styleUrl: './points-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

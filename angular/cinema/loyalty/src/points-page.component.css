@@ -1,3 +1,44 @@
-mat-card {
-  max-width: 40rem;
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-large);
+}
+
+.balance {
+  max-width: 520px;
+  box-sizing: border-box;
+  padding: 32px;
+  gap: 8px;
+  --mat-card-filled-container-color: var(--mat-sys-primary-container);
+  --mat-card-filled-container-shape: var(--mat-sys-corner-extra-large);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.balance svg {
+  color: var(--mat-sys-primary);
+}
+
+.total {
+  margin: 8px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.value {
+  font: var(--mat-sys-display-large);
+}
+
+.unit {
+  font: var(--mat-sys-title-large);
+}
+
+.rate {
+  margin: 0;
+  font: var(--mat-sys-body-large);
 }
