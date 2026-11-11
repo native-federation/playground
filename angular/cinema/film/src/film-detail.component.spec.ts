@@ -34,7 +34,23 @@ describe('FilmDetailComponent', () => {
   it('says the film is not found for an unknown filmId', async () => {
     const { el } = await render({ filmId: 'f-404' });
     expect(el.querySelector('[role="status"]')?.textContent).toContain('Film not found.');
-    expect(el.querySelector('mat-card')).toBeNull();
+    expect(el.querySelector('article')).toBeNull();
+    // the way back is always offered, even when the film is unknown
+    expect(el.querySelector('a[navIntent="programme.list"]')).not.toBeNull();
+  });
+
+  it('lists runtime and age as a labelled list of chips', async () => {
+    const { el } = await render({ filmId: 'f-2' });
+    // mat-chip-set defaults to role="presentation"; the template sets list/listitem explicitly
+    const list = el.querySelector('mat-chip-set')!;
+    expect(list.getAttribute('role')).toBe('list');
+    expect(list.getAttribute('aria-label')).toBe('Film details');
+    const items = [...list.querySelectorAll('[role="listitem"]')];
+    expect(items.map((item) => item.textContent?.trim())).toEqual(['95 min', 'All ages']);
+    // matChipAvatar sets role="img" without a name, so the decorative icons are hidden
+    const avatars = [...list.querySelectorAll('[matChipAvatar]')];
+    expect(avatars).toHaveLength(2);
+    expect(avatars.every((a) => a.getAttribute('aria-hidden') === 'true')).toBe(true);
   });
 
   it('re-renders when routeParams change', async () => {
@@ -48,7 +64,7 @@ describe('FilmDetailComponent', () => {
     // Any non-null URL makes the link live; the shell's real resolver is tested there.
     await publishNavResolver((id) => `/${id}`);
     const { el } = await render({ filmId: 'f-1' });
-    el.querySelector<HTMLElement>('a[mat-button]')!.click();
+    el.querySelector<HTMLElement>('a[navIntent="programme.list"]')!.click();
     expect(navigations).toEqual([{ id: 'programme.list', payload: {} }]);
   });
 });

@@ -1,15 +1,96 @@
+<a matButton="text" navIntent="programme.list">
+  <svg
+    matButtonIcon
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <line x1="19" y1="12" x2="5" y2="12" />
+    <polyline points="12 19 5 12 12 5" />
+  </svg>
+  Back to programme
+</a>
 @if (film(); as film) {
-  <mat-card appearance="outlined">
-    <mat-card-header>
-      <span mat-card-avatar class="poster" aria-hidden="true">{{ film.poster }}</span>
-      <h1 mat-card-title>{{ film.title }}</h1>
-      <mat-card-subtitle>{{ film.runtimeMinutes }} min · {{ film.ageRating }}</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <p>{{ film.synopsis }}</p>
-    </mat-card-content>
-  </mat-card>
+  <article>
+    <div class="poster" [class.tertiary]="film.tint === 'tertiary'">
+      <svg
+        width="96"
+        height="96"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.25"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        @switch (film.poster) {
+          @case ('anchor') {
+            <circle cx="12" cy="5" r="3" />
+            <line x1="12" y1="22" x2="12" y2="8" />
+            <path d="M5 12H2a10 10 0 0 0 20 0h-3" />
+          }
+          @case ('moon') {
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          }
+          @case ('feather') {
+            <path
+              d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"
+            />
+            <path d="M16 8 2 22" />
+            <path d="M17.5 15H9" />
+          }
+        }
+      </svg>
+    </div>
+    <div class="info">
+      <h1>{{ film.title }}</h1>
+      <mat-chip-set role="list" aria-label="Film details">
+        <mat-chip role="listitem">
+          <span matChipAvatar aria-hidden="true">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </span>
+          {{ film.runtimeMinutes }} min
+        </mat-chip>
+        <mat-chip role="listitem">
+          <span matChipAvatar aria-hidden="true">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </span>
+          {{ film.ageLabel }}
+        </mat-chip>
+      </mat-chip-set>
+      <p class="synopsis">{{ film.synopsis }}</p>
+    </div>
+  </article>
 } @else {
   <p role="status">Film not found.</p>
 }
-<a mat-button navIntent="programme.list">Back to programme</a>

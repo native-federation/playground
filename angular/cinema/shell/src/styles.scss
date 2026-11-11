@@ -27,7 +27,7 @@
 html {
   color-scheme: light;
   @include mat.theme((
-    color: (theme-type: light, primary: mat.$azure-palette),
+    color: (theme-type: light, primary: mat.$azure-palette, tertiary: mat.$violet-palette),
     typography: (
       plain-family: 'Roboto, system-ui, sans-serif',
       brand-family: 'Roboto, system-ui, sans-serif',
