@@ -1,7 +1,7 @@
 # Cinema: a polyrepo of seven tiny teams
 
-> **Status: in progress.** The shell, programme, film and seating are built,
-> booking is next, and the other remotes follow.
+> **Status: built.** All eight repos (the shell and seven remotes) are built
+> and tested, and the walkthrough below has been run end to end.
 
 A Native Federation (Angular 22 and 21, Angular Material) demo of a micro frontend architecture.
 The business is a one-screen neighbourhood cinema. A moviegoer browses the
@@ -112,12 +112,47 @@ drift are in
 Upgrading Angular means a pull request in every repo of that major, and
 that is the honest cost of a polyrepo.
 
-## How to run (planned)
+## How to run
 
 ```bash
 ./start-all.sh          # npm install in each repo in turn, then npm start in all eight
 open http://localhost:4300
 ```
 
-Or run any single remote with `npm start` and open its own port to see it in
-standalone mode. Expect eight `node_modules` folders and eight dev servers.
+`start-all.sh` stops at once if a repo folder is missing, prefixes each dev
+server's output with `[repo]`, and Ctrl-C stops all eight. Expect eight
+`node_modules` folders and eight dev servers.
+
+Every repo also works on its own:
+
+| In a repo | Does |
+|---|---|
+| `npm start` | `ng serve` on its own port. A remote runs **standalone**: its own element with fixed mock params, links inert |
+| `npm test` | Vitest + jsdom on a real event bus |
+| `npm run build` | builds to `dist/<repo>` |
+| `npm run smoke` (shell only) | checks every remote in the manifest: reachable `remoteEntry.json`, matching name, the two fragment tags exposed, every exposed file served. Pass a manifest URL to check a deployment |
+
+## Walkthrough: one team goes down, one team redeploys
+
+The clearest way to see independence (also in
+[docs/testing.md](docs/testing.md#the-remote-down--redeploy-walkthrough-readme-script)).
+
+1. `./start-all.sh`, open http://localhost:4300 and the console. There are
+   no `[nav]` or `[remote]` lines. Pick a screening, two seats, Continue,
+   Confirm: the toast shows "Booking BR-… confirmed" for 3 s and the header
+   badge goes from 0 to 20 pts without a reload.
+2. Stop `account` (kill the process on port 4307; Ctrl-C in `start-all.sh`
+   would stop all eight) and reload. The
+   header **Account** link turns inert (no `href`, `aria-disabled="true"`).
+   The console shows the failed `remoteEntry.json` fetch, the orchestrator's
+   `Failed to load module @cinema/account/nav-contribution`, and
+   `[nav] unknown intent "account.profile"`. Everything else loads, including
+   the other Angular 21 remotes: their shared Angular 21 now comes from
+   another ng21 remote (:4302).
+3. Change the profile name in `account/src/profile.component.ts`, run
+   `npm start` in `account` only, and reload `/account`. The new name
+   appears. No other repo was rebuilt, reinstalled or restarted. (A browser
+   that cached `remoteEntry.json` may need a hard reload; the shell fetches
+   only the manifest with `no-cache`.)
+4. Optional: stop `loyalty` and confirm a booking. The toast still appears,
+   the badge slot is empty, and booking never knew.
