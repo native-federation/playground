@@ -141,7 +141,8 @@ here once; the other documents link to it.
 
   | Package | Angular 22 repos | Angular 21 repos |
   |---|---|---|
-  | `@angular/*`, `@angular/material`, `@angular/cdk` | `~22.2.0` | `~21.2.24` |
+  | `@angular/*` | `~22.2.0` | `~21.2.24` |
+  | `@angular/material`, `@angular/cdk` (own patch numbers) | `~22.2.0` | `~21.2.0` |
   | `rxjs` | `~7.8.0` | `~7.8.0` |
   | Federation builder | `@angular-architects/native-federation` `~22.2.4` | `@angular-architects/native-federation-v4` `~21.2.17` |
   | `@softarc/native-federation` | `~4.9.0` | (comes with the builder) |

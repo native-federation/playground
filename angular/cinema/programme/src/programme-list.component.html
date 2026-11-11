@@ -1,0 +1,10 @@
+<h1>Programme</h1>
+<mat-list>
+  @for (screening of screenings; track screening.screeningId) {
+    <mat-list-item>
+      <a matListItemTitle navIntent="film.detail" [navPayload]="{ filmId: screening.filmId }">{{ screening.title }}</a>
+      <span matListItemLine>{{ screening.startsAt }}</span>
+      <a mat-button matListItemMeta navIntent="seating.plan" [navPayload]="{ screeningId: screening.screeningId }">Seats</a>
+    </mat-list-item>
+  }
+</mat-list>
