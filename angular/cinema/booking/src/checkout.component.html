@@ -1,0 +1,24 @@
+<mat-card appearance="outlined">
+  <mat-card-header>
+    <h1 mat-card-title>Checkout</h1>
+    <mat-card-subtitle>Screening {{ screeningId() }}</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    @if (bookingRef(); as ref) {
+      <p role="status">Booking confirmed: <strong>{{ ref }}</strong></p>
+    } @else if (seats().length) {
+      <p>Seats {{ seats().join(', ') }}</p>
+      <p>
+        {{ seats().length }} {{ seats().length === 1 ? 'ticket' : 'tickets' }} × €{{ ticketPrice }}
+      </p>
+      <p>Total €{{ total() }}</p>
+    } @else {
+      <p role="status">No seats selected.</p>
+    }
+  </mat-card-content>
+  @if (!bookingRef() && seats().length) {
+    <mat-card-actions>
+      <button type="button" matButton="filled" (click)="confirm()">Confirm</button>
+    </mat-card-actions>
+  }
+</mat-card>

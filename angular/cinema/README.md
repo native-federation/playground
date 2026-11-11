@@ -1,7 +1,7 @@
 # Cinema: a polyrepo of seven tiny teams
 
-> **Status: in progress.** The shell, programme and film are built; the
-> other remotes follow.
+> **Status: in progress.** The shell, programme, film and seating are built,
+> booking is next, and the other remotes follow.
 
 A Native Federation (Angular 22 and 21, Angular Material) demo of a micro frontend architecture.
 The business is a one-screen neighbourhood cinema. A moviegoer browses the

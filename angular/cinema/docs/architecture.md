@@ -158,8 +158,9 @@ team owns its URL prefix**, and no team's URL borrows another team's noun.
   held);
 - booking treats an empty or unparsable value from a deep link as an empty
   checkout, and does not throw;
-- in the address bar it is URL-encoded (`A1%2CA2`). Booking receives it
-  decoded through `routeParams`.
+- the shell URL-encodes it, but Angular's router leaves `,` unescaped, so
+  the address bar shows `/booking/s-101/A1,A2`. A typed `A1%2CA2` deep link
+  works too. Booking receives the decoded value through `routeParams`.
 
 The copied resolver also turns extra payload keys into a query string. The
 demo simply does not use that, and the shell does not pass query params on
