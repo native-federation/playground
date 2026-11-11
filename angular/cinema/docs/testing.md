@@ -58,7 +58,7 @@ Two more specs in every repo that has them:
   `beforeEach`, after `testing/setup.ts` has installed the bus.
 - **`nav-intent.directive.spec.ts`** is copied together with the directive
   (shell, programme, film). It proves that an unresolved intent renders an
-  inert link (`aria-disabled`, no `href`), which the whole resilience table
+  inert link (`role="link"`, `aria-disabled`, no `href`), which the whole resilience table
   rests on.
 
 ## Contract matrix

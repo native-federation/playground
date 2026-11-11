@@ -143,7 +143,8 @@ The clearest way to see independence (also in
    badge goes from 0 to 20 pts without a reload.
 2. Stop `account` (kill the process on port 4307; Ctrl-C in `start-all.sh`
    would stop all eight) and reload. The
-   header **Account** link turns inert (no `href`, `aria-disabled="true"`).
+   header **Account** link turns inert (no `href`, `role="link"`,
+   `aria-disabled="true"`).
    The console shows the failed `remoteEntry.json` fetch, the orchestrator's
    `Failed to load module @cinema/account/nav-contribution`, and
    `[nav] unknown intent "account.profile"`. Everything else loads, including

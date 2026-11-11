@@ -100,8 +100,10 @@ describe('NavIntentDirective', () => {
   });
 
   it('marks links aria-disabled until the shell publishes its resolver', async () => {
-    const { fixture, anchors } = await render(false);
+    const { fixture, anchors, button } = await render(false);
     expect(anchors[0].getAttribute('aria-disabled')).toBe('true');
+    // Buttons keep their own role; only href-less anchors need role="link".
+    expect(button.hasAttribute('role')).toBe(false);
     expect(anchors[0].getAttribute('href')).toBeNull();
 
     anchors[0].click();
@@ -110,12 +112,14 @@ describe('NavIntentDirective', () => {
     await publishResolver();
     fixture.detectChanges();
     expect(anchors[0].getAttribute('aria-disabled')).toBeNull();
+    expect(anchors[0].getAttribute('role')).toBeNull();
     expect(anchors[0].getAttribute('href')).toBe('/');
   });
 
   it('stays disabled and silent when the resolver cannot build the URL', async () => {
     const { anchors } = await render();
     expect(anchors[2].getAttribute('aria-disabled')).toBe('true');
+    expect(anchors[2].getAttribute('role')).toBe('link');
     expect(anchors[2].hasAttribute('href')).toBe(false);
     anchors[2].click();
     expect(navigations).toEqual([]);

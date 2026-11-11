@@ -41,8 +41,10 @@ loyalty, notifications) over the same bus. The shell never subscribes to it.
 
 ### The shell
 
-The shell is an application, not a subdomain. It holds **no domain data and
-knows no domain events**.
+The shell is an application, not a subdomain. It holds **no domain data**,
+and its code (`src/app`, `src/shared`) **never subscribes to or emits a
+domain event**. Its `contracts.ts` only holds the reference types that every
+repo copies (ADR-03).
 
 - `main.ts`:
   - installs the event bus `window.__NF_REGISTRY__` (`??=`, as in the
@@ -58,8 +60,10 @@ knows no domain events**.
     remote that is down is skipped (with a `[nav]` warning);
   - builds one route per intent, mounted by one `RemoteShellComponent` that
     sets the tag and writes `routeParams`;
-  - adds `**` as a **redirect** to `programme`, or to any parameterless
-    page that did load. There is no "not available" page;
+  - always adds a `**` catch-all: a **redirect** to `programme`, or to any
+    parameterless page that did load. If none loaded, `**` is an empty route
+    (`children: []`) that keeps the URL and renders nothing in the outlet, so
+    the router never throws `NG04002`. There is no "not available" page;
   - registers `nav:resolve` and handles `nav:navigate` with `replay: 0`;
   - the resolver is copied unchanged, with one addition: it
     **`console.warn`s on an unknown intent id or a missing param**. Without
@@ -194,8 +198,9 @@ flowchart LR
 
 - The two fragments show the two flavours: one that **shows state** (the
   badge) and one that **reacts to events** (the toast).
-- A fragment slot that fails to load **renders empty, with no error UI**
-  (only a `[remote]` line in the console).
+- A fragment slot that fails to load **renders empty, with no error UI**.
+  The console shows the orchestrator's `[NF][6] Failed to load module …`
+  error and the shell's `[remote] failed to load <…>` error.
   The page around it keeps working, which is what Geers calls a resilient
   site.
 - The badge and the `/loyalty` page are two elements of **one** loyalty
@@ -204,7 +209,8 @@ flowchart LR
   count is right whichever element is mounted first.
 
 The copied `[navIntent]` directive keeps an unresolved link in the DOM but
-removes its `href` and sets `aria-disabled="true"`: the link turns
+removes its `href` and sets `role="link"` and `aria-disabled="true"`, so it
+is still announced as a (disabled) link: the link turns
 **inert**. The shell resolver also logs a `[nav]` warning for it.
 
 | Remote down | Effect |

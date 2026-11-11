@@ -255,4 +255,5 @@ here once; the other documents link to it.
   was added to the glossary instead.
 - **Making the header hide links of a remote that is down.** The copied
   directive renders an inert link; changing it would make it a fork rather
-  than a copy.
+  than a copy. (Fixes to the directive, such as `role="link"` on the inert
+  link, go into the tractor-store original too, so it stays a copy.)

@@ -100,7 +100,7 @@ describe('provideNavigation', () => {
         '@cinema/seating': { navContribution: { basePath: 'seating' } },
       });
       const { router } = await setup(nf);
-      expect(router.config).toEqual([]);
+      expect(router.config.map((r) => r.path)).toEqual(['**']);
       expect(consoleWarn).toHaveBeenCalledTimes(2);
       expect(consoleWarn).toHaveBeenCalledWith(
         '[nav] skipping a remote:',
@@ -141,6 +141,17 @@ describe('provideNavigation', () => {
       });
     });
 
+    it('still ends with a catch-all when no page without params loaded', async () => {
+      const nf = fakeNfByRemote({
+        '@cinema/seating': { navContribution: seatingContribution },
+      });
+      const { router } = await setup(nf, {
+        '@cinema/seating': 'http://seating/remoteEntry.json',
+      });
+      // Without it, every unknown URL throws NG04002.
+      expect(router.config.at(-1)).toEqual({ path: '**', children: [] });
+    });
+
     it('binds the remote and element as route data for the shell', async () => {
       const { router } = await setup(bothRemotes());
       const plan = router.config.find(
@@ -166,9 +177,10 @@ describe('provideNavigation', () => {
         ],
       });
       const { router } = await setup(nf, manifest);
-      // Its only page needs params, so there is nothing to fall back to.
+      // Its only page needs params, so the catch-all has nothing to redirect to.
       expect(router.config.map((r) => r.path)).toEqual([
         'git/:org/:repo/issues/:num',
+        '**',
       ]);
     });
   });

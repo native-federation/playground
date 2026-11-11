@@ -32,15 +32,16 @@ export const provideNavigation = (
     const contributions = await loadContributions(nf, manifest);
 
     const routes = toRoutes(contributions);
-    // Unknown URLs go to the programme, or to any page without params that loaded.
+    // Unknown URLs go to the programme, else any page without params, else an empty page (no NG04002).
     const fallback =
       routes.find((route) => route.path === 'programme') ??
       routes.find((route) => !route.path?.includes(':'));
-    router.resetConfig(
+    router.resetConfig([
+      ...routes,
       fallback
-        ? [...routes, { path: '**', redirectTo: fallback.path }]
-        : routes,
-    );
+        ? { path: '**', redirectTo: fallback.path }
+        : { path: '**', children: [] },
+    ]);
 
     const resolve = createResolver(contributions);
     // see Events['nav:resolve']

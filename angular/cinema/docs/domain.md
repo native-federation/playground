@@ -140,7 +140,8 @@ subdomains meet:
 - **Thick arrows: the event.** A fact is published once and consumed by
   anyone who cares.
 - **Dotted arrows: the shell.** It places fragments and header links. It
-  holds no domain data and knows no domain events.
+  holds no domain data, and its code never subscribes to or emits a domain
+  event (its `contracts.ts` only holds the reference types, ADR-03).
 
 ## Boundaries: what each MFE owns, and what it must not do
 
