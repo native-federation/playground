@@ -1,0 +1,24 @@
+<h1>Choose your seats</h1>
+<div class="plan">
+  @for (row of rows; track row) {
+    <div class="row" role="group" [attr.aria-label]="'Row ' + row">
+      @for (n of numbers; track n) {
+        @let seat = row + n;
+        @let isTaken = taken().includes(seat);
+        @let isHeld = held().includes(seat);
+        <button
+          type="button"
+          [matButton]="isHeld ? 'filled' : 'outlined'"
+          [disabled]="isTaken"
+          [attr.aria-pressed]="isHeld"
+          [attr.aria-label]="isTaken ? 'Seat ' + seat + ', taken' : 'Seat ' + seat"
+          (click)="toggle(seat)"
+        >
+          {{ seat }}
+        </button>
+      }
+    </div>
+  }
+</div>
+<p aria-live="polite">{{ seatsParam() ? 'Held: ' + seatsParam() : 'No seats held' }}</p>
+<button type="button" matButton="filled" [disabled]="!seatsParam()" (click)="continue()">Continue</button>

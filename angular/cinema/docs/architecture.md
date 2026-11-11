@@ -210,7 +210,7 @@ removes its `href` and sets `aria-disabled="true"`: the link turns
 |---|---|
 | programme | `/` redirects to another parameterless page that loaded (`/loyalty` or `/account`). Deep links to other pages still work. |
 | film | Film title links in the programme turn inert. |
-| seating / booking | The links into that step turn inert. Nothing else breaks. |
+| seating / booking | The links into that step turn inert. With booking down, seating's "Continue" stays on the page and the shell logs `[nav] cannot navigate` (console only, no UI). Nothing else breaks. |
 | loyalty | The badge slot is empty, the header points link turns inert, and the booking still confirms. |
 | notifications | No toast appears. Everything else works. |
 | account | The header account link turns inert. This is the scripted walkthrough (see testing.md). |
@@ -280,9 +280,10 @@ federation config and the verified drift behaviour are stated once, in
      The empty object is the manifest. The remote still needs
      `initFederation`, because its build externalizes Angular and the import
      map comes from its own `remoteEntry.json`;
-  3. imports `./bootstrap`, calls `bootstrap()`, and mounts its element in
-     `index.html` with fixed `routeParams`, for example
-     `screeningId: 's-101'`.
+  3. sets fixed `routeParams` on the element that `src/index.html` mounts,
+     for example `{ screeningId: 's-101' }` (before the upgrade, so the
+     first render has them), then imports `./bootstrap` and calls
+     `bootstrap()`.
 
   Links stay inert, because there is no shell to resolve intents. Standalone
   mode is for working on one element. It is not production.

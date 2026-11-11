@@ -1,7 +1,7 @@
 # Cinema: a polyrepo of seven tiny teams
 
-> **Status: plan.** Nothing in this folder is built yet. These documents
-> describe the demo before any code exists.
+> **Status: in progress.** The shell, programme and film are built; the
+> other remotes follow.
 
 A Native Federation (Angular 22 and 21, Angular Material) demo of a micro frontend architecture.
 The business is a one-screen neighbourhood cinema. A moviegoer browses the
@@ -82,7 +82,7 @@ Each repo folder is meant to look like a real repo of its own:
   angular.json                        one project, own port, test setupFiles
   tsconfig*.json                      no ../ paths; include src/contracts.ts
   federation.config.mjs               see decisions.md ADR-08
-  index.html                          standalone mode: mounts this repo's own element
+  src/index.html                      standalone mode: mounts this repo's own element
   public/                             this repo's own static assets
   src/main.ts                         shell: bus + manifest + initFederation
                                       remote: standalone only (empty manifest)
