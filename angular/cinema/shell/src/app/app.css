@@ -4,24 +4,59 @@
   min-height: 100vh;
 }
 
-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-left: auto;
+mat-toolbar {
+  /* mat-toolbar is 56px and nowrap on phones; the design keeps 64px and lets the nav wrap. */
+  height: auto;
+  min-height: 64px;
+  flex-wrap: wrap;
+  padding: 0 16px 0 20px;
+  gap: 8px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
 .brand {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 4px;
+  text-decoration: none;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-large);
+  font-weight: 500;
+}
+
+.brand svg {
+  color: var(--mat-sys-primary);
+}
+
+nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  /* mat-toolbar sets text buttons' label colour from this token. */
+  --mat-toolbar-container-text-color: var(--mat-sys-on-surface-variant);
+  --mat-button-text-horizontal-padding: 16px;
+  --mat-button-tonal-horizontal-padding: 16px;
+}
+
+mfe-loyalty-badge {
+  margin: 0 4px;
 }
 
 main {
   flex: 1;
-  padding: 1rem;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 40px 24px 48px;
 }
 
 footer {
-  padding: 1rem;
+  padding: 16px 24px;
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
+  border-top: 1px solid var(--mat-sys-outline-variant);
 }

@@ -124,9 +124,12 @@ here once; the other documents link to it.
 - **Decision.**
   - `shell/public/federation.manifest.json` is the single deploy-time file.
     Remotes have none; standalone mode passes an inline empty manifest.
-  - There is no `env.config.json`, no CDN server, no image loader and no
-    custom font. The UI is stock Angular Material; the shell's global
-    `styles.scss` holds the one M3 theme.
+  - There is no `env.config.json`, no CDN server and no image loader. The
+    UI is stock Angular Material; the shell's global `styles.scss` holds the
+    one M3 theme.
+  - One font: Roboto 400/500/700, self-hosted by the shell from
+    `shell/public/roboto` via `@font-face`. No other font; remotes ship
+    none (standalone mode falls back to the system font).
 - **Why.** There is exactly one place where repos meet at deploy time.
   Every asset is served by the repo that owns it.
 
@@ -221,7 +224,7 @@ here once; the other documents link to it.
 | Version-sync tooling (syncpack, Renovate groups) | A convention is enough for 8 repos (ADR-08). |
 | Discovery service | Replacing one manifest file per environment is enough (ADR-07). |
 | Manifests in remotes, remote→remote embeds, `env`/`nf` on `bootstrap` | No remote needs to find another remote (ADR-06). |
-| CDN server, `env.config.json`, image loader, custom font | Each repo serves its own `public/` (ADR-07). |
+| CDN server, `env.config.json`, image loader, fonts besides the shell's Roboto | Each repo serves its own `public/` (ADR-07). |
 | `seats-held` and `snack-added` events | Timing and replay bugs. URL instead (ADR-04, ADR-01). |
 | `screeningId` in `booking:confirmed` | Neither consumer uses it (ADR-05). |
 | `account:signed-in` and any auth | Its only consumer would be cosmetic. |

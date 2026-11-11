@@ -76,6 +76,8 @@ repo copies (ADR-03).
 - The layout: a header with intent links to `programme.list`,
   `loyalty.points` and `account.profile`; the `mfe-loyalty-badge` slot;
   `mfe-notifications-toast`, mounted once; a footer; the global stylesheet.
+  The shell's `<main>` owns the page container (max-width, padding); a
+  remote renders only its content, never its own max-width or gutter.
 
 ### A remote
 
@@ -332,7 +334,8 @@ federation config and the verified drift behaviour are stated once, in
 ## Assets
 
 Each repo serves its own `public/`. The shell serves the global CSS,
-including the one Angular Material M3 theme. Elements use no shadow DOM, so
+including the one Angular Material M3 theme and the Roboto font (ADR-07),
+and its `<main>` sets the page container. Elements use no shadow DOM, so
 its `--mat-sys-*` tokens style every remote; a remote includes the same
 theme in its own `styles.scss` only for standalone mode.
-Posters are text or emoji, so there is no image loader.
+Posters are text or inline SVG, so there is no image loader.
