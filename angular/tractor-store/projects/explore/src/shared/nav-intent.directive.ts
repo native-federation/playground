@@ -15,6 +15,8 @@ import type { Events, NavPayload, NavResolver } from '@tractor-store/contracts';
   host: {
     '[attr.href]': 'isAnchor ? url() : null',
     '[attr.aria-disabled]': 'url() === null ? "true" : null',
+    // Without href an <a> loses its link role, so aria-disabled would be ignored.
+    '[attr.role]': 'isAnchor && url() === null ? "link" : null',
     '(click)': 'navigate($event)',
   },
 })

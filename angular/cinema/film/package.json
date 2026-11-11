@@ -1,0 +1,35 @@
+{
+  "name": "film",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "ng test --watch false"
+  },
+  "dependencies": {
+    "@angular/cdk": "~21.2.0",
+    "@angular/common": "~21.2.24",
+    "@angular/compiler": "~21.2.24",
+    "@angular/core": "~21.2.24",
+    "@angular/elements": "~21.2.24",
+    "@angular/forms": "~21.2.24",
+    "@angular/material": "~21.2.0",
+    "@angular/platform-browser": "~21.2.24",
+    "es-module-shims": "~1.10.0",
+    "rxjs": "~7.8.0",
+    "tslib": "~2.9.0"
+  },
+  "devDependencies": {
+    "@angular-architects/native-federation-v4": "~21.2.17",
+    "@angular/build": "~21.2.24",
+    "@angular/cli": "~21.2.24",
+    "@angular/compiler-cli": "~21.2.24",
+    "@softarc/native-federation-orchestrator": "~4.9.0",
+    "jsdom": "~28.1.0",
+    "typescript": "~5.9.0",
+    "vitest": "~4.1.0"
+  }
+}

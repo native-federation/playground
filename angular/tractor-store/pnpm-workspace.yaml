@@ -5,6 +5,8 @@ allowBuilds:
   msgpackr-extract: true
 overrides:
   esbuild: ^0.28.0
+  # Zoneless: @angular/core's optional zone.js peer would otherwise be installed.
+  zone.js: '-'
 packages:
   - apps/*
   - projects/*

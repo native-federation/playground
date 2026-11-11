@@ -1,0 +1,59 @@
+<h1>Checkout</h1>
+<mat-card appearance="outlined" [class.done]="bookingRef()">
+  @if (bookingRef(); as ref) {
+    <div class="confirmed" role="status">
+      <div class="badge">
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.25"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      </div>
+      <h2 #confirmedHeading tabindex="-1">Booking confirmed</h2>
+      <p class="ref">
+        <span class="label">Your reference</span>
+        <span class="code">{{ ref }}</span>
+      </p>
+      <p class="summary">{{ summary() }}</p>
+    </div>
+  } @else if (seats().length) {
+    <dl class="facts">
+      <div>
+        <dt class="label">Screening</dt>
+        <dd class="value">{{ screeningId() }}</dd>
+      </div>
+      <div class="seats">
+        <dt class="label">Seats</dt>
+        <dd>
+          <mat-chip-set role="list" aria-label="Seats">
+            @for (seat of seats(); track seat) {
+              <mat-chip role="listitem">{{ seat }}</mat-chip>
+            }
+          </mat-chip-set>
+        </dd>
+      </div>
+    </dl>
+    <mat-divider />
+    <dl class="price">
+      <div class="line">
+        <dt>{{ lineText() }}</dt>
+        <dd>€{{ total() }}</dd>
+      </div>
+      <div class="total">
+        <dt>Total</dt>
+        <dd>€{{ total() }}</dd>
+      </div>
+    </dl>
+    <button type="button" class="confirm" matButton="filled" (click)="confirm()">Confirm booking</button>
+  } @else {
+    <p role="status">No seats selected.</p>
+  }
+</mat-card>
