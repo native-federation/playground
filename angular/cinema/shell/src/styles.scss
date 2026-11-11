@@ -33,6 +33,7 @@ html {
       brand-family: 'Roboto, system-ui, sans-serif',
     ),
   ));
+  --mat-card-outlined-container-color: var(--mat-sys-surface-container-lowest);
 }
 
 body {

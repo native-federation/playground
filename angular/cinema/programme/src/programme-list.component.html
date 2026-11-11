@@ -1,10 +1,35 @@
-<h1>Programme</h1>
-<mat-list>
+<hgroup>
+  <h1>Programme</h1>
+  <p>This week's screenings in the hall.</p>
+</hgroup>
+<ul class="grid" role="list">
   @for (screening of screenings; track screening.screeningId) {
-    <mat-list-item>
-      <a matListItemTitle navIntent="film.detail" [navPayload]="{ filmId: screening.filmId }">{{ screening.title }}</a>
-      <span matListItemLine>{{ screening.startsAt }}</span>
-      <a mat-button matListItemMeta navIntent="seating.plan" [navPayload]="{ screeningId: screening.screeningId }">Seats</a>
-    </mat-list-item>
+    @let titleId = 'title-' + screening.screeningId;
+    @let whenId = 'when-' + screening.screeningId;
+    <li>
+      <mat-card appearance="outlined">
+        <!-- ngPreserveWhitespaces keeps the space between day and time in the aria description -->
+        <div class="when" [id]="whenId" ngPreserveWhitespaces>
+          <span class="day">{{ screening.day }}</span>
+          <time class="time" [attr.datetime]="screening.time">{{ screening.time }}</time>
+        </div>
+        <mat-card-content>
+          <a
+            class="title"
+            [id]="titleId"
+            navIntent="film.detail"
+            [navPayload]="{ filmId: screening.filmId }"
+          >{{ screening.title }}</a>
+        </mat-card-content>
+        <mat-card-actions>
+          <a
+            matButton="tonal"
+            navIntent="seating.plan"
+            [navPayload]="{ screeningId: screening.screeningId }"
+            [attr.aria-describedby]="titleId + ' ' + whenId"
+          >Choose seats</a>
+        </mat-card-actions>
+      </mat-card>
+    </li>
   }
-</mat-list>
+</ul>

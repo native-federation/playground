@@ -1,27 +1,14 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatButton } from '@angular/material/button';
-import {
-  MatList,
-  MatListItem,
-  MatListItemLine,
-  MatListItemMeta,
-  MatListItemTitle,
-} from '@angular/material/list';
+import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { screenings } from './screenings';
 import { NavIntentDirective } from './shared/nav-intent.directive';
 
 @Component({
   selector: 'app-programme-list',
-  imports: [
-    MatList,
-    MatListItem,
-    MatListItemTitle,
-    MatListItemLine,
-    MatListItemMeta,
-    MatButton,
-    NavIntentDirective,
-  ],
+  imports: [MatCard, MatCardContent, MatCardActions, MatButton, NavIntentDirective],
   templateUrl: './programme-list.component.html',
+  styleUrl: './programme-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProgrammeListComponent {

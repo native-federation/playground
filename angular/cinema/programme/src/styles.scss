@@ -4,12 +4,18 @@ html {
   color-scheme: light;
   @include mat.theme((
     color: (theme-type: light, primary: mat.$azure-palette),
-    typography: system-ui,
+    typography: (
+      plain-family: 'Roboto, system-ui, sans-serif',
+      brand-family: 'Roboto, system-ui, sans-serif',
+    ),
   ));
+  --mat-card-outlined-container-color: var(--mat-sys-surface-container-lowest);
 }
 
 body {
   margin: 0;
+  // stands in for the shell's <main> when running standalone
+  padding: 40px 24px 48px;
   font: var(--mat-sys-body-large);
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
