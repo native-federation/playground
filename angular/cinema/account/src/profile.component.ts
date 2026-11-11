@@ -1,16 +1,30 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatListModule } from '@angular/material/list';
+import { MatCard } from '@angular/material/card';
+import {
+  MatList,
+  MatListItem,
+  MatListItemIcon,
+  MatListItemLine,
+  MatListItemTitle,
+} from '@angular/material/list';
 
 const profile = { name: 'Sam Moviegoer', email: 'sam@example.com', memberSince: '2024' };
 
+export const initials = (name: string) =>
+  name
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 2);
+
 @Component({
   selector: 'app-profile',
-  imports: [MatCardModule, MatListModule],
+  imports: [MatCard, MatList, MatListItem, MatListItemIcon, MatListItemTitle, MatListItemLine],
   templateUrl: './profile.component.html',
-  styles: 'mat-card { max-width: 40rem; }',
+  styleUrl: './profile.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent {
   protected readonly profile = profile;
+  protected readonly initials = initials(profile.name);
 }

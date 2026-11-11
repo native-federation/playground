@@ -1,0 +1,56 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-large);
+}
+
+mat-card {
+  max-width: 520px;
+  box-sizing: border-box;
+  padding: 24px 8px 8px;
+  gap: 8px;
+  --mat-card-outlined-container-shape: var(--mat-sys-corner-large);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px 16px;
+}
+
+h2 {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font: var(--mat-sys-title-large);
+}
+
+mat-list {
+  padding: 0;
+  --mat-list-list-item-two-line-container-height: 72px;
+}
+
+mat-list-item {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+/* the list's .mdc-list-item__start sets fill: currentColor, which would fill these outline icons */
+[matListItemIcon] {
+  fill: none;
+}
