@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
+import { MatCard } from '@angular/material/card';
+import { MatChip, MatChipSet } from '@angular/material/chips';
 import type { Events, RouteParams } from './contracts';
 import { allSeats, numbers, rows, takenSeats } from './seats';
 
 @Component({
   selector: 'app-seat-plan',
-  imports: [MatButton],
+  imports: [MatButton, MatCard, MatChipSet, MatChip],
   templateUrl: './seat-plan.component.html',
   styleUrl: './seat-plan.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,9 +24,15 @@ export class SeatPlanComponent {
     source: this.screeningId,
     computation: () => [],
   });
-  protected readonly seatsParam = computed(() =>
-    allSeats.filter((seat) => this.held().includes(seat)).join(','),
+  protected readonly heldSeats = computed(() =>
+    allSeats.filter((seat) => this.held().includes(seat)),
   );
+  protected readonly seatsParam = computed(() => this.heldSeats().join(','));
+  protected readonly countText = computed(() => {
+    const count = this.heldSeats().length;
+    if (count === 0) return 'No seats held';
+    return count === 1 ? '1 seat held' : `${count} seats held`;
+  });
 
   protected toggle(seat: string): void {
     this.held.update((held) =>
