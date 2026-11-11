@@ -50,10 +50,12 @@ Two more specs in every repo that has them:
 
 - **`bootstrap()` defines exactly the exposed tags** (every remote). The spec
   imports the `exposes` keys from the repo's own `federation.config.mjs`,
-  calls `bootstrap()` once in `beforeAll`, and asserts
-  `customElements.get(key)` for every key except `nav-contribution`. jsdom
-  throws on a second `define` of the same tag in one worker, so tags are
-  registered once per spec file.
+  awaits `bootstrap()` twice, concurrently, before the assertions, and asserts
+  `customElements.get(key)` for every key except `nav-contribution`.
+  `bootstrap()` guards each `define` with `customElements.get` (jsdom throws
+  on a second `define` of the same tag), so the tags and the app are created
+  once per file. A remote whose app subscribes at start (loyalty) calls it in
+  `beforeEach`, after `testing/setup.ts` has installed the bus.
 - **`nav-intent.directive.spec.ts`** is copied together with the directive
   (shell, programme, film). It proves that an unresolved intent renders an
   inert link (`aria-disabled`, no `href`), which the whole resilience table
