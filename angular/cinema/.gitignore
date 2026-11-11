@@ -1,0 +1,4 @@
+.claude/skills/
+node_modules/
+dist/
+.angular/

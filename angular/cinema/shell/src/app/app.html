@@ -1,0 +1,14 @@
+<header>
+  <mat-toolbar>
+    <a mat-button class="brand" navIntent="programme.list">Cinema</a>
+    <nav aria-label="Main">
+      <a mat-button navIntent="programme.list">Programme</a>
+      <a mat-button navIntent="loyalty.points">Points</a>
+      <mfe-loyalty-badge mfeRemote="@cinema/loyalty" />
+      <a mat-button navIntent="account.profile">Account</a>
+    </nav>
+  </mat-toolbar>
+</header>
+<main><router-outlet /></main>
+<mfe-notifications-toast mfeRemote="@cinema/notifications" />
+<footer>Cinema: a Native Federation polyrepo demo.</footer>

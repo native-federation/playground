@@ -1,0 +1,9 @@
+{
+  "@cinema/programme": "http://localhost:4301/remoteEntry.json",
+  "@cinema/film": "http://localhost:4302/remoteEntry.json",
+  "@cinema/seating": "http://localhost:4303/remoteEntry.json",
+  "@cinema/booking": "http://localhost:4304/remoteEntry.json",
+  "@cinema/loyalty": "http://localhost:4305/remoteEntry.json",
+  "@cinema/notifications": "http://localhost:4306/remoteEntry.json",
+  "@cinema/account": "http://localhost:4307/remoteEntry.json"
+}
