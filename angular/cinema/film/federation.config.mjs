@@ -23,5 +23,6 @@ export default withNativeFederation({
   ],
   features: {
     denseExternals: true,
+    denseChunking: true,
   },
 });
