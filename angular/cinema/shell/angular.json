@@ -62,13 +62,7 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public",
-                "ignore": ["roboto/**"]
-              },
-              {
-                "glob": "{Roboto-{Regular,Medium,Bold}.ttf,OFL.txt}",
-                "input": "public/roboto",
-                "output": "roboto"
+                "input": "public"
               }
             ],
             "styles": [
