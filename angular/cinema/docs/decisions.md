@@ -174,7 +174,11 @@ here once; the other documents link to it.
     shared package, so `rxjs`, `tslib` and the used Material/CDK parts load
     twice too. No version warning appears, because the two scopes are never
     compared. The shell's Material 22 theme tokens style the Material 21
-    components.
+    components. Verified with film and notifications both loaded: the
+    scopes for `http://localhost:4302/` and `http://localhost:4306/` map
+    `@angular/core` (and every other shared package) to the same file on
+    :4302, so Angular 21 loads once. Film's copy is used even though the
+    toast mounts first; notifications serves only its own exposes.
   - Tooling cost: the `-v4` builder depends on
     `@angular-devkit/build-angular` (webpack), so the Angular 21 repos
     install it and a second esbuild. That is not a mistake in the repo, so

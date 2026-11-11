@@ -1,0 +1,14 @@
+.toast {
+  /* offsets and padding as Material's snack bar */
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  translate: -50% 0;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--mat-sys-corner-extra-small);
+  background: var(--mat-sys-inverse-surface);
+  color: var(--mat-sys-inverse-on-surface);
+  font: var(--mat-sys-body-medium);
+  box-shadow: var(--mat-sys-level3);
+}
