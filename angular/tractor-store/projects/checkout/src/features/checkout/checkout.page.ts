@@ -13,10 +13,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import type { Events } from '@tractor-store/contracts';
+import { bus } from '@softarc/native-federation-communication';
 import { CartStore } from '../../data/cart-store';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { CompactHeaderComponent } from '../../shared/components/compact-header/compact-header.component';
+import { navigateTo } from '../../shared/navigate';
 import { RemoteElementDirective } from '../../shared/remote-element';
 
 @Component({
@@ -49,18 +50,14 @@ export class CheckoutPage {
   protected readonly isReady = computed(() => this.status() === 'VALID');
 
   constructor() {
-    const stop = window.__NF_REGISTRY__!.on<Events['store:selected']>(
-      'store:selected',
-      ({ data }) => this.form.controls.storeId.setValue(data.id),
+    inject(DestroyRef).onDestroy(
+      bus.on('store:selected', ({ id }) => this.form.controls.storeId.setValue(id)),
     );
-    inject(DestroyRef).onDestroy(stop);
   }
 
   protected submit(): void {
     if (!this.isReady()) return;
     this.cart.clear();
-    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
-      id: 'checkout.thanks',
-    });
+    navigateTo({ id: 'checkout.thanks' });
   }
 }

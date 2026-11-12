@@ -15,22 +15,31 @@ There is no CI in the first version, so nothing is a gate.
 
 ## Per repo: test your own side
 
-**A fresh, real event bus per test.** Every repo has
+**A fresh, real event bus per test.** Every repo except account has
 `src/testing/setup.ts`, copied from
 [`tractor-store/projects/host/src/testing/setup.ts`](../../tractor-store/projects/host/src/testing/setup.ts),
 listed in the `angular.json` test target's `setupFiles`:
 
 ```ts
 beforeEach(() => {
-  window.__NF_REGISTRY__ = createRegistry({ maxStreams: 20, maxEvents: 1 })();
+  vi.stubGlobal('__NF_BUS__', createBus());
+  // The bus reports a throwing listener instead of rethrowing; rethrow so a failed expect fails the test.
+  vi.stubGlobal('reportError', (error: unknown) => {
+    throw error;
+  });
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 ```
 
-Specs emit and observe through the real registry from
-`@softarc/native-federation-orchestrator/registry`, so replay and `onReady`
-behave as in the browser. Every repo therefore has the orchestrator in its
-`package.json` (ADR-08). There is no fake registry, and standalone
-`main.ts` never imports anything from `src/testing/`.
+`bus` reads `globalThis.__NF_BUS__` on every call, so specs emit and
+observe through a real bus from `@softarc/native-federation-communication`,
+and retain and replay behave as in the browser. A retained value reaches a
+new listener before `bus.on` returns, so no spec waits for it. There is no
+fake bus, and standalone `main.ts` never imports anything from
+`src/testing/`. Account never touches the bus, so it has no setup file.
 
 The spec names map onto the "pattern it demonstrates" column in the
 [README](../README.md#mfe-catalogue).
@@ -42,7 +51,7 @@ The spec names map onto the "pattern it demonstrates" column in the
 | film | `nav-contribution` declares `detail` with path `{filmId}`. Renders the film for `routeParams = { filmId }`. An unknown id shows "not found". |
 | seating | `nav-contribution` declares `plan` with path `{screeningId}`. Renders taken seats deterministically for `screeningId`. Toggling A2 then A1 and pressing "Continue" emits `nav:navigate` with id `booking.checkout` and payload `{ screeningId, seats: seatsParamExample }` (`'A1,A2'`, sorted). "Continue" is disabled with no seats held. |
 | booking | `nav-contribution` declares `checkout` with path `{screeningId}/{seats}`. Given `routeParams` with the decoded `seatsParamExample`, shows 2 tickets and €24. "Confirm" emits `booking:confirmed` with the **same key set** as `bookingConfirmedExample`, `bookingRef` matching `/^BR-[0-9A-F]{4}$/` and `ticketCount` equal to the number of seats. The ref generator is injected and stubbed, so the spec is deterministic. An empty or invalid `seats` shows an empty checkout and does not throw. |
-| loyalty | `nav-contribution` declares `points`. Emitting `bookingConfirmedExample` adds 20 points. The badge and the page read the same `PointsStore`. An event emitted **before** the store exists does not count (`replay: 0`). |
+| loyalty | `nav-contribution` declares `points`. Emitting `bookingConfirmedExample` adds 20 points. The badge and the page read the same `PointsStore`. An event emitted **before** the store exists does not count (`replay: false`), even when it was retained. |
 | notifications | `nav-contribution` declares no intents. Emitting `bookingConfirmedExample` shows a toast containing the `bookingRef`. It disappears after 3 s (fake timers). |
 | account | `nav-contribution` declares `profile`. Renders the mock profile. |
 

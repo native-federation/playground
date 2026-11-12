@@ -62,8 +62,8 @@ describe('LineItemComponent', () => {
     expect(img.getAttribute('alt')).toBe(scarlet.name);
   });
 
-  it('links to the product intent with {id, sku}', async () => {
-    await publishNavResolver((id, payload = {}) =>
+  it('links to the product intent with {id, sku}', () => {
+    publishNavResolver((id, payload = {}) =>
       id === 'decide.product'
         ? `/product/${payload['id']}?sku=${payload['sku']}`
         : null,

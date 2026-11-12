@@ -34,12 +34,13 @@ Three ideas carry the weight in this repo:
    other remote) places that tag in the DOM and the browser does the
    rest. The contract is plain HTML — no Angular import crosses team
    boundaries.
-2. **A central event bus** (`window.__NF_REGISTRY__`). Remotes
-   publish and subscribe to small, _typed_ events instead of calling
-   each other directly. Each event's payload type is listed once in
-   the `Events` interface in `libs/contracts/index.ts`; emitter and
-   listener then share the same compile-time contract. Navigation and
-   store selection ride on this bus.
+2. **A central event bus** ([`@softarc/native-federation-communication`][nf-comm]).
+   Remotes publish and subscribe to small, _typed_ channels instead of
+   calling each other directly. Each channel's value type is declared
+   once, by augmenting the package's `Channels` interface in
+   `libs/contracts/index.ts`; emitter and listener then share the same
+   compile-time contract. Navigation and store selection ride on this
+   bus.
 3. **Intent-based navigation.** A button in the _decide_ micro frontend that should
    open the cart never types `'/checkout/cart'`. It uses the
    `[navIntent]` directive with the intent `'checkout.cart'`,
@@ -48,11 +49,13 @@ Three ideas carry the weight in this repo:
 
 Together these three keep the apps decoupled. The apps share no
 runtime code at all: each one writes out its own bootstrap, loader
-and directives, so its flow can be read in its own folder. The rest
-of this doc set explains how each piece is implemented.
+and directives, so its flow can be read in its own folder. (The bus
+package is a third-party library that each app bundles, like Angular.)
+The rest of this doc set explains how each piece is implemented.
 
 [blueprint]: https://github.com/neuland/tractor-store-blueprint
 [mfo]: https://micro-frontends.org/
+[nf-comm]: https://github.com/native-federation/communication
 
 ## At a glance
 
@@ -100,7 +103,7 @@ custom element inside its own page without going through the host.
   system and why it is the load-bearing piece of the host/remote
   decoupling.
 - **[Features](./features.md)** — what each team ships, the
-  fragments they expose, the events they emit, and the cross-remote
+  fragments they expose, the channels they emit on, and the cross-remote
   dependencies between them.
 
 ## Where does X live?
@@ -117,10 +120,11 @@ custom element inside its own page without going through the host.
 | Remote bootstrap (custom element)            | `projects/<remote>/src/features/<feature>/bootstrap.ts`                       |
 | Remote nav contribution                      | `projects/<remote>/src/nav-contribution.ts`                                   |
 | Cross-MFE link directive (`[navIntent]`)     | `projects/<remote>/src/shared/nav-intent.directive.ts`                        |
-| Shared types: env, contributions, params, `Events` | `libs/contracts/index.ts`                                               |
+| Emitting `nav:navigate` (`navigateTo`)       | `projects/<remote>/src/shared/navigate.ts`                                    |
+| Shared types: env, contributions, params, bus `Channels` | `libs/contracts/index.ts`                                         |
 | Cart state & cross-tab sync                  | `projects/checkout/src/data/cart-store.ts`                                    |
 | Mock backend data                            | `projects/<remote>/src/data/<entity>.data.ts`                                 |
-| Event bus for tests (real registry)          | `projects/<app>/src/testing/setup.ts`                                         |
+| Event bus for tests (fresh real bus per test) | `projects/<app>/src/testing/setup.ts`                                        |
 | Federation config (per app)                  | `projects/<app>/federation.config.mjs`                                        |
 | Runtime remote discovery                     | `projects/<app>/public/federation.manifest.json`                              |
 | Per-environment values                       | `projects/<app>/public/env.config.json`                                       |

@@ -10,13 +10,13 @@ import { publishNavResolver } from '../../../testing/nav-resolver.stub';
 const [product] = categoryFixture[0].products;
 
 describe('ProductTileComponent', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
     });
-    await publishNavResolver((id, payload) => `${id}/${payload?.['id']}`);
+    publishNavResolver((id, payload) => `${id}/${payload?.['id']}`);
   });
 
   async function render() {

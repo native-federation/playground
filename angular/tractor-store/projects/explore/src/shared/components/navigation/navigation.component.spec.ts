@@ -5,7 +5,7 @@ import { publishNavResolver } from '../../../testing/nav-resolver.stub';
 
 describe('NavigationComponent', () => {
   it('links to the machines and stores pages', async () => {
-    await publishNavResolver((id) => id);
+    publishNavResolver((id) => id);
     const fixture = TestBed.createComponent(NavigationComponent);
     await fixture.whenStable();
     const links = [

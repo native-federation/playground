@@ -20,11 +20,11 @@ boundary in place:
 - **Custom elements as the integration surface.** Every remote registers
   its UI as `<mfe-*>` web components. Other apps drop the tag into their
   HTML — no Angular type, RxJS Observable, or service crosses the line.
-- **A central event bus on `window.__NF_REGISTRY__`.** Remotes publish
-  and subscribe to small, stable, *typed* events instead of calling
-  each other directly. Navigation and store selection ride on this
-  bus; every event's payload type is listed in one `Events` interface
-  in `libs/contracts`.
+- **A central event bus ([`@softarc/native-federation-communication`][nf-comm]).**
+  Remotes publish and subscribe to small, stable, *typed* channels
+  instead of calling each other directly. Navigation and store
+  selection ride on this bus; every channel's value type is declared
+  once, in the package's `Channels` interface, from `libs/contracts`.
 - **Intent-based navigation.** A button in *decide* that should open the
   cart never types `'/checkout/cart'`. It emits the intent
   `'checkout.cart'` via the `[navIntent]` directive; the host owns
@@ -33,7 +33,9 @@ boundary in place:
 The apps share **no runtime code**: only a types-only contracts file.
 Every app's bootstrap, remote loader and link directive is written out
 in that app, so you can follow the whole flow without leaving its
-folder.
+folder. The bus is a third-party package that every app bundles its
+own copy of, like Angular itself; the copies find one bus per page on
+`globalThis.__NF_BUS__`.
 
 Each idea is documented in detail under [`docs/`](./docs/) — start there
 if you want the why and how.
@@ -56,7 +58,7 @@ if you want the why and how.
 | 🐚 Application shell        | Host app with route-based shell components              |
 | 🧩 Client-side integration  | Custom elements ([@angular/elements]) loaded as remotes |
 | 🧩 Server-side integration  | None (static hosting)                                   |
-| 📣 Communication            | Typed events on `window.__NF_REGISTRY__`                |
+| 📣 Communication            | Typed channels on one bus ([native-federation-communication][nf-comm]) |
 | 🗺️ Navigation               | SPA inside host, intent IDs across remotes              |
 | 🎨 Styling                  | Self-contained SCSS (one bundle per remote)             |
 | 🍱 Design system            | None shared: each remote owns its components            |
@@ -65,6 +67,7 @@ if you want the why and how.
 | 👩‍💻 Local development        | [angular-cli], [concurrently], [http-server]            |
 
 [angular]: https://angular.dev/
+[nf-comm]: https://github.com/native-federation/communication
 [@angular/elements]: https://angular.dev/guide/elements
 [angular-cli]: https://angular.dev/tools/cli
 [concurrently]: https://github.com/open-cli-tools/concurrently

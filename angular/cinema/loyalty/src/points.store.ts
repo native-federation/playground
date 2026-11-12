@@ -1,5 +1,5 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
-import type { Events } from './contracts';
+import { bus } from '@softarc/native-federation-communication';
 
 export const pointsPerTicket = 10;
 
@@ -9,12 +9,12 @@ export class PointsStore {
   readonly points = this.total.asReadonly();
 
   constructor() {
-    // replay 0: a booking confirmed before loyalty loaded is not counted
+    // replay: false: a booking confirmed before loyalty loaded is not counted
     // (see docs/decisions.md ADR-05).
-    const stop = window.__NF_REGISTRY__!.on<Events['booking:confirmed']>(
+    const stop = bus.on(
       'booking:confirmed',
-      ({ data }) => this.total.update((points) => points + data.ticketCount * pointsPerTicket),
-      { replay: 0 },
+      ({ ticketCount }) => this.total.update((points) => points + ticketCount * pointsPerTicket),
+      { replay: false },
     );
     inject(DestroyRef).onDestroy(stop);
   }

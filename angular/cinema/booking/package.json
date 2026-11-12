@@ -18,6 +18,7 @@
     "@angular/forms": "~22.2.0",
     "@angular/material": "~22.2.0",
     "@angular/platform-browser": "~22.2.0",
+    "@softarc/native-federation-communication": "4.0.0-next.0",
     "es-module-shims": "~1.10.0",
     "rxjs": "~7.8.0",
     "tslib": "~2.9.0"

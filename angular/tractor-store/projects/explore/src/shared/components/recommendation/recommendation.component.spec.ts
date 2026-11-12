@@ -10,13 +10,13 @@ import { publishNavResolver } from '../../../testing/nav-resolver.stub';
 const [item] = recommendationFixture;
 
 describe('RecommendationComponent', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
     });
-    await publishNavResolver(
+    publishNavResolver(
       (id, payload) => `/${id}?${new URLSearchParams(payload)}`,
     );
   });

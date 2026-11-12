@@ -93,7 +93,7 @@ There is one event: **BookingConfirmed**.
   (loyalty counts tickets, notifications shows the ref), so no consumer has
   to call booking back.
 - How it is subscribed, and who may consume it, is decided once in
-  [ADR-05](decisions.md#adr-05-one-domain-event-replay-0-shell-mounted-consumers-only).
+  [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only).
 
 **SeatsHeld is a pivotal moment but not an event.** The hold travels to
 booking **in the URL** (`/booking/{screeningId}/{seats}`), see

@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type {
-  Events,
   NavigatePayload,
   NavResolver,
 } from '../contracts';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { publishNavResolver } from '../testing/nav-resolver.stub';
 import { NavIntentDirective } from './nav-intent.directive';
+import { bus } from '@softarc/native-federation-communication';
 
 // Stand-in for the shell's resolver: knows two intents, needs {filmId} for the film.
 const resolver: NavResolver = (id, payload = {}) => {
@@ -37,15 +37,15 @@ describe('NavIntentDirective', () => {
 
   beforeEach(() => {
     navigations = [];
-    window.__NF_REGISTRY__!.on<Events['nav:navigate']>(
+    bus.on(
       'nav:navigate',
-      ({ data }) => navigations.push(data),
-      { replay: 0 },
+      (value) => navigations.push(value),
+      { replay: false },
     );
   });
 
-  async function render(resolverPublished = true) {
-    if (resolverPublished) await publishResolver();
+  function render(resolverPublished = true) {
+    if (resolverPublished) publishResolver();
     TestBed.configureTestingModule({ imports: [HostComponent] });
     const fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();
@@ -57,8 +57,8 @@ describe('NavIntentDirective', () => {
     };
   }
 
-  it('emits nav:navigate with the intent and payload when clicked', async () => {
-    const { anchors } = await render();
+  it('emits nav:navigate with the intent and payload when clicked', () => {
+    const { anchors } = render();
     anchors[0].click();
     anchors[1].click();
     expect(navigations).toEqual([
@@ -67,28 +67,28 @@ describe('NavIntentDirective', () => {
     ]);
   });
 
-  it('works on buttons too, without an href', async () => {
-    const { button } = await render();
+  it('works on buttons too, without an href', () => {
+    const { button } = render();
     button.click();
     expect(navigations).toEqual([{ id: 'programme.list', payload: {} }]);
     expect(button.hasAttribute('href')).toBe(false);
   });
 
-  it('renders the resolved URL as href on anchors', async () => {
-    const { anchors } = await render();
+  it('renders the resolved URL as href on anchors', () => {
+    const { anchors } = render();
     expect(anchors[0].getAttribute('href')).toBe('/');
     expect(anchors[1].getAttribute('href')).toBe('/film/f1');
   });
 
-  it('prevents the default anchor navigation', async () => {
-    const { anchors } = await render();
+  it('prevents the default anchor navigation', () => {
+    const { anchors } = render();
     const event = new MouseEvent('click', { cancelable: true, bubbles: true });
     anchors[0].dispatchEvent(event);
     expect(event.defaultPrevented).toBe(true);
   });
 
-  it('leaves modified clicks on anchors to the browser', async () => {
-    const { anchors } = await render();
+  it('leaves modified clicks on anchors to the browser', () => {
+    const { anchors } = render();
     const event = new MouseEvent('click', {
       cancelable: true,
       bubbles: true,
@@ -99,8 +99,8 @@ describe('NavIntentDirective', () => {
     expect(navigations).toEqual([]);
   });
 
-  it('marks links aria-disabled until the shell publishes its resolver', async () => {
-    const { fixture, anchors, button } = await render(false);
+  it('marks links aria-disabled until the shell publishes its resolver', () => {
+    const { fixture, anchors, button } = render(false);
     expect(anchors[0].getAttribute('aria-disabled')).toBe('true');
     // Buttons keep their own role; only href-less anchors need role="link".
     expect(button.hasAttribute('role')).toBe(false);
@@ -109,15 +109,15 @@ describe('NavIntentDirective', () => {
     anchors[0].click();
     expect(navigations).toEqual([]);
 
-    await publishResolver();
+    publishResolver();
     fixture.detectChanges();
     expect(anchors[0].getAttribute('aria-disabled')).toBeNull();
     expect(anchors[0].getAttribute('role')).toBeNull();
     expect(anchors[0].getAttribute('href')).toBe('/');
   });
 
-  it('stays disabled and silent when the resolver cannot build the URL', async () => {
-    const { anchors } = await render();
+  it('stays disabled and silent when the resolver cannot build the URL', () => {
+    const { anchors } = render();
     expect(anchors[2].getAttribute('aria-disabled')).toBe('true');
     expect(anchors[2].getAttribute('role')).toBe('link');
     expect(anchors[2].hasAttribute('href')).toBe(false);

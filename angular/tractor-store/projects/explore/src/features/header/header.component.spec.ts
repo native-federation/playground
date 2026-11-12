@@ -10,7 +10,7 @@ import { publishNavResolver } from '../../testing/nav-resolver.stub';
 describe('HeaderComponent', () => {
   let loadRemote: ReturnType<typeof vi.fn>;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     loadRemote = vi.fn().mockResolvedValue(undefined);
     TestBed.configureTestingModule({
       providers: [
@@ -18,7 +18,7 @@ describe('HeaderComponent', () => {
         { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
     });
-    await publishNavResolver((id) => id);
+    publishNavResolver((id) => id);
   });
 
   async function render() {

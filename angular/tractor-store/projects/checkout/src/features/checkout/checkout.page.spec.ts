@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import type { Events, NavigatePayload } from '@tractor-store/contracts';
+import type { NavigatePayload } from '@tractor-store/contracts';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CartStore } from '../../data/cart-store';
 import { CART_STORAGE_KEY } from '../../data/cart-storage';
 import { LOAD_REMOTE } from '../../shared/remote-element';
 import { CheckoutPage } from './checkout.page';
+import { bus } from '@softarc/native-federation-communication';
 
 describe('CheckoutPage', () => {
   beforeEach(() => {
@@ -32,7 +33,7 @@ describe('CheckoutPage', () => {
   }
 
   const selectStore = (id: string) =>
-    window.__NF_REGISTRY__!.emit<Events['store:selected']>('store:selected', {
+    bus.emit('store:selected', {
       id,
     });
 
@@ -67,10 +68,10 @@ describe('CheckoutPage', () => {
   it('clears the cart and asks the host to navigate to thanks on submit', async () => {
     window.localStorage.setItem(CART_STORAGE_KEY, 'AU-03-RD_2');
     const navigations: NavigatePayload[] = [];
-    window.__NF_REGISTRY__!.on<Events['nav:navigate']>(
+    bus.on(
       'nav:navigate',
-      ({ data }) => navigations.push(data),
-      { replay: 0 },
+      (value) => navigations.push(value),
+      { replay: false },
     );
     const { fixture, type, submit } = render();
     type('c_firstname', 'A');

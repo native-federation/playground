@@ -1,18 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Events, NavigatePayload, RouteParams } from './contracts';
+import type { NavigatePayload, RouteParams } from './contracts';
 import { SeatPlanComponent } from './seat-plan.component';
 import { seatsParamExample } from './testing/contracts.examples';
+import { bus } from '@softarc/native-federation-communication';
 
 describe('SeatPlanComponent', () => {
   let navigations: NavigatePayload[];
 
   beforeEach(() => {
     navigations = [];
-    window.__NF_REGISTRY__!.on<Events['nav:navigate']>(
+    bus.on(
       'nav:navigate',
-      ({ data }) => navigations.push(data),
-      { replay: 0 },
+      (value) => navigations.push(value),
+      { replay: false },
     );
   });
 
