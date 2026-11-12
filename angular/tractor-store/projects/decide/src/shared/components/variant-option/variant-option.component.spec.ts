@@ -1,16 +1,17 @@
 import { TestBed } from '@angular/core/testing';
-import type { Events, NavResolver } from '@tractor-store/contracts';
+import type { NavResolver } from '@tractor-store/contracts';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { VariantOptionComponent } from './variant-option.component';
 import { publishNavResolver } from '../../../testing/nav-resolver.stub';
+import { bus, type ChannelValue } from '@softarc/native-federation-communication';
 
 // Stands in for the host's resolver: '/<intent>?<payload>'.
 const resolve: NavResolver = (id, payload = {}) =>
   `/${id}?${new URLSearchParams(payload)}`;
 
 describe('VariantOptionComponent', () => {
-  beforeEach(async () => {
-    await publishNavResolver(resolve);
+  beforeEach(() => {
+    publishNavResolver(resolve);
   });
 
   async function render(
@@ -60,10 +61,10 @@ describe('VariantOptionComponent', () => {
   });
 
   it('asks the host to navigate when the link is clicked', async () => {
-    const navigations: Events['nav:navigate'][] = [];
-    window.__NF_REGISTRY__!.on<Events['nav:navigate']>(
+    const navigations: ChannelValue<'nav:navigate'>[] = [];
+    bus.on(
       'nav:navigate',
-      ({ data }) => navigations.push(data),
+      (value) => navigations.push(value),
     );
     const { el } = await render();
     el.querySelector('a')!.click();

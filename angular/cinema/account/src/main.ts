@@ -4,12 +4,6 @@ import {
   globalThisStorageEntry,
   useShimImportMap,
 } from '@softarc/native-federation-orchestrator/options';
-import { createRegistry } from '@softarc/native-federation-orchestrator/registry';
-
-// The event bus must exist before any remote code runs.
-window.__NF_REGISTRY__ ??= Object.freeze(
-  createRegistry({ maxStreams: 20, maxEvents: 1, removePercentage: 0.25 })(),
-);
 // Standalone only: shows the mock profile card; the header and other remotes need the shell.
 // Standalone only: the remote's own shared deps come from its remoteEntry.json.
 initFederation({}, {

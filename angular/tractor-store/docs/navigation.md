@@ -84,7 +84,7 @@ export const provideNavigation = (
 ): EnvironmentProviders =>
   provideAppInitializer(async () => {
     const router = inject(Router);
-    const registry = window.__NF_REGISTRY__!;
+    const destroyRef = inject(DestroyRef);
     const contributions = await loadContributions(nf, manifest);
 
     const routes = toRoutes(contributions);
@@ -93,21 +93,25 @@ export const provideNavigation = (
       routes.find((route) => route.path === 'explore') ??
       routes.find((route) => !route.path?.includes(':'));
     router.resetConfig(
-      fallback ? [...routes, { path: '**', redirectTo: fallback.path }] : routes,
+      fallback
+        ? [...routes, { path: '**', redirectTo: fallback.path }]
+        : routes,
     );
 
     const resolve = createResolver(contributions);
-    // see Events['nav:resolve']
-    await registry.register<Events['nav:resolve']>('nav:resolve', () => resolve);
+    bus.emit('nav:resolve', resolve);
 
-    registry.on<Events['nav:navigate']>(
-      'nav:navigate',
-      ({ data: { id, payload } }) => {
-        const url = resolve(id, payload);
-        if (url === null) console.error(`[nav] cannot navigate to "${id}"`);
-        else void router.navigateByUrl(url);
-      },
-      { replay: 0 },
+    // replay: false ignores a stale command if a remote emitted it without retain: false.
+    destroyRef.onDestroy(
+      bus.on(
+        'nav:navigate',
+        ({ id, payload }) => {
+          const url = resolve(id, payload);
+          if (url === null) console.error(`[nav] cannot navigate to "${id}"`);
+          else void router.navigateByUrl(url);
+        },
+        { replay: false },
+      ),
     );
   });
 ```
@@ -131,16 +135,18 @@ It does four things:
    }
    ```
 
-3. **Publishes the resolver as `nav:resolve`.** It is a registry
-   _resource_, so a link that renders later still receives it at once.
-   The remotes use it to render real `href` attributes on anchors (so
-   middle-click, "copy link", and screen-reader URL announcements
-   work). `register()` would call a function argument as a provider,
-   hence `() => resolve`.
+3. **Publishes the resolver as `nav:resolve`.** It is retained
+   _state_ on the bus, so a link that renders later still receives it
+   the moment it subscribes. The remotes use it to render real `href`
+   attributes on anchors (so middle-click, "copy link", and
+   screen-reader URL announcements work). The bus never calls a value,
+   so the function is emitted as is.
 4. **Handles `nav:navigate`.** Every `[navIntent]` click and every
    programmatic navigation in any remote lands here, is resolved, and
-   hits the Router. It subscribes with `replay: 0`, so an old command
-   is never replayed.
+   hits the Router. `nav:navigate` is a _command_: the remotes emit it
+   with `{ retain: false }`, and the host also subscribes with
+   `{ replay: false }`, so an old command is never replayed. The
+   listener is removed when the app's injector is destroyed.
 
 Because all of this runs in one `provideAppInitializer`, by the time
 the user sees the first frame the resolver is published and routing is
@@ -168,9 +174,9 @@ flowchart TB
     DC --> Res
     CC --> Res
 
-    Res -- "nav:resolve resource<br/>(rendering real href)" --> EL
-    Res -- "nav:resolve resource" --> DL
-    Res -- "nav:resolve resource" --> CL
+    Res -- "nav:resolve state<br/>(rendering real href)" --> EL
+    Res -- "nav:resolve state" --> DL
+    Res -- "nav:resolve state" --> CL
 
     EL -- "emits 'nav:navigate'" --> Res
     DL -- "emits 'nav:navigate'" --> Res
@@ -208,6 +214,8 @@ The whole directive:
   host: {
     '[attr.href]': 'isAnchor ? url() : null',
     '[attr.aria-disabled]': 'url() === null ? "true" : null',
+    // Without href an <a> loses its link role, so aria-disabled would be ignored.
+    '[attr.role]': 'isAnchor && url() === null ? "link" : null',
     '(click)': 'navigate($event)',
   },
 })
@@ -223,11 +231,9 @@ export class NavIntentDirective {
   );
 
   constructor() {
-    const stop = window.__NF_REGISTRY__!.onReady<Events['nav:resolve']>(
-      'nav:resolve',
-      (resolve) => this.resolve.set(resolve),
+    inject(DestroyRef).onDestroy(
+      bus.on('nav:resolve', (resolve) => this.resolve.set(resolve)),
     );
-    inject(DestroyRef).onDestroy(stop);
   }
 
   protected navigate(event: MouseEvent): void {
@@ -235,16 +241,24 @@ export class NavIntentDirective {
     if (this.isAnchor && isModifiedClick(event)) return;
     if (this.url() === null) return;
     event.preventDefault();
-    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
-      id: this.navIntent(),
-      payload: this.navPayload(),
-    });
+    navigateTo({ id: this.navIntent(), payload: this.navPayload() });
   }
 }
 ```
 
+If the host has already published the resolver, `bus.on` delivers it
+before it returns, so a link has its `href` from the first render.
+`navigateTo` is the remote's one way to emit `nav:navigate`, in
+`shared/navigate.ts`:
+
+```ts
+// The only place that emits nav:navigate: a command, so a listener that subscribes later never gets it.
+export const navigateTo = (target: NavigatePayload): void =>
+  bus.emit('nav:navigate', target, { retain: false });
+```
+
 That is what makes anchors behave naturally. A plain left-click is
-intercepted and converted into a `nav:navigate` event (no full
+intercepted and converted into a `nav:navigate` command (no full
 reload). A middle-click, `Ctrl+click`, or "Copy link address" is *not*
 intercepted: the real `href` is on the element, so the browser does
 the right thing.
@@ -252,7 +266,7 @@ the right thing.
 When the resolver returns `null` (an unknown intent, or a missing path
 param), the link emits nothing and gets `aria-disabled="true"`, so it
 is announced as unavailable while staying visible. If an unknown
-intent still reaches the host (from a programmatic emit), the host
+intent still reaches the host (from a programmatic `navigateTo`), the host
 logs `[nav] cannot navigate to "…"`. A half-deployed system fails
 *visibly in the console* rather than silently in the URL bar.
 
@@ -284,7 +298,7 @@ sequenceDiagram
     participant U as User
     participant DV as checkout mini-cart<br/>([navIntent]="checkout.cart")
     participant ND as NavIntentDirective<br/>(checkout's copy)
-    participant Bus as window.__NF_REGISTRY__
+    participant Bus as bus (globalThis.__NF_BUS__)
     participant SN as provideNavigation<br/>(host listener)
     participant AR as Angular Router (host)
     participant RS as RemoteShellComponent
@@ -294,8 +308,8 @@ sequenceDiagram
     U->>DV: click (left, no modifier)
     DV->>ND: navigate(event)
     ND->>ND: url() = '/checkout/cart' (via nav:resolve)
-    ND->>Bus: emit('nav:navigate', {id: 'checkout.cart'})
-    Bus->>SN: deliver event
+    ND->>Bus: emit('nav:navigate', {id: 'checkout.cart'}, {retain: false})
+    Bus->>SN: deliver command
     SN->>SN: resolve('checkout.cart') → '/checkout/cart'
     SN->>AR: navigateByUrl('/checkout/cart')
     AR->>RS: activate route, inputs: {remoteName, element: 'mfe-cart'}
@@ -310,19 +324,17 @@ no import between remotes, no shared `Router` instance, no string
 `'/checkout/cart'` typed anywhere in a remote. The only thing crossing
 the boundary is the literal `'checkout.cart'`.
 
-## Programmatic navigation: emit directly
+## Programmatic navigation: `navigateTo`
 
-`[navIntent]` is for templates. From TypeScript, a remote emits the
-same event the directive does:
+`[navIntent]` is for templates. From TypeScript, a remote calls the
+same `navigateTo` the directive does:
 
 ```ts
 // projects/checkout/src/features/checkout/checkout.page.ts
 protected submit(): void {
   if (!this.isReady()) return;
   this.cart.clear();
-  window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
-    id: 'checkout.thanks',
-  });
+  navigateTo({ id: 'checkout.thanks' });
 }
 ```
 
@@ -340,10 +352,10 @@ Two kinds of parameters can travel with an intent:
 - **Query params** — anything in `navPayload` that wasn't consumed by
   a placeholder is appended as a query string.
 
-So an emit like
+So a call like
 
 ```ts
-window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
+navigateTo({
   id: 'decide.product',
   payload: { id: 'CL-01', sku: 'CL-01-GR' },
 });
@@ -378,8 +390,11 @@ never disagree.
   (Without a host there is no resolver, so links render without an
   `href`.)
 - **Standards-friendly.** All cross-app messaging goes through one
-  tiny global (`window.__NF_REGISTRY__`), typed by one interface
-  (`Events`).
+  small bus ([`@softarc/native-federation-communication`][nf-comm]) on
+  one global (`globalThis.__NF_BUS__`), typed by one interface
+  (`Channels`, augmented in `libs/contracts`).
+
+[nf-comm]: https://github.com/native-federation/communication
 
 The intent system is what turns "three Angular apps loaded into one
 page" into "three independently-evolving products that happen to

@@ -1,4 +1,5 @@
 import {
+  DestroyRef,
   type EnvironmentProviders,
   inject,
   provideAppInitializer,
@@ -8,8 +9,8 @@ import type {
   FederationManifest,
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
+import { bus } from '@softarc/native-federation-communication';
 import type {
-  Events,
   NavContribution,
   NavResolver,
 } from '../contracts';
@@ -28,7 +29,7 @@ export const provideNavigation = (
 ): EnvironmentProviders =>
   provideAppInitializer(async () => {
     const router = inject(Router);
-    const registry = window.__NF_REGISTRY__!;
+    const destroyRef = inject(DestroyRef);
     const contributions = await loadContributions(nf, manifest);
 
     const routes = toRoutes(contributions);
@@ -44,20 +45,19 @@ export const provideNavigation = (
     ]);
 
     const resolve = createResolver(contributions);
-    // see Events['nav:resolve']
-    await registry.register<Events['nav:resolve']>(
-      'nav:resolve',
-      () => resolve,
-    );
+    bus.emit('nav:resolve', resolve);
 
-    registry.on<Events['nav:navigate']>(
-      'nav:navigate',
-      ({ data: { id, payload } }) => {
-        const url = resolve(id, payload);
-        if (url === null) console.error(`[nav] cannot navigate to "${id}"`);
-        else void router.navigateByUrl(url);
-      },
-      { replay: 0 },
+    // replay: false ignores a stale command if a remote emitted it without retain: false.
+    destroyRef.onDestroy(
+      bus.on(
+        'nav:navigate',
+        ({ id, payload }) => {
+          const url = resolve(id, payload);
+          if (url === null) console.error(`[nav] cannot navigate to "${id}"`);
+          else void router.navigateByUrl(url);
+        },
+        { replay: false },
+      ),
     );
   });
 

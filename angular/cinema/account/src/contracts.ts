@@ -1,14 +1,6 @@
 // copied from shell/src/contracts.ts
 // Everything the teams agree on. Types only: nothing here exists at runtime,
 // so each app keeps its own implementation of the flow.
-import type { NFEventRegistry } from '@softarc/native-federation-orchestrator/registry';
-
-declare global {
-  interface Window {
-    // Installed by whichever main.ts runs first (see shell/src/main.ts).
-    __NF_REGISTRY__?: NFEventRegistry;
-  }
-}
 
 // What every remote exposes as `nav-contribution`. The public intent id is
 // `${basePath}.${intent.id}`, e.g. 'seating.plan'.

@@ -24,9 +24,9 @@ const filters: FilterItem[] = [
 ];
 
 describe('FilterComponent', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     // Echoes the intent and payload back, so the href shows what the link points at.
-    await publishNavResolver(
+    publishNavResolver(
       (id, payload) => `/${id}?${new URLSearchParams(payload)}`,
     );
   });

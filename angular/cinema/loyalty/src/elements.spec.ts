@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 import { BadgeComponent } from './badge.component';
-import type { Events } from './contracts';
 import { PointsPageComponent } from './points-page.component';
 import { PointsStore } from './points.store';
 import { bookingConfirmedExample } from './testing/contracts.examples';
+import { bus } from '@softarc/native-federation-communication';
 
 const text = (el: Element | null) => el?.textContent?.replace(/\s+/g, ' ').trim();
 const liveText = (badge: HTMLElement) => text(badge.querySelector('[aria-live="polite"]'));
@@ -27,7 +27,7 @@ describe('badge and points page', () => {
     const page = TestBed.createComponent(PointsPageComponent);
     await Promise.all([badge.whenStable(), page.whenStable()]);
 
-    window.__NF_REGISTRY__!.emit<Events['booking:confirmed']>('booking:confirmed', bookingConfirmedExample);
+    bus.emit('booking:confirmed', bookingConfirmedExample, { retain: false });
     await Promise.all([badge.whenStable(), page.whenStable()]);
 
     // The live region itself carries the new text, so screen readers announce it.

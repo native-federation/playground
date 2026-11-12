@@ -16,8 +16,8 @@ describe('CompactHeaderComponent', () => {
     expect(img.getAttribute('alt')).toBe('Micro Frontends - Tractor Store');
   });
 
-  it('links the logo to the explore home intent', async () => {
-    await publishNavResolver((id) => (id === 'explore.home' ? '/' : null));
+  it('links the logo to the explore home intent', () => {
+    publishNavResolver((id) => (id === 'explore.home' ? '/' : null));
     expect(create().querySelector('a')?.getAttribute('href')).toBe('/');
   });
 

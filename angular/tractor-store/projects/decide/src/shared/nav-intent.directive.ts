@@ -7,7 +7,9 @@ import {
   input,
   signal,
 } from '@angular/core';
-import type { Events, NavPayload, NavResolver } from '@tractor-store/contracts';
+import { bus } from '@softarc/native-federation-communication';
+import type { NavPayload, NavResolver } from '@tractor-store/contracts';
+import { navigateTo } from './navigate';
 
 // Links to a page by intent id, e.g. 'decide.product': the host resolves the href and navigates.
 @Directive({
@@ -32,11 +34,9 @@ export class NavIntentDirective {
   );
 
   constructor() {
-    const stop = window.__NF_REGISTRY__!.onReady<Events['nav:resolve']>(
-      'nav:resolve',
-      (resolve) => this.resolve.set(resolve),
+    inject(DestroyRef).onDestroy(
+      bus.on('nav:resolve', (resolve) => this.resolve.set(resolve)),
     );
-    inject(DestroyRef).onDestroy(stop);
   }
 
   protected navigate(event: MouseEvent): void {
@@ -44,10 +44,7 @@ export class NavIntentDirective {
     if (this.isAnchor && isModifiedClick(event)) return;
     if (this.url() === null) return;
     event.preventDefault();
-    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
-      id: this.navIntent(),
-      payload: this.navPayload(),
-    });
+    navigateTo({ id: this.navIntent(), payload: this.navPayload() });
   }
 }
 

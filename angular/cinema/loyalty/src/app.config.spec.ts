@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { getAppInjector } from './app.config';
-import type { Events } from './contracts';
 import { PointsStore } from './points.store';
 import { bookingConfirmedExample } from './testing/contracts.examples';
+import { bus } from '@softarc/native-federation-communication';
 
 describe('app.config', () => {
   // One test on purpose: the app is created once per file, and its store subscribes to the bus
@@ -13,7 +13,7 @@ describe('app.config', () => {
 
     // No component has asked for the store yet: the environment initializer created it,
     // otherwise the badge would miss bookings made before the page first opens.
-    window.__NF_REGISTRY__!.emit<Events['booking:confirmed']>('booking:confirmed', bookingConfirmedExample);
+    bus.emit('booking:confirmed', bookingConfirmedExample, { retain: false });
     expect(injector.get(PointsStore).points()).toBe(20);
   });
 });

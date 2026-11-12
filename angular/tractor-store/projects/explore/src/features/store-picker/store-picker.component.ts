@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import type { Events } from '@tractor-store/contracts';
+import { bus } from '@softarc/native-federation-communication';
 import type { Store } from '../../data/store';
 import { StoreService } from '../../data/store.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
@@ -38,8 +38,6 @@ export class StorePickerComponent {
   protected select(store: Store): void {
     this.selected.set(store);
     this.dialog().nativeElement.close();
-    window.__NF_REGISTRY__!.emit<Events['store:selected']>('store:selected', {
-      id: store.id,
-    });
+    bus.emit('store:selected', { id: store.id });
   }
 }

@@ -55,12 +55,14 @@ here once; the other documents link to it.
 
 - **Decision.**
   - Each repo has its own `src/contracts.ts`: types only, plus the
-    `Window.__NF_REGISTRY__` augmentation, trimmed to what it touches.
+    `Channels` augmentation of `@softarc/native-federation-communication`,
+    trimmed to what it touches.
     Example values live in `src/testing/contracts.examples.ts`.
   - The shell's copy is the reference.
   - Helpers are copied from the tractor store only where used:
     `nav-intent.directive.ts` with its spec, `nav-resolver.stub.ts`, and
-    `testing/setup.ts` (a fresh real registry per test, in every repo).
+    `testing/setup.ts` (a fresh real bus per test, in every repo except
+    account, which never touches the bus).
 - **Why.**
   - The runtime contract is strings. The types only document them.
   - A published npm package needs a registry, a release flow and version
@@ -86,12 +88,14 @@ here once; the other documents link to it.
 - **Cost.** The `seats` string is an implicit contract, pinned down only by
   `seatsParamExample`.
 
-## ADR-05: One domain event, replay 0, shell-mounted consumers only
+## ADR-05: One domain event, sent as a command, shell-mounted consumers only
 
 - **Decision.**
   - `booking:confirmed { bookingRef, ticketCount }` is the only domain
     event. Its consumers are loyalty and notifications.
-  - It is subscribed with `replay: 0`.
+  - Booking emits it with `{ retain: false }`, so the bus keeps nothing for
+    a listener that subscribes later. Both consumers still subscribe with
+    `{ replay: false }`, as a guard against a producer that forgets.
   - **Rule:** a domain event may only be consumed by elements the shell
     mounts at startup. Pages get cross-team data from the URL.
 - **Why.**
@@ -152,9 +156,14 @@ here once; the other documents link to it.
   | `@softarc/native-federation-orchestrator` | `~4.9.0` | `~4.9.0` |
   | `typescript` | `~6.0.0` | `~5.9.0` |
 
-  The orchestrator is in every repo (runtime in `main.ts`, the bus,
-  `testing/setup.ts`). The federation config is the tractor-store style in
-  every repo (the Angular 21 repos import it from
+  The orchestrator is in every repo (`initFederation` in `main.ts`). The
+  bus, [`@softarc/native-federation-communication`](https://github.com/native-federation/communication), is a runtime
+  dependency of every repo except account, pinned to `4.0.0-next.0` while
+  it is a prerelease, and listed in `skip` in `federation.config.mjs`: each
+  repo bundles its own copy, so its version never has to align across
+  repos (architecture.md § Shared dependencies and versions).
+
+  The federation config is the tractor-store style in every repo (the Angular 21 repos import it from
   `@angular-architects/native-federation-v4/config`):
   `fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })`,
   `.patch(['@angular/*'], { includeSecondaries: { keepAll: true } }).get()`,
@@ -199,7 +208,7 @@ here once; the other documents link to it.
 ## ADR-09: Test your own side, plus one runtime smoke
 
 - **Decision.**
-  - Vitest per repo on a real registry, against its own example values.
+  - Vitest per repo on a real bus, against its own example values.
   - `shell/scripts/smoke.mjs` checks every `remoteEntry.json`: name,
     exposes, and that each exposed file is served.
   - A manual walkthrough checks that the sides agree.
@@ -233,7 +242,7 @@ here once; the other documents link to it.
 | Cross-tab `storage` sync | A tractor-store nicety with no architectural lesson. |
 | Query strings in intents | The copied resolver supports them; the demo does not use them. |
 | A "not available" page | `**` redirects to a page that loaded, as in the tractor store. |
-| A fake registry | Specs use the real one through `testing/setup.ts` (ADR-03). |
+| A fake bus | Specs use a real one (`createBus()`) through `testing/setup.ts` (ADR-03). |
 | `integrityHashes`, `denseChunking` | Production hardening that is noise in a demo. |
 | SSR, i18n, locales | Out of scope. |
 | CI pipeline | Not in the first version (architecture.md § Deployment). |

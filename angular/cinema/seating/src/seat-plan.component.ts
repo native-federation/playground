@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } fro
 import { MatButton } from '@angular/material/button';
 import { MatCard } from '@angular/material/card';
 import { MatChip, MatChipSet } from '@angular/material/chips';
-import type { Events, RouteParams } from './contracts';
+import { bus } from '@softarc/native-federation-communication';
+import type { RouteParams } from './contracts';
 import { allSeats, numbers, rows, takenSeats } from './seats';
 
 @Component({
@@ -41,9 +42,14 @@ export class SeatPlanComponent {
   }
 
   protected continue(): void {
-    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
-      id: 'booking.checkout',
-      payload: { screeningId: this.screeningId(), seats: this.seatsParam() },
-    });
+    // A command: retain: false, so a listener that subscribes later never gets it.
+    bus.emit(
+      'nav:navigate',
+      {
+        id: 'booking.checkout',
+        payload: { screeningId: this.screeningId(), seats: this.seatsParam() },
+      },
+      { retain: false },
+    );
   }
 }

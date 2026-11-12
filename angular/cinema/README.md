@@ -24,8 +24,8 @@ no backend. What it shows:
 
 The code style and mechanics follow
 [`../tractor-store`](../tractor-store/docs/architecture.md): custom elements
-via `@angular/elements`, `nav-contribution`, intent navigation, and
-`window.__NF_REGISTRY__`.
+via `@angular/elements`, `nav-contribution` and intent navigation. The event
+bus is [`@softarc/native-federation-communication`](https://github.com/native-federation/communication).
 
 ## Documents
 
@@ -84,13 +84,13 @@ Each repo folder is meant to look like a real repo of its own:
   federation.config.mjs               see decisions.md ADR-08
   src/index.html                      standalone mode: mounts this repo's own element
   public/                             this repo's own static assets
-  src/main.ts                         shell: bus + manifest + initFederation
+  src/main.ts                         shell: manifest + initFederation
                                       remote: standalone only (empty manifest)
   src/bootstrap.ts                    remotes: bootstrap() → createCustomElement
   src/app.config.ts                   remotes: getAppInjector(), one app per remote
   src/nav-contribution.ts             remotes: { basePath, intents }
   src/contracts.ts                    types only; copied from shell, trimmed
-  src/testing/setup.ts                fresh real registry per test
+  src/testing/setup.ts                fresh real bus per test (not in account: it never touches the bus)
   src/testing/contracts.examples.ts   only if the repo uses an example (the shell keeps the reference copy)
   src/shared/nav-intent.directive.ts  + spec, only if the repo renders intent links
   README.md

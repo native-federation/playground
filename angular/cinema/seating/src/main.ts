@@ -4,13 +4,7 @@ import {
   globalThisStorageEntry,
   useShimImportMap,
 } from '@softarc/native-federation-orchestrator/options';
-import { createRegistry } from '@softarc/native-federation-orchestrator/registry';
 import type { RouteParams } from './contracts';
-
-// The event bus must exist before any remote code runs.
-window.__NF_REGISTRY__ ??= Object.freeze(
-  createRegistry({ maxStreams: 20, maxEvents: 1, removePercentage: 0.25 })(),
-);
 
 // Standalone only: no shell, so Continue emits nav:navigate but nothing navigates.
 initFederation({}, {

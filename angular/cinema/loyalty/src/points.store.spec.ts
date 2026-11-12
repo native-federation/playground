@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
-import type { Events } from './contracts';
 import { PointsStore } from './points.store';
 import { bookingConfirmedExample } from './testing/contracts.examples';
+import { bus } from '@softarc/native-federation-communication';
 
+// As booking emits it: a command (ADR-05).
 const confirm = () =>
-  window.__NF_REGISTRY__!.emit<Events['booking:confirmed']>('booking:confirmed', bookingConfirmedExample);
+  bus.emit('booking:confirmed', bookingConfirmedExample, { retain: false });
 
 describe('PointsStore', () => {
   it('earns 10 points per ticket', () => {
@@ -21,12 +22,11 @@ describe('PointsStore', () => {
     expect(store.points()).toBe(40);
   });
 
-  // replay 0 (ADR-05): the registry keeps the last event, but replaying it would double-count.
-  // The registry delivers a replay asynchronously, so wait one task before asserting.
-  it('ignores a booking confirmed before it existed', async () => {
-    confirm();
+  // replay: false (ADR-05): even a value retained by a producer that forgot retain: false
+  // would double-count. The bus replays synchronously, inside on().
+  it('ignores a booking confirmed before it existed', () => {
+    bus.emit('booking:confirmed', bookingConfirmedExample);
     const store = TestBed.inject(PointsStore);
-    await new Promise((resolve) => setTimeout(resolve));
     expect(store.points()).toBe(0);
   });
 });
