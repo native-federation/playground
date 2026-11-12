@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import type { BookingConfirmed, Events } from './contracts';
+import { bus } from '@softarc/native-federation-communication';
+import type { BookingConfirmed } from './contracts';
 
 const visibleMs = 3000;
 
@@ -14,13 +15,11 @@ export class ToastComponent {
   private timer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
-    // replay 0: a booking confirmed before the toast loaded is not shown
+    // replay: false: a booking confirmed before the toast loaded is not shown
     // (see docs/decisions.md ADR-05).
-    const stop = window.__NF_REGISTRY__!.on<Events['booking:confirmed']>(
-      'booking:confirmed',
-      ({ data }) => this.show(data),
-      { replay: 0 },
-    );
+    const stop = bus.on('booking:confirmed', (booking) => this.show(booking), {
+      replay: false,
+    });
     inject(DestroyRef).onDestroy(() => {
       stop();
       clearTimeout(this.timer);

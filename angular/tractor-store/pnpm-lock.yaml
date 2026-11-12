@@ -33,6 +33,9 @@ importers:
       '@angular/router':
         specifier: ~22.2.0
         version: 22.2.0(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2))(@angular/platform-browser@22.2.0(@angular/animations@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)))(@angular/common@22.2.0(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.2.0(@angular/compiler@22.2.0)(rxjs@7.8.2)))(rxjs@7.8.2)
+      '@softarc/native-federation-communication':
+        specifier: 4.0.0-next.0
+        version: 4.0.0-next.0
       es-module-shims:
         specifier: ^1.5.12
         version: 1.10.1
@@ -1633,6 +1636,10 @@ packages:
   '@schematics/angular@22.2.0':
     resolution: {integrity: sha512-IOD+T+S5LyVVuLAtLq/5k+WxnT9UpJecyDPvIT+AWug+mZJkd+HKVVHryenNJBaW29tIxNfoDuVFPEsZ4UKcNw==}
     engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
+
+  '@softarc/native-federation-communication@4.0.0-next.0':
+    resolution: {integrity: sha512-vvAtlN9pjxafjCPxIkT6WaJTGNhC9TLKXFimAWTFfysCbH0zUR/GkeC2kixc6HTOZwTze1iHItDZDGfM4NXXHA==}
+    engines: {node: '>=20.6.0'}
 
   '@softarc/native-federation-orchestrator@4.10.0':
     resolution: {integrity: sha512-XtbJ7/mfq/Qf3dx5vWon2XMBOcGdt63JxiARXVmDiEgENQEKaGmGOnl5Y9HZZUr1teOAm48BYJ/JutPGgQ9U8w==}
@@ -4680,6 +4687,8 @@ snapshots:
       typescript: 6.0.3
     transitivePeerDependencies:
       - chokidar
+
+  '@softarc/native-federation-communication@4.0.0-next.0': {}
 
   '@softarc/native-federation-orchestrator@4.10.0(@softarc/native-federation@4.10.0)':
     dependencies:

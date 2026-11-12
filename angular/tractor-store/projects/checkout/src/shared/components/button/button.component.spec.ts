@@ -41,8 +41,8 @@ describe('ButtonComponent', () => {
     expect(button.disabled).toBe(true);
   });
 
-  it('renders a link to the intent when navIntent is set', async () => {
-    await publishNavResolver((id) => (id === 'checkout.cart' ? '/cart' : null));
+  it('renders a link to the intent when navIntent is set', () => {
+    publishNavResolver((id) => (id === 'checkout.cart' ? '/cart' : null));
     const el = render({ navIntent: 'checkout.cart' });
     expect(el.querySelector('button')).toBeNull();
     expect(el.querySelector('a')?.getAttribute('href')).toBe('/cart');

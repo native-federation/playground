@@ -76,9 +76,10 @@ its own.
 - `store:selected` — when the user picks a pickup store inside
   `mfe-store-picker`
   (`projects/explore/src/features/store-picker/store-picker.component.ts`).
-  Typed as `Events['store:selected']` in
-  `libs/contracts/index.ts` and consumed by
-  `mfe-checkout` to pre-fill the order's store field.
+  Its value type is declared in the `Channels` interface in
+  `libs/contracts/index.ts`. The bus retains the last pick, so
+  `mfe-checkout` pre-fills the order's store field even when it
+  subscribes after the pick.
 
 ---
 
@@ -165,8 +166,9 @@ but load no foreign fragments themselves.
   (`projects/checkout/src/features/checkout/checkout.page.ts`).
 - **Emits** `nav:navigate` after a successful submission, with intent
   `'checkout.thanks'`, to ask the host to route to the confirmation
-  page. This is the same event that `[navIntent]` emits; the page just
-  emits it directly from TypeScript.
+  page. This is the same command that `[navIntent]` emits; the page
+  calls the same `navigateTo` helper (`shared/navigate.ts`) from
+  TypeScript.
 - **No bus for the cart.** `<mfe-add-to-cart>` (inside decide's
   product page) and `<mfe-mini-cart>` (inside explore's header) are
   both checkout elements, so they share checkout's single `CartStore`
@@ -200,18 +202,24 @@ Two heuristics fall out of the table:
 
 ## Cross-remote events
 
-Every event that travels on `window.__NF_REGISTRY__`:
+Every channel on the bus
+([`@softarc/native-federation-communication`][nf-comm]):
 
-| Event            | Emitter                              | Subscriber                                   |
-| ---------------- | ------------------------------------ | -------------------------------------------- |
-| `nav:navigate`   | `[navIntent]` + direct emitters      | host (`provideNavigation`)                   |
-| `nav:resolve`    | host (registers its resolver)        | `NavIntentDirective` in every remote         |
-| `store:selected` | explore (`mfe-store-picker`)         | checkout (`mfe-checkout`)                    |
+| Channel          | Kind    | Emitter                              | Subscriber                                   |
+| ---------------- | ------- | ------------------------------------ | -------------------------------------------- |
+| `nav:navigate`   | command | `navigateTo` (`[navIntent]`, checkout page) | host (`provideNavigation`)            |
+| `nav:resolve`    | state   | host (publishes its resolver)        | `NavIntentDirective` in every remote         |
+| `store:selected` | state   | explore (`mfe-store-picker`)         | checkout (`mfe-checkout`)                    |
 
-Each event's name and payload type are listed once in the `Events`
-interface in `libs/contracts/index.ts`. Emitters and subscribers pass
-that type to the registry (`emit<Events['store:selected']>(…)`), so a
-payload that doesn't match is a compile error on both ends.
+A state value is retained, so a late subscriber gets the current one;
+a command (`{ retain: false }`) only reaches the listeners subscribed
+at that moment. Each channel's name and value type are declared once,
+by augmenting the package's `Channels` interface in
+`libs/contracts/index.ts`. `bus.emit` and `bus.on` take their types
+from it without type arguments, so a value that doesn't match is a
+compile error on both ends.
+
+[nf-comm]: https://github.com/native-federation/communication
 
 ## Contracts
 
@@ -225,7 +233,7 @@ types-only file, `libs/contracts/index.ts` (alias
 | `RemoteElementModule`                     | what every exposed `mfe-*` module exports (`bootstrap`)       |
 | `NavContribution`, `NavIntent`            | each remote's `nav-contribution.ts`                           |
 | `NavPayload`, `NavResolver`, `RouteParams`| links in the remotes and params on routed elements            |
-| `Events` and the payload types            | every event on the bus, plus the `window.__NF_REGISTRY__` type |
+| `Channels` (augmented) and the payload types | every channel on the bus and its value type                 |
 
 Everything else, including the bootstrap, the remote loader, the
 `[navIntent]` directive and the button, is written out in each app

@@ -6,9 +6,7 @@ import type {
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
 import type {
-  Events,
   NavContribution,
-  NavResolver,
 } from '@tractor-store/contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { testManifest } from '../testing/manifest.fixture';
@@ -18,6 +16,7 @@ import {
   exploreContribution,
 } from '../testing/nav-contribution.fixture';
 import { provideNavigation } from './navigation';
+import { bus, type ChannelValue } from '@softarc/native-federation-communication';
 
 const bothRemotes = () =>
   fakeNfByRemote({
@@ -45,13 +44,9 @@ const setup = async (
   await TestBed.inject(ApplicationInitStatus).donePromise;
   const router = TestBed.inject(Router);
 
-  let resolve!: NavResolver;
-  window.__NF_REGISTRY__!.onReady<Events['nav:resolve']>(
-    'nav:resolve',
-    (r) => (resolve = r),
-  );
-  const navigate = (data: Events['nav:navigate']) =>
-    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', data);
+  const resolve = bus.peek('nav:resolve')!;
+  const navigate = (data: ChannelValue<'nav:navigate'>) =>
+    bus.emit('nav:navigate', data, { retain: false });
 
   return { router, navigateByUrl, resolve, navigate };
 };
@@ -255,13 +250,9 @@ describe('provideNavigation', () => {
     });
 
     it('does not replay a command emitted before the host listened', async () => {
-      // A stale command (e.g. from a previous page) must not trigger a navigation on start-up.
-      window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
-        id: 'explore.products',
-      });
+      // A stale command a remote emitted without retain: false must not trigger a navigation on start-up.
+      bus.emit('nav:navigate', { id: 'explore.products' });
       const { navigateByUrl } = await setup(bothRemotes());
-      // Give a late replay a full macrotask to arrive before asserting it never came.
-      await new Promise((resolve) => setTimeout(resolve));
       expect(navigateByUrl).not.toHaveBeenCalled();
     });
   });

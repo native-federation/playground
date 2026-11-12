@@ -2,18 +2,19 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { BOOKING_REF } from './booking-ref';
 import { CheckoutComponent } from './checkout.component';
-import type { BookingConfirmed, Events, RouteParams } from './contracts';
+import type { BookingConfirmed, RouteParams } from './contracts';
 import { bookingConfirmedExample, seatsParamExample } from './testing/contracts.examples';
+import { bus } from '@softarc/native-federation-communication';
 
 describe('CheckoutComponent', () => {
   let confirmations: BookingConfirmed[];
 
   beforeEach(() => {
     confirmations = [];
-    window.__NF_REGISTRY__!.on<Events['booking:confirmed']>(
+    bus.on(
       'booking:confirmed',
-      ({ data }) => confirmations.push(data),
-      { replay: 0 },
+      (value) => confirmations.push(value),
+      { replay: false },
     );
     TestBed.configureTestingModule({
       providers: [{ provide: BOOKING_REF, useValue: () => 'BR-0001' }],

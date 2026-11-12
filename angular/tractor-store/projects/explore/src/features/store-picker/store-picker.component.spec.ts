@@ -1,6 +1,5 @@
 import { IMAGE_LOADER } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import type { Events } from '@tractor-store/contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cdnImageLoader } from '../../app.config';
 import { StoreService } from '../../data/store.service';
@@ -8,6 +7,7 @@ import { testEnv } from '../../testing/env.fixture';
 import { fakeStoreService } from '../../testing/store-service.stub';
 import { storeFixture } from '../../testing/store.fixture';
 import { StorePickerComponent } from './store-picker.component';
+import { bus, type ChannelValue } from '@softarc/native-federation-communication';
 
 describe('StorePickerComponent', () => {
   beforeEach(() => {
@@ -72,10 +72,10 @@ describe('StorePickerComponent', () => {
   });
 
   it('selecting a store shows it, closes the dialog and announces it on the bus', async () => {
-    const announced: Events['store:selected'][] = [];
-    window.__NF_REGISTRY__!.on<Events['store:selected']>(
+    const announced: ChannelValue<'store:selected'>[] = [];
+    bus.on(
       'store:selected',
-      ({ data }) => announced.push(data),
+      (value) => announced.push(value),
     );
     const { fixture, root, dialog, selectButtons } = await render();
 

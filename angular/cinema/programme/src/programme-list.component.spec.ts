@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Events, NavigatePayload } from './contracts';
+import type { NavigatePayload } from './contracts';
 import { ProgrammeListComponent } from './programme-list.component';
 import { publishNavResolver } from './testing/nav-resolver.stub';
+import { bus } from '@softarc/native-federation-communication';
 
 describe('ProgrammeListComponent', () => {
   let navigations: NavigatePayload[];
@@ -10,13 +11,13 @@ describe('ProgrammeListComponent', () => {
 
   beforeEach(async () => {
     navigations = [];
-    window.__NF_REGISTRY__!.on<Events['nav:navigate']>(
+    bus.on(
       'nav:navigate',
-      ({ data }) => navigations.push(data),
-      { replay: 0 },
+      (value) => navigations.push(value),
+      { replay: false },
     );
     // Any non-null URL makes the links live; the shell's real resolver is tested there.
-    await publishNavResolver((id) => `/${id}`);
+    publishNavResolver((id) => `/${id}`);
 
     const fixture = TestBed.createComponent(ProgrammeListComponent);
     await fixture.whenStable();

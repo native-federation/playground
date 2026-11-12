@@ -29,7 +29,7 @@ flowchart TD
 
     ShellSide e1@==>|"manifest → remoteEntry.json"| RemoteSide
     ShellSide e2@==>|"loads nav-contribution + mfe-* elements"| RemoteSide
-    RemoteSide e3@-->|"nav:navigate via __NF_REGISTRY__"| ShellSide
+    RemoteSide e3@-->|"nav:navigate on the bus"| ShellSide
 
     e1@{animate: true}
     e2@{animate: true}
@@ -47,8 +47,6 @@ domain event**. Its `contracts.ts` only holds the reference types that every
 repo copies (ADR-03).
 
 - `main.ts`:
-  - installs the event bus `window.__NF_REGISTRY__` (`??=`, as in the
-    tractor store);
   - fetches `public/federation.manifest.json` with `no-cache`;
   - runs the orchestrator's `initFederation(manifest, { ...useShimImportMap({ shimMode: true }), hostRemoteEntry: './remoteEntry.json', ... })`.
     `hostRemoteEntry` puts the shell's own shared Angular in the import
@@ -64,7 +62,8 @@ repo copies (ADR-03).
     parameterless page that did load. If none loaded, `**` is an empty route
     (`children: []`) that keeps the URL and renders nothing in the outlet, so
     the router never throws `NG04002`. There is no "not available" page;
-  - registers `nav:resolve` and handles `nav:navigate` with `replay: 0`;
+  - emits the resolver on `nav:resolve` and handles `nav:navigate` (see
+    [Events](#events));
   - the resolver is copied unchanged, with one addition: it
     **`console.warn`s on an unknown intent id or a missing param**. Without
     that, a misspelled id looks exactly like a remote that is down.
@@ -174,11 +173,20 @@ to `routeParams`.
 
 ### Events
 
-| Event | Kind | Direction | Subscribe with |
+The bus is [`@softarc/native-federation-communication`](https://github.com/native-federation/communication). No repo
+installs it: the first `bus` call on the page installs it on
+`globalThis.__NF_BUS__`, and every copy of the package finds that one bus,
+whichever Angular major or share scope the repo uses (see
+[Shared dependencies and versions](#shared-dependencies-and-versions)).
+`bus.emit(channel, value)` retains the value, and `bus.on` hands a retained
+value to a new listener before it returns. `{ retain: false }` makes the
+value a **command**: only current listeners get it, and nothing is kept.
+
+| Channel | Kind | Direction | Emitted / subscribed with |
 |---|---|---|---|
-| `nav:navigate` | command | any remote → shell | `replay: 0`: an old navigation must never be replayed |
-| `nav:resolve` | resource (`register('nav:resolve', () => resolve)`) | shell → any `[navIntent]` | `onReady`: a link that renders late still gets the resolver |
-| `booking:confirmed` | domain fact | booking → loyalty, notifications | `replay: 0`, see [ADR-05](decisions.md#adr-05-one-domain-event-replay-0-shell-mounted-consumers-only) |
+| `nav:navigate` | command | any remote → shell | emitted with `{ retain: false }` (`navigateTo()` in `src/shared/navigate.ts`, inline in seating); the shell listens with `{ replay: false }`: an old navigation must never be replayed |
+| `nav:resolve` | state: the shell's `NavResolver` | shell → any `[navIntent]` | `bus.emit('nav:resolve', resolve)`, retained; `bus.on` without options: a link that renders late still gets the resolver |
+| `booking:confirmed` | domain fact, sent as a command | booking → loyalty, notifications | `{ retain: false }` and `{ replay: false }`, see [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only) |
 
 ## Fragments and resilience
 
@@ -236,14 +244,18 @@ touches.**
 - The shell's copy is the reference. Every other copy starts with
   `// copied from shell/src/contracts.ts`.
 - `src/contracts.ts` holds **types only**, imported with `import type`,
-  never shared through federation (`sharedMappings: []`). Every copy also
-  holds the `declare global { interface Window { __NF_REGISTRY__?: NFEventRegistry } }`
-  augmentation, so the file is listed in the tsconfig `include` and not
-  only reached through imports.
+  never shared through federation (`sharedMappings: []`). Every copy that
+  uses the bus also holds the
+  `declare module '@softarc/native-federation-communication' { interface Channels { ... } }`
+  augmentation, which types every `bus` call: no type arguments at call
+  sites, and `ChannelValue<'nav:navigate'>` names a channel's value type.
+  The file is listed in the tsconfig `include`, so the augmentation applies
+  without being imported.
 - Example values live in **`src/testing/contracts.examples.ts`**
   (`bookingConfirmedExample`, `seatsParamExample`), so production code
   imports no contract values.
-- Copy rule: `Events` if the repo emits or subscribes; `NavPayload` and
+- Copy rule: the `Channels` entries the repo emits or subscribes to (none
+  in account); `NavPayload` and
   `NavResolver` if it has the directive; `NavContribution` in every remote;
   `RouteParams` if a page takes params; `BookingConfirmed` for booking,
   loyalty and notifications.
@@ -252,8 +264,9 @@ touches.**
   | File | In |
   |---|---|
   | `src/shared/nav-intent.directive.ts` + its `.spec.ts` | shell, programme, film |
+  | `src/shared/navigate.ts` (`navigateTo()`, the `nav:navigate` command) | shell, programme, film |
   | `src/testing/nav-resolver.stub.ts` | shell, programme, film |
-  | `src/testing/setup.ts` (fresh real registry per test) | every repo |
+  | `src/testing/setup.ts` (fresh real bus per test) | every repo except account |
 
 - In production you would publish a types-only npm package as a
   devDependency instead.
@@ -276,6 +289,13 @@ scope. The ranges, the
 federation config and the verified drift behaviour are stated once, in
 [ADR-08](decisions.md#adr-08-versions-are-aligned-by-convention).
 
+The bus package is the exception: it is not shared. Every repo that uses
+the bus lists `@softarc/native-federation-communication` in `skip` in its
+`federation.config.mjs`, so each bundles its own copy, and the copies meet
+on `globalThis.__NF_BUS__` (see the package's
+[multiple copies](https://github.com/native-federation/communication/blob/main/docs/multiple-copies.md)). No repo has
+to match another's version of it.
+
 **Package manager: npm**, per repo
 ([ADR-02](decisions.md#adr-02-polyrepo-with-no-root-workspace)).
 
@@ -284,12 +304,11 @@ federation config and the verified drift behaviour are stated once, in
 - Every repo: `npm install`, then `npm start` (`ng serve` on its fixed port,
   4300–4307). `npm test` runs Vitest.
 - **Standalone mode** (remotes only). The remote's `main.ts`:
-  1. installs a bus (`window.__NF_REGISTRY__ ??= createRegistry(...)()`);
-  2. calls `initFederation({}, { ...useShimImportMap({ shimMode: true }), hostRemoteEntry: './remoteEntry.json' })`.
+  1. calls `initFederation({}, { ...useShimImportMap({ shimMode: true }), hostRemoteEntry: './remoteEntry.json' })`.
      The empty object is the manifest. The remote still needs
      `initFederation`, because its build externalizes Angular and the import
      map comes from its own `remoteEntry.json`;
-  3. sets fixed `routeParams` on the element that `src/index.html` mounts,
+  2. sets fixed `routeParams` on the element that `src/index.html` mounts,
      for example `{ screeningId: 's-101' }` (before the upgrade, so the
      first render has them), then imports `./bootstrap` and calls
      `bootstrap()`.

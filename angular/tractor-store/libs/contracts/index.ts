@@ -1,14 +1,6 @@
 // Everything the teams agree on. Types only: nothing here exists at runtime,
 // so each app keeps its own implementation of the flow.
 import type { NativeFederationResult } from '@softarc/native-federation-orchestrator';
-import type { NFEventRegistry } from '@softarc/native-federation-orchestrator/registry';
-
-declare global {
-  interface Window {
-    // Installed by whichever main.ts runs first (see projects/host/src/main.ts).
-    __NF_REGISTRY__?: NFEventRegistry;
-  }
-}
 
 // public/env.config.json of every app.
 export interface EnvironmentConfig {
@@ -56,12 +48,13 @@ export interface StoreSelectedPayload {
   readonly id: string;
 }
 
-// Every event on window.__NF_REGISTRY__, by name.
-export interface Events {
-  // Command (emit with replay 0): ask the host to navigate to an intent.
-  'nav:navigate': NavigatePayload;
-  // Resource (register/onReady): the host's NavResolver. register() calls a
-  // function argument as a provider, so the host registers `() => resolve`.
-  'nav:resolve': NavResolver;
-  'store:selected': StoreSelectedPayload;
+// Every channel on the bus, by name.
+declare module '@softarc/native-federation-communication' {
+  interface Channels {
+    // Command (emit with { retain: false }): ask the host to navigate to an intent.
+    'nav:navigate': NavigatePayload;
+    // State: the host's NavResolver, retained for links that render later.
+    'nav:resolve': NavResolver;
+    'store:selected': StoreSelectedPayload;
+  }
 }

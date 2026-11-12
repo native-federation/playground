@@ -48,7 +48,7 @@ flowchart TD
 
     HostSide e1@==>|"federation.manifest.json"| RemoteSide
     HostSide e2@==>|"loads nav-contribution<br/>+ mfe-* elements"| RemoteSide
-    RemoteSide e3@-->|"emits nav:navigate<br/>via __NF_REGISTRY__"| HostSide
+    RemoteSide e3@-->|"emits nav:navigate<br/>on the event bus"| HostSide
 
     e1@{animate: true}
     e2@{animate: true}
@@ -216,38 +216,42 @@ Its `equal` function compares the values, so the element only sees a
 new object when a value actually changed. An `effect` mounts the element and
 assigns `routeParams`.
 
-### 2. The event bus (`window.__NF_REGISTRY__`)
+### 2. The event bus (`@softarc/native-federation-communication`)
 
 Custom elements solve composition: a remote can mount another remote's
 UI. But composition alone is not enough — the remotes also need to
-_talk_ to each other. They do that through a small, shared event bus
-that each app's `main.ts` installs before Angular bootstraps.
+_talk_ to each other. They do that through a small event bus, the
+[`@softarc/native-federation-communication`][nf-comm] package. In
+these docs it is always called _the event bus_.
 
-The bus lives on `window.__NF_REGISTRY__`. In these docs it is always
-called _the event bus_. It is created at
-the top of every app's `main.ts`, so a remote running standalone gets a
-bus too:
+No app installs it. The first `bus` call on a page installs the bus on
+`globalThis.__NF_BUS__`, and every later call, from any app, uses that
+one. So a remote running standalone gets a bus too, and nothing has to
+run before federation init. Every app bundles its own copy of the
+package (it is listed in `skip` in each `federation.config.mjs`, so
+Native Federation does not share it, see
+[Contracts](#contracts-not-a-shared-library)); the copies still find
+the one bus on the global (see [Multiple copies][nf-comm-copies]).
 
-```ts
-window.__NF_REGISTRY__ ??= Object.freeze(
-  createRegistry({ maxStreams: 20, maxEvents: 1, removePercentage: 0.25 })(),
-);
-```
-
-It is the [event registry][nf-registry] of the Native Federation
-orchestrator: event streams (`emit(name, data)` / `on(name, handler)`)
-plus latched resources (`register(name, value)` / `onReady(name,
-handler)`). The apps call it directly; there is no wrapper around it.
-What the teams agree on is the `Events` interface in
-`libs/contracts/index.ts`, which maps every event name to its payload
-type:
+A _channel_ is a string name. `bus.emit(channel, value)` delivers the
+value to the channel's listeners and _retains_ it as the channel's
+current state; `bus.on(channel, listener)` subscribes and returns
+`off`; `bus.peek(channel)` reads the retained value (see the
+[API][nf-comm-api]). The apps call `bus` directly; there is no wrapper
+around it. What the teams agree on is the package's `Channels`
+interface, which `libs/contracts/index.ts` augments with every channel
+name and its value type:
 
 ```ts
 // libs/contracts/index.ts
-export interface Events {
-  'nav:navigate': NavigatePayload;
-  'nav:resolve': NavResolver;
-  'store:selected': StoreSelectedPayload;
+declare module '@softarc/native-federation-communication' {
+  interface Channels {
+    // Command (emit with { retain: false }): ask the host to navigate to an intent.
+    'nav:navigate': NavigatePayload;
+    // State: the host's NavResolver, retained for links that render later.
+    'nav:resolve': NavResolver;
+    'store:selected': StoreSelectedPayload;
+  }
 }
 ```
 
@@ -255,39 +259,45 @@ Emitting and listening look the same in every app:
 
 ```ts
 // projects/explore/src/features/store-picker/store-picker.component.ts
-window.__NF_REGISTRY__!.emit<Events['store:selected']>('store:selected', { id: store.id });
+bus.emit('store:selected', { id: store.id });
 
 // projects/checkout/src/features/checkout/checkout.page.ts
-const stop = window.__NF_REGISTRY__!.on<Events['store:selected']>(
-  'store:selected',
-  ({ data }) => this.form.controls.storeId.setValue(data.id),
+inject(DestroyRef).onDestroy(
+  bus.on('store:selected', ({ id }) => this.form.controls.storeId.setValue(id)),
 );
-inject(DestroyRef).onDestroy(stop);
 ```
 
-`on` replays the last event to a new subscriber by default. The host
-subscribes to `nav:navigate` with `{ replay: 0 }`, because a navigation
-command must never be replayed. `nav:resolve` is a resource, so a link
-that renders after the host published it receives it at once.
+The listener gets the value itself. If the channel holds a retained
+value, `on` delivers it synchronously, before it returns, then every
+later emit. That suits state: `store:selected` and `nav:resolve` reach
+an element that renders after they were emitted. A navigation request
+is a _command_ instead, which must never be replayed: every remote
+emits `nav:navigate` with `{ retain: false }` (through its one
+`navigateTo` helper in `shared/navigate.ts`), so it reaches only the
+listeners subscribed at that moment, and the host also subscribes with
+`{ replay: false }`. Values are never called or copied, so the host
+emits its resolver function as is.
 
-> **Gotcha:** `register(name, value)` treats a function `value` as a
-> provider and stores what it _returns_. The host publishes its resolver
-> function as `register('nav:resolve', () => resolve)`.
+[nf-comm]: https://github.com/native-federation/communication
+[nf-comm-api]: https://github.com/native-federation/communication/blob/main/docs/api.md
+[nf-comm-copies]: https://github.com/native-federation/communication/blob/main/docs/multiple-copies.md
+[nf-comm-typing]: https://github.com/native-federation/communication/blob/main/docs/typing.md
 
-[nf-registry]: https://native-federation.com/docs/v4/orchestrator/event-registry
-
-The type parameter (`Events['store:selected']`) makes a payload that
-doesn't match the contract a compile-time error. The event name itself
-is still a string, so keep it next to the type in `Events` and search
-for it when you rename it.
+With the augmentation, `bus.emit` and `bus.on` are typed without type
+arguments: a value that doesn't match the contract is a compile-time
+error, and a listener's parameter has the channel's type. In other
+code, `ChannelValue<'store:selected'>` names that type. The channel
+name itself is still a string; a misspelt one compiles as another,
+untyped channel (see [what the types don't catch][nf-comm-typing]), so
+keep names in `Channels` and search for them when you rename one.
 
 > Cam Jackson, _martinfowler.com_: "_Custom events allow micro
 > frontends to communicate indirectly, which is a good way to minimise
 > direct coupling, though it does make it harder to determine and
 > enforce the contract that exists between micro frontends._"
 
-The `Events` interface is the answer to Jackson's caveat: every event's
-contract is in one file that both ends import as a type.
+The `Channels` augmentation is the answer to Jackson's caveat: every
+channel's contract is in one file that both ends import as a type.
 
 #### The channels in use today
 
@@ -310,19 +320,19 @@ flowchart LR
     PD -- "nav:navigate" --> SN
     SP -- "nav:navigate" --> SN
     CO -- "nav:navigate" --> SN
-    NR -- "nav:resolve (resource)" --> Explore
-    NR -- "nav:resolve (resource)" --> Decide
-    NR -- "nav:resolve (resource)" --> Checkout
+    NR -- "nav:resolve (state)" --> Explore
+    NR -- "nav:resolve (state)" --> Decide
+    NR -- "nav:resolve (state)" --> Checkout
     SP -- "store:selected" --> CO
 ```
 
-| Event            | Direction                 | Purpose                                                                       |
+| Channel          | Direction                 | Purpose                                                                       |
 | ---------------- | ------------------------- | ----------------------------------------------------------------------------- |
-| `nav:navigate`   | remote → host             | Intent-based navigation requests (from `[navIntent]` or emitted directly)      |
-| `nav:resolve`    | host → remotes (resource) | The `NavResolver` (`(id, payload) => url \| null`) so links render real `href`s |
-| `store:selected` | explore → checkout        | Notify checkout when the user picks a pickup store                            |
+| `nav:navigate`   | remote → host (command)   | Intent-based navigation requests (from `[navIntent]` or `navigateTo`)          |
+| `nav:resolve`    | host → remotes (state)    | The `NavResolver` (`(id, payload) => url \| null`) so links render real `href`s |
+| `store:selected` | explore → checkout (state) | Notify checkout when the user picks a pickup store                           |
 
-All three are typed in `libs/contracts/index.ts` (`Events`).
+All three are typed in `libs/contracts/index.ts` (`Channels`).
 
 State that stays inside one remote does not need the bus. All of
 checkout's elements (`<mfe-cart>`, `<mfe-mini-cart>`,
@@ -332,9 +342,9 @@ tab is kept in sync by `CartStore` listening to the window's `storage`
 events (`projects/checkout/src/data/cart-store.ts`).
 
 The pattern generalises: when two MFEs need to coordinate on a piece
-of state, add the event and its payload type to `Events` and use the
-registry on both sides. No singleton service, no shared DI tree, no
-shared runtime code.
+of state, add the channel and its value type to `Channels` and use
+`bus` on both sides. No singleton service, no shared DI tree, no
+shared team code.
 
 ### 3. Intent-based navigation
 
@@ -386,7 +396,6 @@ sequenceDiagram
     participant Router as Angular Router
 
     Browser->>Main: load
-    Main->>Main: install __NF_REGISTRY__ (if missing)
     Main->>Main: fetch env.config.json + federation.manifest.json
     Main->>Main: initFederation(manifest, …)
     Main->>Boot: bootstrap(env, nf, manifest)
@@ -394,8 +403,8 @@ sequenceDiagram
     Boot->>Nav: bootstrapApplication(App, { providers: [provideNavigation(nf, manifest), …] })
     Nav->>Nav: load every remote's nav-contribution<br/>(Promise.allSettled)
     Nav->>Router: router.resetConfig([…remote routes, '**' → fallback])
-    Nav->>Nav: register('nav:resolve', () => resolve)
-    Nav->>Nav: on('nav:navigate', …, { replay: 0 })
+    Nav->>Nav: bus.emit('nav:resolve', resolve)
+    Nav->>Nav: bus.on('nav:navigate', …, { replay: false })
     Router-->>Browser: first paint
 ```
 
@@ -427,8 +436,9 @@ bootstrap. Two artefacts drive everything, both fetched with
   any subsequent `nf.loadRemoteModule(remoteName, exposedModule)`
   resolves to the right bundle.
 
-`__NF_REGISTRY__` is installed _before_ federation init, so remotes
-that touch the bus during their own bootstrap always find it there.
+No step installs the event bus: the first `bus` call, from whichever
+app makes it, puts it on `globalThis.__NF_BUS__`, so it is there for
+every remote no matter which bootstraps first.
 
 ## Native Federation vs. Module Federation
 
@@ -446,8 +456,9 @@ with Angular 17+'s default builder.
 
 This workspace uses
 [`@angular-architects/native-federation`](https://www.npmjs.com/package/@angular-architects/native-federation)
-plus `@softarc/native-federation-orchestrator` (the runtime that
-ships `createRegistry`, the event bus we attach to `__NF_REGISTRY__`).
+plus `@softarc/native-federation-orchestrator` (the runtime behind
+`initFederation` and `loadRemoteModule`). The event bus is a separate
+package, [`@softarc/native-federation-communication`][nf-comm].
 
 ## Contracts, not a shared library
 
@@ -455,7 +466,9 @@ The apps share **no runtime code**. Every piece of wiring (the
 bootstrap, the remote loader, the link directive, the button) lives
 in the app that uses it, even when that means three copies. That keeps
 each app readable on its own and lets each team change its copy
-without coordinating a release with the others.
+without coordinating a release with the others. Third-party packages
+are dependencies, not team code: Angular is shared through federation,
+and the event bus package is bundled into each app.
 
 What the teams _do_ agree on lives in one types-only file,
 `libs/contracts/index.ts`, imported as `@tractor-store/contracts`:
@@ -466,7 +479,7 @@ What the teams _do_ agree on lives in one types-only file,
 | `RemoteElementModule`                         | the loaders and every exposed `bootstrap.ts`        |
 | `NavContribution`, `NavIntent`                | each remote's `nav-contribution.ts` and the host    |
 | `NavPayload`, `NavResolver`, `RouteParams`    | the host's navigation and the remotes' pages/links  |
-| `Events` (+ payload types), `window.__NF_REGISTRY__` | everyone on the event bus                     |
+| `Channels` augmentation (+ payload types)     | everyone on the event bus                           |
 
 Because it is imported with `import type` only, it compiles away:
 nothing from it exists at runtime and nothing needs to be shared
@@ -478,7 +491,14 @@ shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion:
   .patch(['@angular/*'], { includeSecondaries: { keepAll: true } })
   .get(),
 sharedMappings: [],
-skip: ['rxjs/ajax', 'rxjs/fetch', 'rxjs/testing', 'rxjs/webSocket'],
+skip: [
+  'rxjs/ajax',
+  'rxjs/fetch',
+  'rxjs/testing',
+  'rxjs/webSocket',
+  // Bundled into every app instead of shared: each copy finds the page's one bus on globalThis.__NF_BUS__.
+  '@softarc/native-federation-communication',
+],
 ```
 
 What the flags mean:
@@ -498,7 +518,10 @@ What the flags mean:
   every TypeScript path alias in `tsconfig.json`. There is nothing to
   share, so it is turned off explicitly.
 - **`skip`** trims rxjs sub-entries that aren't used at runtime,
-  cutting the shared bundle.
+  cutting the shared bundle. It also keeps the event bus package out
+  of `shared`: every app bundles its own copy, so no app depends on
+  another one's version of it, and all copies use the one bus on
+  `globalThis.__NF_BUS__`.
 
 > Cam Jackson, _martinfowler.com_: "_The most obvious candidates for
 > sharing are 'dumb' visual primitives such as icons, labels, and

@@ -1,14 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Events } from './contracts';
 import { ToastComponent } from './toast.component';
 import { bookingConfirmedExample } from './testing/contracts.examples';
+import { bus } from '@softarc/native-federation-communication';
 
+// As booking emits it: a command (ADR-05).
 const confirm = (bookingRef = bookingConfirmedExample.bookingRef) =>
-  window.__NF_REGISTRY__!.emit<Events['booking:confirmed']>('booking:confirmed', {
-    ...bookingConfirmedExample,
-    bookingRef,
-  });
+  bus.emit('booking:confirmed', { ...bookingConfirmedExample, bookingRef }, { retain: false });
 
 // Under fake timers, whenStable() would hang on the zoneless scheduler's own timer,
 // so these specs render with detectChanges().
@@ -56,12 +54,11 @@ describe('ToastComponent', () => {
     expect(toast()).toBeNull();
   });
 
-  // replay 0 (ADR-05): the registry keeps the last event, but replaying it would show a stale toast.
-  // The registry delivers a replay in a microtask, so flush pending work before asserting.
-  it('ignores a booking confirmed before it existed', async () => {
-    confirm();
+  // replay: false (ADR-05): even a value retained by a producer that forgot retain: false
+  // would show a stale toast. The bus replays synchronously, inside on().
+  it('ignores a booking confirmed before it existed', () => {
+    bus.emit('booking:confirmed', bookingConfirmedExample);
     const { toast } = render();
-    await vi.advanceTimersByTimeAsync(0);
     expect(toast()).toBeNull();
   });
 
