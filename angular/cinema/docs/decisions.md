@@ -224,6 +224,27 @@ here once; the other documents link to it.
 - **Why.** The other examples in this repository use 4200 to 4203, so the
   demo can run next to them without port collisions.
 
+## ADR-11: A remote switcher in the shell, applied by reload
+
+- **Decision.**
+  - `shell/src/remote-switcher/` is demo tooling: a draggable panel with one
+    checkbox per remote. `main.ts` filters the fetched manifest before
+    `initFederation`.
+  - The selection lives in `sessionStorage['cinema.remotes']`. The default is
+    programme, seating, booking and loyalty: the happy path plus the event
+    consumer, all on Angular 22.
+  - Apply reloads the page, both to enable and to disable a remote.
+- **Why.**
+  - The manifest stays complete (ADR-07); filtering at runtime keeps smoke
+    and `start-all.sh` unchanged.
+  - A remote cannot be removed from a live page: there is no public API, and
+    `customElements.define` cannot be undone. Enabling live would need
+    re-runnable routes in `navigation.ts`, so both directions reload.
+  - A disabled remote behaves exactly like a remote that is down.
+- **Cost.** Disabled remotes log `[remote] failed to load` for their
+  fragment slots. Removing the tool means deleting the folder and three
+  one-line touch points in `main.ts`, `app.ts` and `app.html`.
+
 ## YAGNI: deliberately left out
 
 | Cut | Why it does not earn its place |

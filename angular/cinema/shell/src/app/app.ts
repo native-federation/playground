@@ -11,6 +11,7 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { NavIntentDirective } from '../shared/nav-intent.directive';
 import { RemoteElementDirective } from '../shared/remote-element';
+import { RemoteSwitcher } from '../remote-switcher/remote-switcher';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,7 @@ import { RemoteElementDirective } from '../shared/remote-element';
     MatButton,
     NavIntentDirective,
     RemoteElementDirective,
+    RemoteSwitcher,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',

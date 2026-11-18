@@ -4,10 +4,12 @@ import {
   globalThisStorageEntry,
   useShimImportMap,
 } from '@softarc/native-federation-orchestrator/options';
+import { applyRemoteSelection } from './remote-switcher/remote-selection';
 
 // Always revalidate: the manifest differs per deployment.
 fetch('./federation.manifest.json', { cache: 'no-cache' })
   .then((resp) => resp.json())
+  .then(applyRemoteSelection)
   .then(async (manifest) => {
     const nf = await initFederation(manifest, {
       ...useShimImportMap({ shimMode: true }),
