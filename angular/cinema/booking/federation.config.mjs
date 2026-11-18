@@ -4,6 +4,7 @@ export default withNativeFederation({
   name: '@cinema/booking',
   exposes: {
     'mfe-booking-checkout': './src/bootstrap.ts',
+    'mfe-booking-start': './src/bootstrap.ts',
     'nav-contribution': './src/nav-contribution.ts',
   },
   shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })

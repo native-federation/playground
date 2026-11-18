@@ -6,6 +6,8 @@ import {
   seatingContribution,
 } from '../testing/nav-contribution.fixture';
 import {
+  declaredFragments,
+  defineFragments,
   fragmentsIn,
   loadContributions,
   menuEntries,
@@ -69,14 +71,14 @@ const remote = (
 ): RemoteContribution => ({ remoteName, contribution });
 
 describe('menuEntries', () => {
-  it('turns labelled intents and header fragments into one entry per team', () => {
+  it('turns labelled intents and header fragments into one entry per team, without embeds', () => {
     const entries = menuEntries([
       remote('@x/loyalty', {
         basePath: 'loyalty',
         intents: [{ id: 'points', path: '', menuLabel: 'Points' }],
         fragments: [
           { element: 'mfe-badge', slot: 'header' },
-          { element: 'mfe-toast', slot: 'overlay' },
+          { element: 'mfe-embed' },
         ],
       }),
     ]);
@@ -102,27 +104,65 @@ describe('menuEntries', () => {
   });
 });
 
+// Remote data the contract does not allow: a non-string element, slots the shell
+// does not have ('overlay' was retired by ADR-15), a null entry, and a non-array.
+const broken = remote('@x/b', {
+  basePath: 'b',
+  intents: [],
+  fragments: [
+    { element: 42, slot: 'header' },
+    { element: 'mfe-x', slot: 'footer' },
+    { element: 'mfe-y', slot: 'overlay' },
+    null,
+  ],
+} as unknown as RemoteContribution['contribution']);
+const notAnArray = remote('@x/c', {
+  basePath: 'c',
+  intents: [],
+  fragments: 'mfe-z',
+} as unknown as RemoteContribution['contribution']);
+const valid = remote('@x/a', {
+  basePath: 'a',
+  intents: [],
+  fragments: [{ element: 'mfe-badge', slot: 'header' }, { element: 'mfe-card' }],
+});
+
+describe('declaredFragments', () => {
+  it('returns header and slot-less fragments and ignores malformed ones', () => {
+    expect(declaredFragments([valid, broken, notAnArray])).toEqual([
+      { remoteName: '@x/a', element: 'mfe-badge', slot: 'header' },
+      { remoteName: '@x/a', element: 'mfe-card', slot: undefined },
+    ]);
+  });
+});
+
 describe('fragmentsIn', () => {
-  it('ignores malformed fragments and unknown slots from remote data', () => {
-    const broken = {
-      basePath: 'b',
-      intents: [],
-      fragments: [{ element: 42, slot: 'overlay' }, { element: 'mfe-x', slot: 'footer' }, null],
-    } as unknown as RemoteContribution['contribution'];
-    const notAnArray = {
-      basePath: 'c',
-      intents: [],
-      fragments: 'mfe-y',
-    } as unknown as RemoteContribution['contribution'];
-    expect(
-      fragmentsIn(
-        [
-          remote('@x/a', { basePath: 'a', intents: [], fragments: [{ element: 'mfe-ok', slot: 'overlay' }] }),
-          remote('@x/b', broken),
-          remote('@x/c', notAnArray),
-        ],
-        'overlay',
-      ),
-    ).toEqual([{ remoteName: '@x/a', element: 'mfe-ok' }]);
+  it('keeps only the fragments placed in the slot', () => {
+    expect(fragmentsIn([valid, broken, notAnArray], 'header')).toEqual([
+      { remoteName: '@x/a', element: 'mfe-badge' },
+    ]);
+  });
+});
+
+describe('defineFragments', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('loads every declared fragment once and returns without waiting', () => {
+    const load = vi.fn(() => new Promise<void>(() => {}));
+    expect(defineFragments([valid, broken], load)).toBeUndefined();
+    expect(load.mock.calls).toEqual([
+      ['@x/a', 'mfe-badge'],
+      ['@x/a', 'mfe-card'],
+    ]);
+  });
+
+  it('logs a failed load and does not throw', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const err = new Error('boom');
+    defineFragments([valid], () => Promise.reject(err));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(consoleError).toHaveBeenCalledWith('[remote] failed to load <mfe-card> from "@x/a"', err);
+    expect(consoleError).toHaveBeenCalledTimes(2);
   });
 });

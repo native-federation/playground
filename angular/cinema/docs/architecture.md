@@ -1,6 +1,6 @@
 # Architecture
 
-This document covers how eight independent repos become one page at
+This document covers how seven independent repos become one page at
 runtime. The mechanics are the tractor store's (see
 [`../../tractor-store/docs/architecture.md`](../../tractor-store/docs/architecture.md)
 and [`navigation.md`](../../tractor-store/docs/navigation.md)). This document
@@ -14,12 +14,12 @@ flowchart TD
     subgraph ShellSide["SHELL (1 repo, :4300)"]
         direction TB
         SA["Owns the URL<br/>(Angular Router)"]
-        SB["Owns the layout<br/>(header, footer, 2 fragment slots)"]
+        SB["Owns the layout<br/>(header, footer, header slot)"]
         SC["Owns the ONLY<br/>federation.manifest.json"]
-        SD["Resolves intents to URLs"]
+        SD["Resolves intents to URLs;<br/>defines declared fragments"]
     end
 
-    subgraph RemoteSide["REMOTE (×7, one repo each)"]
+    subgraph RemoteSide["REMOTE (×6, one repo each)"]
         direction TB
         RA["One tiny Angular app<br/>= one subdomain"]
         RB["Exposes mfe-* custom elements"]
@@ -37,8 +37,7 @@ flowchart TD
 ```
 
 The one domain event, `booking:confirmed`, goes remote → remote (booking →
-loyalty) over the same bus, and so does the one generic command,
-`notify:show` (any team → notifications). The shell subscribes to neither.
+loyalty) over the same bus. The shell does not subscribe to it.
 
 ### The shell
 
@@ -55,9 +54,7 @@ repo copies (ADR-03).
   - on failure logs a fixed `console.error`. There is no `env.config.json`
     and no `showErrors` switch.
 - `navigation.ts`, adapted from the tractor-store host:
-  - loads every remote's `nav-contribution` with `Promise.allSettled`, so a
-    remote that is down is skipped (with a `[nav]` warning);
-  - builds one route per intent, mounted by one `RemoteShellComponent` that
+  - builds one route per intent of the loaded contributions, mounted by one `RemoteShellComponent` that
     sets the tag and writes `routeParams`;
   - always adds a `**` catch-all: a **redirect** to the first parameterless
     page that loaded, in manifest order (programme comes first). If none loaded, `**` is an empty route
@@ -70,9 +67,12 @@ repo copies (ADR-03).
     team did load**. Without that, a misspelled id looks exactly like a
     remote that is down. An intent of a team that did not load returns
     `null` silently (ADR-12).
-- `contributions.ts` loads the nav contributions of the present remotes
-  before Angular starts and derives the main menu and the fragment slots
-  from them (ADR-13).
+- `contributions.ts` loads the `nav-contribution` of every present remote
+  with `Promise.allSettled` before Angular starts. An absent remote (off or
+  down) is skipped silently (ADR-12); only a remote that loaded but exposes
+  an invalid contribution logs a `[nav]` warning. It derives the main menu
+  and the `header` slot from the result (ADR-13), and defines the declared
+  fragments (see [Fragments and resilience](#fragments-and-resilience)).
 - `remote-fragment.ts` mounts one fragment element; `remote-element.ts`
   holds the remote loader, so the host's separate `load-remote.ts` is not
   copied.
@@ -80,7 +80,7 @@ repo copies (ADR-03).
   `RouteParams` is `Record<string, string>`.
 - The layout: a header whose menu holds one link per intent with a
   `menuLabel` and the `header` fragments, each team's after its own links;
-  the `overlay` fragments, mounted once; a footer; the global stylesheet.
+  a footer; the global stylesheet.
   The layout names no remote.
   The shell's `<main>` owns the page container (max-width, padding); a
   remote renders only its content, never its own max-width or gutter.
@@ -101,10 +101,9 @@ elements.
   loads another remote, so **no remote imports the orchestrator at
   runtime** except in standalone `main.ts`.
 - `federation.config.mjs` exposes one key per tag, and the key **is** the tag
-  name. **Every** remote also exposes `nav-contribution`. Notifications has
-  no pages, so its contribution is `{ basePath: 'notifications', intents: [] }`.
-  That keeps the shell rule simple: a remote without a contribution is a
-  broken remote, skipped with a `[nav]` warning.
+  name. **Every** remote also exposes `nav-contribution`. That keeps the
+  shell rule simple: a remote without a contribution is a broken remote,
+  skipped with a `[nav]` warning.
 - `src/main.ts` runs **only in standalone mode** (the shell loads
   `bootstrap.ts`, never `main.ts`). See
   [Local development](#local-development).
@@ -113,15 +112,20 @@ elements.
 
 ## Integration contracts: the complete list
 
-There are five. Anything not on this list is private to one repo.
+There are six. Anything not on this list is private to one repo.
 
 | # | Contract | Shape | Who agrees |
 |---|---|---|---|
 | 1 | **Manifest** | `@cinema/<team>` → `remoteEntry.json` URL; the key equals the remote's federation name | Shell and the deployment |
 | 2 | **Exposed element** | Exposed key = tag name. Its module is a `RemoteElementModule`: `{ bootstrap(): Promise<void> }`. Fragments are declared in the `nav-contribution`, never hard-coded in the shell. | Shell and each remote |
-| 3 | **`nav-contribution`** | `{ basePath, intents: [{ id, path, element, menuLabel? }], fragments?: [{ element, slot }] }` with a **local** `id` (`'plan'`); the shell builds the full id `basePath.id` (`seating.plan`). `slot` is `'header'` or `'overlay'`. | Shell, every remote, and each caller of an intent |
+| 3 | **`nav-contribution`** | `{ basePath, intents: [{ id, path, element, menuLabel? }], fragments?: [{ element, slot? }] }` with a **local** `id` (`'plan'`); the shell builds the full id `basePath.id` (`seating.plan`). `slot` is absent (pages embed it) or `'header'` (the shell also places it). | Shell, every remote, and each caller of an intent |
 | 4 | **`routeParams`** | One property the shell writes onto a routed element: **ids, plus the one documented `seats` string**. Param names equal the `{placeholders}` in the owner's path. | Shell, each page and each caller |
-| 5 | **Bus events** | `nav:navigate`, `nav:resolve`, `booking:confirmed`, `notify:show` | Producer and consumers |
+| 5 | **Bus events** | `nav:navigate`, `nav:resolve`, `booking:confirmed` | Producer and consumers |
+| 6 | **Embedded fragment** | Tag plus **one id as an attribute**: `<mfe-film-card film-id>`, `<mfe-booking-start screening-id>`. It emits and consumes no domain events. | The fragment's owner and the host page (programme) |
+
+Pages take one `routeParams` property, and embedded fragments take named id
+attributes. That is two input conventions on purpose: a route passes a bag
+of params, and an embed passes one id.
 
 The runtime contract is **strings**: tag names, exposed keys, intent ids,
 param names, event names and the manifest's remote names. TypeScript types
@@ -140,7 +144,7 @@ prefix (Geers: "establish team prefixes").
 | `basePath` = first URL segment | `<team>` | `/seating/...` |
 | Intent id | `<team>.<thing>` | `seating.plan` |
 | Domain event | `<team>:<past-tense-verb>` | `booking:confirmed` |
-| Infrastructure event | `<capability>:<verb>` | `nav:navigate`, `notify:show` |
+| Infrastructure event | `<capability>:<verb>` | `nav:navigate`, `nav:resolve` |
 
 Avoid names that stutter. `mfe-seating-plan` is fine. `mfe-seating-seat-plan`
 is not.
@@ -194,12 +198,23 @@ value a **command**: only current listeners get it, and nothing is kept.
 | `nav:navigate` | command | any remote → shell | emitted with `{ retain: false }` (`navigateTo()` in `src/shared/navigate.ts`, inline in seating); the shell listens with `{ replay: false }`: an old navigation must never be replayed |
 | `nav:resolve` | state: the shell's `NavResolver` | shell → any `[navIntent]` | `bus.emit('nav:resolve', resolve)`, retained; `bus.on` without options: a link that renders late still gets the resolver |
 | `booking:confirmed` | domain fact, sent as a command | booking → loyalty | `{ retain: false }` and `{ replay: false }`, see [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only) |
-| `notify:show` | command: `{ message }`, worded by the sender | any remote → notifications | `{ retain: false }` and `{ replay: false }`, see [ADR-14](decisions.md#adr-14-notifications-shows-messages-it-knows-no-domain) |
+
+Seating's "Continue" is a button that submits the hold, not a link, so it
+emits `nav:navigate` inline instead of copying the directive and
+`navigate.ts`.
 
 ## Fragments and resilience
 
-There are exactly two cross-team fragments. Only the shell places them
-([ADR-06](decisions.md#adr-06-cross-team-fragments-are-in-but-exactly-two-placed-only-by-the-shell)).
+There are three cross-team fragments. A remote declares each one in its
+`nav-contribution`; the shell **defines** every declared fragment, and a
+`slot` only says where the shell also **places** it
+([ADR-15](decisions.md#adr-15-pages-may-embed-declared-fragments-the-shell-defines-them)).
+
+| Element | Owner | Placed by | Input attribute |
+|---|---|---|---|
+| `mfe-loyalty-badge` | loyalty | shell `header` slot | none |
+| `mfe-film-card` | film | programme's screening card | `film-id` |
+| `mfe-booking-start` | booking | programme's screening card | `screening-id` |
 
 ```mermaid
 flowchart LR
@@ -207,20 +222,57 @@ flowchart LR
         H["header: intent links"]
         B["slot: mfe-loyalty-badge"]
         P["router outlet: one page"]
-        T["mfe-notifications-toast"]
+    end
+    subgraph Card["programme card (in the outlet)"]
+        T["day · time (programme)"]
+        F["mfe-film-card"]
+        K["mfe-booking-start"]
     end
     B -. "loaded from" .-> LOY["@cinema/loyalty"]
-    T -. "loaded from" .-> NOT["@cinema/notifications"]
     P -. "loaded from" .-> ANY["whichever remote owns the route"]
+    F -. "defined by the shell from" .-> FILM["@cinema/film"]
+    K -. "defined by the shell from" .-> BOOK["@cinema/booking"]
 ```
 
-- The two fragments show the two flavours: one that **shows state** (the
-  badge) and one that **takes commands** (the toast).
-- The shell only renders a fragment slot, and only asks for its module,
-  when its remote loaded. A slot of a remote that loaded but whose fragment
-  fails **renders empty, with no error UI**, and logs the shell's
-  `[remote] failed to load <…>` error. The page around it keeps working,
-  which is what Geers calls a resilient site.
+**How embedding works.**
+
+- `contributions.ts` has `declaredFragments(contributions)` (every valid
+  fragment, with or without a slot), `fragmentsIn(contributions, 'header')`
+  on top of it, and `defineFragments(contributions, load)`, which calls
+  `load(remoteName, element)` for each declared fragment. A rejection logs
+  the same `[remote] failed to load <…>` error as `remote-fragment.ts`; it
+  never throws.
+- `bootstrap.ts` creates the loader once, calls `defineFragments` right
+  after `loadContributions` **without `await`**, so the first paint does not
+  wait, and passes the same loader to `LOAD_REMOTE`.
+- The owning remote exposes the tag (`'mfe-film-card': './src/bootstrap.ts'`)
+  and its `bootstrap()` defines all its tags, each behind its own
+  `customElements.get` guard, so the shell's eager load and a route load can
+  race safely.
+- The host page writes the tag. Only `ProgrammeListComponent` gets
+  `schemas: [CUSTOM_ELEMENTS_SCHEMA]`, and it binds **attributes**:
+  `<mfe-film-card [attr.film-id]="s.filmId" />`. The contract is ids only,
+  as attributes, so the tag works from plain HTML and both sides assert the
+  same attribute name. An interpolation (`film-id="{{…}}"`) would set a DOM property named
+  `film-id`.
+- Programme also labels each card: `role="group"` with `aria-labelledby`
+  pointing at ids programme owns (the `<mfe-film-card>` host element's id
+  and its own day/time element), so the identical "Book" links are told
+  apart without an id contract between teams.
+
+**Failure modes.**
+
+- Remote off or down: the tag stays undefined and renders nothing,
+  silently (ADR-12). The card keeps the rest.
+- Remote loaded but its `bootstrap()` throws: one `[remote] failed to load`
+  error.
+- Remote slow: the card body pops in late. Film's CSS gives the poster a
+  fixed height.
+- Programme standalone: only day and time.
+- The shell renders the `header` slot only for a remote that loaded. A
+  slot whose fragment fails renders empty, with no error UI, and logs the
+  same `[remote]` error. The page around it keeps working, which is what
+  Geers calls a resilient site.
 - The badge and the `/loyalty` page are two elements of **one** loyalty
   application (see [A remote](#a-remote)). The `booking:confirmed`
   subscription lives in the root `PointsStore`, not in the badge, so the
@@ -239,10 +291,10 @@ in the console. Nothing else is logged (ADR-12).
 | Remote off or down | Effect |
 |---|---|
 | programme | The Programme link is gone and `/` redirects to the next parameterless page that loaded (`/loyalty` or `/account`). Deep links to other pages still work. |
-| film | Film title links in the programme turn inert. |
-| seating / booking | The links into that step turn inert. With booking off, seating's "Continue" does nothing. Nothing else breaks. |
+| film | The programme cards keep day, time and Book; the film area is empty. |
+| seating | The Book links turn inert. |
+| booking | The cards have no Book link, so the journey cannot start (no fallback is added). Seating's "Continue" does nothing. |
 | loyalty | The Points link and the badge are gone, and the booking still confirms. |
-| notifications | No toast appears. Everything else works. |
 | account | The Account link is gone. This is the scripted walkthrough (see testing.md). |
 
 ## Sharing contracts without a monorepo
@@ -271,15 +323,15 @@ touches.**
   in account); `NavPayload` and
   `NavResolver` if it has the directive; `NavContribution` in every remote;
   `RouteParams` if a page takes params; `BookingConfirmed` for booking and
-  loyalty; `NotifyMessage` for booking and notifications.
+  loyalty; `NavFragment` where a remote declares a fragment.
 - Copied helpers, each from the tractor store, each **only where used**:
 
   | File | In |
   |---|---|
-  | `src/shared/nav-intent.directive.ts` + its `.spec.ts` | shell, programme, film |
-  | `src/shared/navigate.ts` (`navigateTo()`, the `nav:navigate` command) | shell, programme, film |
-  | `src/testing/nav-resolver.stub.ts` | shell, programme, film |
-  | `src/testing/setup.ts` (fresh real bus per test) | every repo except account |
+  | `src/shared/nav-intent.directive.ts` + its `.spec.ts` | shell, film, booking |
+  | `src/shared/navigate.ts` (`navigateTo()`, the `nav:navigate` command) | shell, film, booking |
+  | `src/testing/nav-resolver.stub.ts` | shell, film, booking |
+  | `src/testing/setup.ts` (fresh real bus per test) | every repo except programme and account |
 
 - In production you would publish a types-only npm package as a
   devDependency instead.
@@ -296,7 +348,7 @@ export const bookingConfirmedExample: BookingConfirmed = { bookingRef: 'BR-7F3A'
 
 Each repo has its own lockfile, so nothing *guarantees* identical Angular
 versions any more. That is the main new risk of a polyrepo, and the demo
-shows it on purpose: film, notifications and account run Angular 21 next to
+shows it on purpose: film and account run Angular 21 next to
 the shell's Angular 22, and share one Angular 21 through the `ng21` share
 scope. The ranges, the
 federation config and the verified drift behaviour are stated once, in
@@ -315,7 +367,7 @@ to match another's version of it.
 ## Local development
 
 - Every repo: `npm install`, then `npm start` (`ng serve` on its fixed port,
-  4300–4307). `npm test` runs Vitest.
+  4300–4307, :4306 retired, ADR-10). `npm test` runs Vitest.
 - **Standalone mode** (remotes only). The remote's `main.ts`:
   1. calls `initFederation({}, { ...useShimImportMap({ shimMode: true }), hostRemoteEntry: './remoteEntry.json' })`.
      The empty object is the manifest. The remote still needs
@@ -331,12 +383,12 @@ to match another's version of it.
 - **Everything at once:** `./start-all.sh` at the example root:
   - runs `npm --prefix <repo> install` **one repo after another** (parallel
     installs fight over the npm cache);
-  - then starts all eight `npm start`s in parallel under
+  - then starts all seven `npm start`s in parallel under
     `trap 'kill 0' EXIT; ...; wait`, so Ctrl-C stops them all, with every
     log line prefixed by the repo name.
 
-  The honest cost: eight `node_modules` folders (several GB) and the memory
-  of eight dev servers.
+  The honest cost: seven `node_modules` folders (several GB) and the memory
+  of seven dev servers.
 - The example root has **no `package.json` and no workspace file**. Adding
   either would quietly turn the polyrepo back into a monorepo.
 
@@ -355,7 +407,7 @@ to match another's version of it.
   {
     "@cinema/programme": "http://localhost:4301/remoteEntry.json",
     "@cinema/film": "http://localhost:4302/remoteEntry.json",
-    "...": "one line per remote, 7 in total"
+    "...": "one line per remote, 6 in total"
   }
   ```
 

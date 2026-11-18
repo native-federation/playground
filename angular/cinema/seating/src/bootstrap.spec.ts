@@ -11,8 +11,8 @@ const exposedTags = [
   .filter((key) => key !== 'nav-contribution');
 
 describe('bootstrap', () => {
-  // Twice at once: the shell's badge slot and a route can both load the same
-  // module; customElements.define would throw on the second call.
+  // Twice at once: two route loads can race on the same module, and
+  // customElements.define would throw on the second call.
   beforeAll(() => Promise.all([bootstrap(), bootstrap()]));
 
   it('exposes one element', () => {

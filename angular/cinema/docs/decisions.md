@@ -5,12 +5,11 @@ costs. The guiding test for every one is: **does this concept earn its place
 in a demo whose only job is to show the architecture?** Each rule is stated
 here once; the other documents link to it.
 
-## ADR-01: A cinema with seven MFEs, one subdomain each
+## ADR-01: A cinema with six MFEs, one subdomain each
 
 - **Decision.**
-  - Seven remotes: programme, film, seating, booking, loyalty,
-    notifications and account. Plus a shell, which is not a subdomain:
-    eight repos.
+  - Six remotes: programme, film, seating, booking, loyalty and account.
+    Plus a shell, which is not a subdomain: seven repos.
   - Slices follow subdomains, never pages.
 - **Why.**
   - Everyone knows the domain, and all three subdomain types occur
@@ -25,13 +24,13 @@ here once; the other documents link to it.
     remote.
   - Separate *basket* and *confirmation* pages were folded into one
     checkout page that has a confirmed state.
-- **Naming.** `notifications` stays plural: the team owns all
-  notifications, and `notify` would be the only verb among noun team names.
+  - A 7th *notifications* remote was built and removed again (ADR-15): a
+    toast is shared UI, not a subdomain.
 
 ## ADR-02: Polyrepo with no root workspace
 
 - **Decision.**
-  - Each of the eight folders has its own `package.json` (`"type": "module"`),
+  - Each of the seven folders has its own `package.json` (`"type": "module"`),
     its own `package-lock.json`, an `angular.json` with one project, and its
     own tsconfig without `../` paths. All use Node 24, as the repository's CI
     does.
@@ -47,7 +46,7 @@ here once; the other documents link to it.
     esbuild override is not needed either: `@angular/build` 22.2.0 pins
     esbuild 0.28.2, which satisfies Native Federation's `^0.28.0`, so npm
     dedupes it.
-- **Cost.** Eight installs and eight `node_modules` folders; version
+- **Cost.** Seven installs and seven `node_modules` folders; version
   alignment becomes a convention (ADR-08); `start-all.sh` exists only for
   convenience.
 
@@ -64,7 +63,7 @@ here once; the other documents link to it.
   - Helpers are copied from the tractor store only where used:
     `nav-intent.directive.ts` with its spec, `nav-resolver.stub.ts`, and
     `testing/setup.ts` (a fresh real bus per test, in every repo except
-    account, which never touches the bus).
+    programme and account, which never touch the bus).
 - **Why.**
   - The runtime contract is strings. The types only document them.
   - A published npm package needs a registry, a release flow and version
@@ -94,10 +93,9 @@ here once; the other documents link to it.
 
 - **Decision.**
   - `booking:confirmed { bookingRef, ticketCount }` is the only domain
-    event. Its consumer is loyalty. (Until ADR-14, notifications consumed
-    it too.)
+    event. Its consumer is loyalty.
   - Booking emits it with `{ retain: false }`, so the bus keeps nothing for
-    a listener that subscribes later. Both consumers still subscribe with
+    a listener that subscribes later. The consumer still subscribes with
     `{ replay: false }`, as a guard against a producer that forgets.
   - **Rule:** a domain event may only be consumed by elements the shell
     mounts at startup. Pages get cross-team data from the URL.
@@ -112,9 +110,11 @@ here once; the other documents link to it.
 
 ## ADR-06: Cross-team fragments are in, but exactly two, placed only by the shell
 
+**Superseded by ADR-15.** Kept for history.
+
 - **Decision.**
   - `mfe-loyalty-badge` (shows state) and `mfe-notifications-toast` (takes
-    commands). Since ADR-13 their remotes declare them, and the shell
+    commands; removed with its remote in ADR-15). Since ADR-13 their remotes declare them, and the shell
     places them in one of its two closed slots, `header` and `overlay`.
     Adding a slot is a shell decision.
   - No remote embeds another remote. There are no header or footer remotes.
@@ -149,8 +149,8 @@ here once; the other documents link to it.
   declares its major's ranges exactly. There are two majors on purpose.
   - **Angular 22**: shell, programme, seating, booking, loyalty (the
     tractor store's ranges).
-  - **Angular 21**: film, notifications and account. The generic,
-    "bought-in" subdomains lag one major behind.
+  - **Angular 21**: film and account. The generic, "bought-in" subdomains
+    lag one major behind.
 
   | Package | Angular 22 repos | Angular 21 repos |
   |---|---|---|
@@ -164,7 +164,7 @@ here once; the other documents link to it.
 
   The orchestrator is in every repo (`initFederation` in `main.ts`). The
   bus, [`@softarc/native-federation-communication`](https://github.com/native-federation/communication), is a runtime
-  dependency of every repo except account, pinned to `4.0.0-next.0` while
+  dependency of every repo except programme and account, pinned to `4.0.0-next.0` while
   it is a prerelease, and listed in `skip` in `federation.config.mjs`: each
   repo bundles its own copy, so its version never has to align across
   repos (architecture.md § Shared dependencies and versions).
@@ -173,7 +173,7 @@ here once; the other documents link to it.
   `@angular-architects/native-federation-v4/config`):
   `fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })`,
   `.patch(['@angular/*'], { includeSecondaries: { keepAll: true } }).get()`,
-  `sharedMappings: []`, `features: { denseExternals: true }`. The Angular 21
+  `sharedMappings: []`, `features: { denseExternals: true, denseChunking: true }`. The Angular 21
   repos add `shareScope: 'ng21'` (as in `angular/simple/ng21`).
   `@angular/material` and `@angular/cdk` match `@angular/*`, so they are
   shared like the rest of Angular.
@@ -182,8 +182,8 @@ here once; the other documents link to it.
   are preferred.
   - Patch drift is harmless: every `~22.2` range accepts the shell's
     version.
-  - The three Angular 21 remotes share their own Angular 21 through the
-    `ng21` share scope: one second copy for the three of them, loaded
+  - The Angular 21 remotes share their own Angular 21 through the
+    `ng21` share scope: one second copy for all of them, loaded
     without warnings. This is **intended**: it shows what a lagging team
     costs (a second Angular download) and that the page still works.
     Verified with film: the import map gets a scope for the first ng21
@@ -192,9 +192,10 @@ here once; the other documents link to it.
     shared package, so `rxjs`, `tslib` and the used Material/CDK parts load
     twice too. No version warning appears, because the two scopes are never
     compared. The shell's Material 22 theme tokens style the Material 21
-    components. Verified with all three loaded: the scopes for :4302, :4306
-    and :4307 map `@angular/core` (and every other shared package) to the
-    same file, so Angular 21 loads once. Which ng21 remote serves it is not
+    components. Verified with all Angular 21 remotes loaded (then still
+    including notifications on :4306): the scopes for :4302 and :4307 map
+    `@angular/core` (and every other shared package) to the same file, so
+    Angular 21 loads once. Which ng21 remote serves it is not
     fixed (film in one run, account in another), and when that remote is
     down another one takes over (account stopped → :4302).
   - Tooling cost: the `-v4` builder depends on
@@ -224,13 +225,16 @@ here once; the other documents link to it.
   surface cheaply, and it belongs to the repo that owns the manifest.
 - **Rejected.** Pact or a contract broker: heavy, and no standard pattern
   for browser bus events. A browser end-to-end test: it repeats the
-  walkthrough and ties the shell repo to seven other servers.
+  walkthrough and ties the shell repo to six other servers.
 
 ## ADR-10: Ports 4300 to 4307
 
 - **Decision.** The shell runs on 4300 and the remotes on 4301 to 4307.
+  **:4306 is retired** (it was notifications, ADR-15). Account keeps :4307.
 - **Why.** The other examples in this repository use 4200 to 4203, so the
-  demo can run next to them without port collisions.
+  demo can run next to them without port collisions. Renumbering account is
+  churn, and a stale notifications server left on :4306 would answer for
+  `@cinema/account`.
 
 ## ADR-11: A remote switcher in the shell, applied by reload
 
@@ -239,8 +243,10 @@ here once; the other documents link to it.
     checkbox per remote. `main.ts` filters the fetched manifest before
     `initFederation`.
   - The selection lives in `sessionStorage['cinema.remotes']`. The default is
-    programme, seating, booking and loyalty: the happy path plus the event
-    consumer, all on Angular 22.
+    **every remote in the manifest**: `readSelection()` returns `null` when
+    nothing valid is stored, and `applyRemoteSelection` treats `null` as
+    every manifest key. There is no `DEFAULT_REMOTES` list, so the Angular
+    21 remotes show on first load and ADR-13 holds.
   - Apply reloads the page, both to enable and to disable a remote.
 - **Why.**
   - The manifest stays complete (ADR-07); filtering at runtime keeps smoke
@@ -278,7 +284,7 @@ here once; the other documents link to it.
 - **Decision.**
   - A remote declares its main-menu entry with `menuLabel` on a
     parameterless intent, and its fragments with
-    `fragments: [{ element, slot }]` in its `nav-contribution`.
+    `fragments: [{ element, slot? }]` in its `nav-contribution` (ADR-15).
   - The shell builds the menu and the slots from the present contributions
     (ADR-12), in manifest order. Remote names appear only in the manifest.
   - Malformed fields are ignored, like an invalid contribution.
@@ -296,28 +302,73 @@ here once; the other documents link to it.
 
 ## ADR-14: Notifications shows messages, it knows no domain
 
+Superseded by ADR-15: notifications removed.
+
+## ADR-15: Pages may embed declared fragments; the shell defines them
+
 - **Decision.**
-  - Notifications listens to one command, `notify:show { message }`, and
-    shows the message as given for 3 s. It no longer consumes
-    `booking:confirmed`.
-  - The team that owns the fact words the message: booking emits
-    `notify:show` with "Booking BR-… confirmed" next to its domain event.
-  - Like `booking:confirmed`, it is emitted with `{ retain: false }` and
-    subscribed with `{ replay: false }`: a stale message is never shown.
+  - **Notifications is removed.** The `notifications` repo, its manifest
+    entry, the `overlay` slot, the `notify:show` channel and
+    `NotifyMessage` are gone.
+  - **Film owns `mfe-film-card`** (poster, title linking to `film.detail`,
+    runtime, age label; input `film-id`). **Booking owns
+    `mfe-booking-start`** ("Book · €12 per seat", a link to
+    `seating.plan`; input `screening-id`). Programme's landing page embeds
+    both in its own screening card and keeps only *when*: screening id, day
+    and time. It drops its film title snapshot and links to no other team.
+  - `NavFragment.slot` becomes optional and only `'header'`. The shell
+    *defines* every declared fragment; `slot` only says where the shell also
+    *places* it. A fragment without a slot is embeddable by pages.
+  - The shell defines every declared fragment at startup and does not await
+    it: `defineFragments(contributions, load)` in `contributions.ts`, called
+    from `bootstrap.ts`. Remotes still get no loader and no manifest, and
+    `bootstrap()` still takes no arguments.
+  - Rules for embedded fragments: inputs are **ids only, as attributes**;
+    the expose key **equals the tag**; an embedded fragment **emits and
+    consumes no domain events** (ADR-05 still holds).
+  - The booking ↔ seating intent cycle is intended: booking owns the
+    journey and decides it starts at `seating.plan`; seating supplies the
+    hold as one step and hands back to `booking.checkout`. It is not a
+    reason to merge the two.
 - **Why.**
-  - A notifications team that consumes every team's events must learn
-    every team's language, and every new toast needs a release in its
-    repo. That is slicing by technical capability: a bottleneck coupled to
-    everyone.
-  - It makes the difference between the two kinds of messages visible.
-    Loyalty applies its own rule to a domain event (+10 points per ticket).
-    Notifications just does what a command tells it.
+  - A toast has no actor goal, no vocabulary, no data and no pivotal event,
+    so it is shared UI, not a subdomain. Its only sender was booking, whose
+    checkout already shows a `role="status"` confirmation with the ref. The
+    "element that takes commands" idea is already shown by `nav:navigate`.
+  - Programme's card was a hand-made copy of film content, against
+    programme's own boundary. Film rendering the list instead would make
+    film know showtimes. Embedding keeps both boundaries: one team owns the
+    page and assembles it from other teams' fragments (the tractor-store
+    pattern).
+  - A link to another team's page is normally just an intent. A fragment is
+    justified here because booking shows something only it knows (the
+    price) and decides where its journey starts. The team that owns the
+    conversion owns the call to action.
+  - Ids only, as attributes: the tag stays usable from plain HTML, and the
+    attribute name is the contract both sides assert.
 - **Cost.**
-  - Booking now emits twice on confirm, and `booking:confirmed` has only
-    one consumer, so the demo no longer shows fan-out to two consumers.
-  - A remote that only renders a toast is too thin for a real MFE. In
-    production this is a shell capability or a shared component. It stays
-    a remote here because it shows a fragment that takes commands.
+  - Film's and booking's apps start at shell startup on every route. Fine,
+    because programme is the landing page.
+  - A drifted tag or attribute renders nothing, silently, exactly like an
+    absent remote (testing.md, contract #6).
+  - Apart from the shell, nothing in the demo takes commands any more.
+  - Without booking there is no Book link, so the journey cannot start. No
+    fallback link is added.
+- **Choices made along the way.**
+  - `slot?: 'header'` rather than a `'embed'` slot: defining and placing
+    stay apart, and the union gets no literal that means "nowhere".
+  - `mfe-booking-start`, not `-button`: it renders an `<a>` and starts a
+    booking.
+  - Identical "Book" links get their accessible name from the card: each
+    card is `role="group"` with `aria-labelledby` on ids programme owns
+    (the `<mfe-film-card>` host id and its own day/time element).
+  - The define code is one named, un-awaited function, so it has one place
+    to read and test and does not block the first paint.
+  - The switcher defaults to every manifest remote and `DEFAULT_REMOTES` is
+    deleted, so the shell names no remote (ADR-11, ADR-13).
+  - Programme's copies of `nav-intent` and `navigate` are deleted: it no
+    longer links anywhere. Booking takes copies.
+  - Account keeps :4307 (ADR-10).
 
 ## YAGNI: deliberately left out
 
@@ -325,9 +376,9 @@ here once; the other documents link to it.
 |---|---|
 | Shared contracts npm package | Publishing overhead. Copies are enough (ADR-03). |
 | Root `package.json` or workspace | It would quietly undo the polyrepo (ADR-02). |
-| Version-sync tooling (syncpack, Renovate groups) | A convention is enough for 8 repos (ADR-08). |
+| Version-sync tooling (syncpack, Renovate groups) | A convention is enough for 7 repos (ADR-08). |
 | Discovery service | Replacing one manifest file per environment is enough (ADR-07). |
-| Manifests in remotes, remote→remote embeds, `env`/`nf` on `bootstrap` | No remote needs to find another remote (ADR-06). |
+| Manifests in remotes, a loader or registry for embeds, `env`/`nf` on `bootstrap` | The shell defines every declared fragment, so no remote needs to find another remote (ADR-15). |
 | CDN server, `env.config.json`, image loader, fonts besides the shell's Roboto | Each repo serves its own `public/` (ADR-07). |
 | `seats-held` and `snack-added` events | Timing and replay bugs. URL instead (ADR-04, ADR-01). |
 | `screeningId` in `booking:confirmed` | Neither consumer uses it (ADR-05). |
@@ -338,7 +389,11 @@ here once; the other documents link to it.
 | Query strings in intents | The copied resolver supports them; the demo does not use them. |
 | A "not available" page | `**` redirects to a page that loaded, as in the tractor store. |
 | A fake bus | Specs use a real one (`createBus()`) through `testing/setup.ts` (ADR-03). |
-| `integrityHashes`, `denseChunking` | Production hardening that is noise in a demo. |
+| `integrityHashes` | Production hardening that is noise in a demo. |
+| A toast in the shell (`notify:show`, `overlay` slot) | It would repeat booking's own confirmation (ADR-15). |
+| Renumbering account to :4306 | Churn, and a stale server could answer on :4306 (ADR-10). |
+| A fallback film title, `:not(:defined)` placeholder or any fragment input besides one id | Brings film content back into programme, or widens the contract (ADR-15). |
+| Lazy or retry loading of embeds, typed wrappers around embedded tags | One un-awaited define at startup is enough (ADR-15). |
 | SSR, i18n, locales | Out of scope. |
 | CI pipeline | Not in the first version (architecture.md § Deployment). |
 
@@ -348,7 +403,13 @@ here once; the other documents link to it.
   the console prints and what the scoped copy costs.
 - A GitHub Pages assembly workflow, labelled as a stand-in for per-repo
   pipelines.
-- Keyboard-toggled team-colour outlines (`helper.js`) in the shell.
+- Team-colour outlines in the shell: if ever added, one CSS rule, not
+  `helper.js`.
+- A reverse embed: showtimes or Book on `film.detail`.
+- A seating availability call to action ("23 seats left"). A card gets one
+  call to action.
+- A readable screening label on the seating and checkout pages.
+- Confirmed bookings marking seats as taken.
 - One browser end-to-end test of the happy path, at the example root.
 
 ## Review items not applied

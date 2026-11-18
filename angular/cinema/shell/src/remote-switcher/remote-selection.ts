@@ -1,12 +1,6 @@
 import type { FederationManifest } from '@softarc/native-federation-orchestrator';
 
 export const SELECTION_KEY = 'cinema.remotes';
-export const DEFAULT_REMOTES: readonly string[] = [
-  '@cinema/programme',
-  '@cinema/seating',
-  '@cinema/booking',
-  '@cinema/loyalty',
-];
 
 // Filled by applyRemoteSelection in main.ts, before Angular bootstraps.
 let available: readonly string[] = [];
@@ -18,12 +12,13 @@ export const loadedRemotes = (): readonly string[] => loaded;
 const isNameList = (value: unknown): value is string[] =>
   Array.isArray(value) && value.length > 0 && value.every((n) => typeof n === 'string');
 
-export const readSelection = (): readonly string[] => {
+// null: nothing valid is stored, so every remote in the manifest loads.
+export const readSelection = (): readonly string[] | null => {
   try {
     const stored: unknown = JSON.parse(sessionStorage.getItem(SELECTION_KEY) ?? 'null');
-    return isNameList(stored) ? stored : DEFAULT_REMOTES;
+    return isNameList(stored) ? stored : null;
   } catch {
-    return DEFAULT_REMOTES;
+    return null;
   }
 };
 
@@ -38,9 +33,9 @@ export const sameNames = (a: readonly string[], b: readonly string[]): boolean =
 
 export const applyRemoteSelection = (
   manifest: FederationManifest,
-  selected: readonly string[] = readSelection(),
+  selected: readonly string[] | null = readSelection(),
 ): FederationManifest => {
   available = Object.keys(manifest);
-  loaded = available.filter((n) => selected.includes(n));
+  loaded = selected ? available.filter((n) => selected.includes(n)) : available;
   return pick(manifest, loaded);
 };

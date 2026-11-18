@@ -43,10 +43,7 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "buildTarget": "programme:esbuild:development",
-            "setupFiles": [
-              "src/testing/setup.ts"
-            ]
+            "buildTarget": "programme:esbuild:development"
           }
         },
         "esbuild": {

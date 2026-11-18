@@ -4,6 +4,7 @@ export default withNativeFederation({
   name: '@cinema/film',
   exposes: {
     'mfe-film-detail': './src/bootstrap.ts',
+    'mfe-film-card': './src/bootstrap.ts',
     'nav-contribution': './src/nav-contribution.ts',
   },
   // Angular 21 is shared only with other ng21 remotes, never with the shell's Angular 22.

@@ -7,6 +7,8 @@
 export interface NavContribution {
   readonly basePath: string;
   readonly intents: readonly NavIntent[];
+  // Elements the shell defines at startup (ADR-15).
+  readonly fragments?: readonly NavFragment[];
 }
 
 export interface NavIntent {
@@ -17,25 +19,41 @@ export interface NavIntent {
   readonly element?: string;
 }
 
+export interface NavFragment {
+  // An exposed key, like a routed element.
+  readonly element: string;
+  // Absent: pages embed it. 'header': the shell also places it in its header.
+  readonly slot?: 'header';
+}
+
+// Fills `{param}` segments of an intent path; leftover keys become the query string.
+export type NavPayload = Readonly<Record<string, string>>;
+
 // Written by the shell onto a routed element as its `routeParams` property.
 export type RouteParams = Readonly<Record<string, string>>;
+
+// Published by the shell: turns an intent into a URL, or null when it is unknown
+// or a path param is missing.
+export type NavResolver = (id: string, payload?: NavPayload) => string | null;
+
+export interface NavigatePayload {
+  readonly id: string;
+  readonly payload?: NavPayload;
+}
 
 export interface BookingConfirmed {
   readonly bookingRef: string;
   readonly ticketCount: number;
 }
 
-// A message for the moviegoer, already worded by the team it belongs to (ADR-14).
-export interface NotifyMessage {
-  readonly message: string;
-}
-
 // Every channel on the bus, by name.
 declare module '@softarc/native-federation-communication' {
   interface Channels {
+    // Command (emit with { retain: false }): ask the shell to navigate to an intent.
+    'nav:navigate': NavigatePayload;
+    // State: the shell's NavResolver, retained for links that render later.
+    'nav:resolve': NavResolver;
     // Command (emit with { retain: false }): a booking is counted once, by whoever listens now (ADR-05).
     'booking:confirmed': BookingConfirmed;
-    // Command (emit with { retain: false }): show a short-lived message to the moviegoer (ADR-14).
-    'notify:show': NotifyMessage;
   }
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Installs and starts all eight repos (see docs/architecture.md § Local development).
+# Installs and starts all seven repos (see docs/architecture.md § Local development).
 set -euo pipefail
 cd "$(dirname "$0")"
 
-repos=(shell programme film seating booking loyalty notifications account)
+repos=(shell programme film seating booking loyalty account)
 
 for repo in "${repos[@]}"; do
   [[ -d $repo ]] || { echo "start-all: missing repo folder '$repo'" >&2; exit 1; }

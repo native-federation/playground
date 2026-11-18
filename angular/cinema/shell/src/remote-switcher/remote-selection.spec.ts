@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   applyRemoteSelection,
   availableRemotes,
-  DEFAULT_REMOTES,
   loadedRemotes,
   pick,
   readSelection,
@@ -22,17 +21,14 @@ const manifest: FederationManifest = {
 beforeEach(() => sessionStorage.clear());
 
 describe('readSelection', () => {
-  it('falls back to the default when nothing is stored', () => {
-    expect(readSelection()).toEqual(DEFAULT_REMOTES);
+  it('is null when nothing is stored', () => {
+    expect(readSelection()).toBeNull();
   });
 
-  it.each([['not json'], ['[]'], ['{"a":1}'], ['[1,2]']])(
-    'falls back to the default for %s',
-    (stored) => {
-      sessionStorage.setItem(SELECTION_KEY, stored);
-      expect(readSelection()).toEqual(DEFAULT_REMOTES);
-    },
-  );
+  it.each([['not json'], ['[]'], ['{"a":1}'], ['[1,2]']])('is null for %s', (stored) => {
+    sessionStorage.setItem(SELECTION_KEY, stored);
+    expect(readSelection()).toBeNull();
+  });
 
   it('round-trips a saved selection', () => {
     saveSelection(['@cinema/film']);
@@ -66,6 +62,11 @@ describe('applyRemoteSelection', () => {
     expect(filtered).toEqual({ '@cinema/seating': manifest['@cinema/seating'] });
     expect(availableRemotes()).toEqual(Object.keys(manifest));
     expect(loadedRemotes()).toEqual(['@cinema/seating']);
+  });
+
+  it('loads every remote, Angular 21 ones included, when nothing is stored', () => {
+    expect(Object.keys(applyRemoteSelection(manifest))).toEqual(Object.keys(manifest));
+    expect(loadedRemotes()).toEqual(Object.keys(manifest));
   });
 
   it('reads the stored selection by default', () => {

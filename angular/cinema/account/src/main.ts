@@ -4,8 +4,8 @@ import {
   globalThisStorageEntry,
   useShimImportMap,
 } from '@softarc/native-federation-orchestrator/options';
-// Standalone only: shows the mock profile card; the header and other remotes need the shell.
-// Standalone only: the remote's own shared deps come from its remoteEntry.json.
+// Standalone only: shows the mock profile card with shared deps from its own remoteEntry.json;
+// the header and other remotes need the shell.
 initFederation({}, {
   ...useShimImportMap({ shimMode: true }),
   logger: consoleLogger,

@@ -17,8 +17,7 @@ import { MatDivider } from '@angular/material/divider';
 import { BOOKING_REF } from './booking-ref';
 import { bus } from '@softarc/native-federation-communication';
 import type { RouteParams } from './contracts';
-
-const ticketPrice = 12;
+import { TICKET_PRICE } from './ticket-price';
 
 // Deep links may carry anything: an unparsable value is an empty checkout
 // (see docs/architecture.md § Intents).
@@ -43,12 +42,12 @@ export class CheckoutComponent {
 
   protected readonly screeningId = computed(() => this.routeParams()['screeningId'] ?? '');
   protected readonly seats = computed(() => parseSeats(this.routeParams()['seats']));
-  protected readonly total = computed(() => this.seats().length * ticketPrice);
+  protected readonly total = computed(() => this.seats().length * TICKET_PRICE);
   private readonly ticketsText = computed(() => {
     const count = this.seats().length;
     return count === 1 ? '1 ticket' : `${count} tickets`;
   });
-  protected readonly lineText = computed(() => `${this.ticketsText()} × €${ticketPrice}`);
+  protected readonly lineText = computed(() => `${this.ticketsText()} × €${TICKET_PRICE}`);
   protected readonly summary = computed(() =>
     [
       `Screening ${this.screeningId()}`,
@@ -78,7 +77,6 @@ export class CheckoutComponent {
       { bookingRef, ticketCount: this.seats().length },
       { retain: false },
     );
-    bus.emit('notify:show', { message: `Booking ${bookingRef} confirmed` }, { retain: false });
     // The Confirm button is gone after this render; move focus to the result instead of <body>.
     afterNextRender(() => this.heading()?.nativeElement.focus(), { injector: this.injector });
   }

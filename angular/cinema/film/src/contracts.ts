@@ -7,6 +7,8 @@
 export interface NavContribution {
   readonly basePath: string;
   readonly intents: readonly NavIntent[];
+  // Elements the shell defines at startup (ADR-15).
+  readonly fragments?: readonly NavFragment[];
 }
 
 export interface NavIntent {
@@ -15,6 +17,13 @@ export interface NavIntent {
   readonly path: string;
   // Routed intents render this element; intents without one are link-only.
   readonly element?: string;
+}
+
+export interface NavFragment {
+  // An exposed key, like a routed element.
+  readonly element: string;
+  // Absent: pages embed it. 'header': the shell also places it in its header.
+  readonly slot?: 'header';
 }
 
 // Fills `{param}` segments of an intent path; leftover keys become the query string.

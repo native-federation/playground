@@ -39,8 +39,5 @@
   </mat-toolbar>
 </header>
 <main><router-outlet /></main>
-@for (fragment of overlays; track fragment.element) {
-  <app-remote-fragment [remoteName]="fragment.remoteName" [element]="fragment.element" />
-}
 <footer>Cinema: a Native Federation polyrepo demo.</footer>
 <app-remote-switcher />

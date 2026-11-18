@@ -1,0 +1,7 @@
+@if (film(); as film) {
+  <app-poster class="poster" [poster]="film.poster" [tint]="film.tint" />
+  <h2>
+    <a navIntent="film.detail" [navPayload]="{ filmId: film.filmId }">{{ film.title }}</a>
+  </h2>
+  <p class="facts">{{ film.runtimeMinutes }} min · {{ film.ageLabel }}</p>
+}
