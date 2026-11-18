@@ -49,13 +49,14 @@ Ports start at 4300 so the demo runs next to the other examples here
 | 3 | `seating` | 4303 | 22 | `@cinema/seating` | **core** | page `mfe-seating-plan` | 5×8 seat grid, toggle seats, "Continue" | **The URL is the contract**: the hold travels as intent params |
 | 4 | `booking` | 4304 | 22 | `@cinema/booking` | **core** | page `mfe-booking-checkout` | Shows the hold at a flat €12 per ticket. "Confirm" shows a booking ref | **Publishing a domain event** (`booking:confirmed`) |
 | 5 | `loyalty` | 4305 | 22 | `@cinema/loyalty` | supporting | page `mfe-loyalty-points`, fragment `mfe-loyalty-badge` | +10 points per ticket. The badge shows the total | **Consuming an event**, a **fragment in the shell**, and **state inside one remote** (badge and page share one store) |
-| 6 | `notifications` | 4306 | 21 | `@cinema/notifications` | generic | fragment `mfe-notifications-toast` | Shows "Booking BR-… confirmed" for 3 s | **A fragment with no page and no intents** that only reacts to events |
+| 6 | `notifications` | 4306 | 21 | `@cinema/notifications` | generic | fragment `mfe-notifications-toast` | Shows any team's message, such as "Booking BR-… confirmed", for 3 s | **A fragment with no page and no intents** that only takes a command (`notify:show`) and knows no domain |
 | 7 | `account` | 4307 | 21 | `@cinema/account` | generic | page `mfe-account-profile` | Mock profile | **The minimal remote** (template to copy) and the **remote-down / redeploy walkthrough** |
 
 Every remote also exposes `nav-contribution`. The happy path is
 `programme.list` → `seating.plan` → `booking.checkout`, with a side trip to
-`film.detail`. When the booking is confirmed, `booking:confirmed` fans out
-to loyalty and notifications.
+`film.detail`. When the booking is confirmed, booking publishes
+`booking:confirmed`, which loyalty consumes, and asks for a toast with
+`notify:show`, which notifications displays.
 
 ## Polyrepo layout
 

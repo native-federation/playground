@@ -37,7 +37,8 @@ flowchart TD
 ```
 
 The one domain event, `booking:confirmed`, goes remote → remote (booking →
-loyalty, notifications) over the same bus. The shell never subscribes to it.
+loyalty) over the same bus, and so does the one generic command,
+`notify:show` (any team → notifications). The shell subscribes to neither.
 
 ### The shell
 
@@ -120,7 +121,7 @@ There are five. Anything not on this list is private to one repo.
 | 2 | **Exposed element** | Exposed key = tag name. Its module is a `RemoteElementModule`: `{ bootstrap(): Promise<void> }`. Fragments are declared in the `nav-contribution`, never hard-coded in the shell. | Shell and each remote |
 | 3 | **`nav-contribution`** | `{ basePath, intents: [{ id, path, element, menuLabel? }], fragments?: [{ element, slot }] }` with a **local** `id` (`'plan'`); the shell builds the full id `basePath.id` (`seating.plan`). `slot` is `'header'` or `'overlay'`. | Shell, every remote, and each caller of an intent |
 | 4 | **`routeParams`** | One property the shell writes onto a routed element: **ids, plus the one documented `seats` string**. Param names equal the `{placeholders}` in the owner's path. | Shell, each page and each caller |
-| 5 | **Bus events** | `nav:navigate`, `nav:resolve`, `booking:confirmed` | Producer and consumers |
+| 5 | **Bus events** | `nav:navigate`, `nav:resolve`, `booking:confirmed`, `notify:show` | Producer and consumers |
 
 The runtime contract is **strings**: tag names, exposed keys, intent ids,
 param names, event names and the manifest's remote names. TypeScript types
@@ -139,7 +140,7 @@ prefix (Geers: "establish team prefixes").
 | `basePath` = first URL segment | `<team>` | `/seating/...` |
 | Intent id | `<team>.<thing>` | `seating.plan` |
 | Domain event | `<team>:<past-tense-verb>` | `booking:confirmed` |
-| Infrastructure event | `nav:<verb>` | `nav:navigate` |
+| Infrastructure event | `<capability>:<verb>` | `nav:navigate`, `notify:show` |
 
 Avoid names that stutter. `mfe-seating-plan` is fine. `mfe-seating-seat-plan`
 is not.
@@ -192,7 +193,8 @@ value a **command**: only current listeners get it, and nothing is kept.
 |---|---|---|---|
 | `nav:navigate` | command | any remote → shell | emitted with `{ retain: false }` (`navigateTo()` in `src/shared/navigate.ts`, inline in seating); the shell listens with `{ replay: false }`: an old navigation must never be replayed |
 | `nav:resolve` | state: the shell's `NavResolver` | shell → any `[navIntent]` | `bus.emit('nav:resolve', resolve)`, retained; `bus.on` without options: a link that renders late still gets the resolver |
-| `booking:confirmed` | domain fact, sent as a command | booking → loyalty, notifications | `{ retain: false }` and `{ replay: false }`, see [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only) |
+| `booking:confirmed` | domain fact, sent as a command | booking → loyalty | `{ retain: false }` and `{ replay: false }`, see [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only) |
+| `notify:show` | command: `{ message }`, worded by the sender | any remote → notifications | `{ retain: false }` and `{ replay: false }`, see [ADR-14](decisions.md#adr-14-notifications-shows-messages-it-knows-no-domain) |
 
 ## Fragments and resilience
 
@@ -213,7 +215,7 @@ flowchart LR
 ```
 
 - The two fragments show the two flavours: one that **shows state** (the
-  badge) and one that **reacts to events** (the toast).
+  badge) and one that **takes commands** (the toast).
 - The shell only renders a fragment slot, and only asks for its module,
   when its remote loaded. A slot of a remote that loaded but whose fragment
   fails **renders empty, with no error UI**, and logs the shell's
@@ -268,8 +270,8 @@ touches.**
 - Copy rule: the `Channels` entries the repo emits or subscribes to (none
   in account); `NavPayload` and
   `NavResolver` if it has the directive; `NavContribution` in every remote;
-  `RouteParams` if a page takes params; `BookingConfirmed` for booking,
-  loyalty and notifications.
+  `RouteParams` if a page takes params; `BookingConfirmed` for booking and
+  loyalty; `NotifyMessage` for booking and notifications.
 - Copied helpers, each from the tractor store, each **only where used**:
 
   | File | In |

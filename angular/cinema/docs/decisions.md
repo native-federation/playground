@@ -94,15 +94,16 @@ here once; the other documents link to it.
 
 - **Decision.**
   - `booking:confirmed { bookingRef, ticketCount }` is the only domain
-    event. Its consumers are loyalty and notifications.
+    event. Its consumer is loyalty. (Until ADR-14, notifications consumed
+    it too.)
   - Booking emits it with `{ retain: false }`, so the bus keeps nothing for
     a listener that subscribes later. Both consumers still subscribe with
     `{ replay: false }`, as a guard against a producer that forgets.
   - **Rule:** a domain event may only be consumed by elements the shell
     mounts at startup. Pages get cross-team data from the URL.
 - **Why.**
-  - One event shows publish/subscribe and fan-out to two consumers the
-    producer does not know.
+  - One event shows publish/subscribe to a consumer the producer does not
+    know; adding a second consumer needs no change to booking.
   - The payload is a snapshot, so no consumer calls back.
   - Replaying an additive fact would double-count points.
 - **Cost.** "Mounted at startup" really means "loaded before the first
@@ -112,8 +113,8 @@ here once; the other documents link to it.
 ## ADR-06: Cross-team fragments are in, but exactly two, placed only by the shell
 
 - **Decision.**
-  - `mfe-loyalty-badge` (shows state) and `mfe-notifications-toast` (reacts
-    to events). Since ADR-13 their remotes declare them, and the shell
+  - `mfe-loyalty-badge` (shows state) and `mfe-notifications-toast` (takes
+    commands). Since ADR-13 their remotes declare them, and the shell
     places them in one of its two closed slots, `header` and `overlay`.
     Adding a slot is a shell decision.
   - No remote embeds another remote. There are no header or footer remotes.
@@ -292,6 +293,31 @@ here once; the other documents link to it.
     deploy first.
   - No `order`, icon or home flag: manifest order decides, and the brand
     links to `/`.
+
+## ADR-14: Notifications shows messages, it knows no domain
+
+- **Decision.**
+  - Notifications listens to one command, `notify:show { message }`, and
+    shows the message as given for 3 s. It no longer consumes
+    `booking:confirmed`.
+  - The team that owns the fact words the message: booking emits
+    `notify:show` with "Booking BR-… confirmed" next to its domain event.
+  - Like `booking:confirmed`, it is emitted with `{ retain: false }` and
+    subscribed with `{ replay: false }`: a stale message is never shown.
+- **Why.**
+  - A notifications team that consumes every team's events must learn
+    every team's language, and every new toast needs a release in its
+    repo. That is slicing by technical capability: a bottleneck coupled to
+    everyone.
+  - It makes the difference between the two kinds of messages visible.
+    Loyalty applies its own rule to a domain event (+10 points per ticket).
+    Notifications just does what a command tells it.
+- **Cost.**
+  - Booking now emits twice on confirm, and `booking:confirmed` has only
+    one consumer, so the demo no longer shows fan-out to two consumers.
+  - A remote that only renders a toast is too thin for a real MFE. In
+    production this is a shell capability or a shared component. It stays
+    a remote here because it shows a fragment that takes commands.
 
 ## YAGNI: deliberately left out
 

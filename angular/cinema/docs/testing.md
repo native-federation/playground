@@ -50,9 +50,9 @@ The spec names map onto the "pattern it demonstrates" column in the
 | programme | `nav-contribution` declares `list` with path `''`. Rows link to `film.detail {filmId}` and `seating.plan {screeningId}`: the spec asserts those exact id and param-name literals. |
 | film | `nav-contribution` declares `detail` with path `{filmId}`. Renders the film for `routeParams = { filmId }`. An unknown id shows "not found". |
 | seating | `nav-contribution` declares `plan` with path `{screeningId}`. Renders taken seats deterministically for `screeningId`. Toggling A2 then A1 and pressing "Continue" emits `nav:navigate` with id `booking.checkout` and payload `{ screeningId, seats: seatsParamExample }` (`'A1,A2'`, sorted). "Continue" is disabled with no seats held. |
-| booking | `nav-contribution` declares `checkout` with path `{screeningId}/{seats}`. Given `routeParams` with the decoded `seatsParamExample`, shows 2 tickets and €24. "Confirm" emits `booking:confirmed` with the **same key set** as `bookingConfirmedExample`, `bookingRef` matching `/^BR-[0-9A-F]{4}$/` and `ticketCount` equal to the number of seats. The ref generator is injected and stubbed, so the spec is deterministic. An empty or invalid `seats` shows an empty checkout and does not throw. |
+| booking | `nav-contribution` declares `checkout` with path `{screeningId}/{seats}`. Given `routeParams` with the decoded `seatsParamExample`, shows 2 tickets and €24. "Confirm" emits `booking:confirmed` with the **same key set** as `bookingConfirmedExample`, `bookingRef` matching `/^BR-[0-9A-F]{4}$/` and `ticketCount` equal to the number of seats, and emits `notify:show` with "Booking BR-… confirmed". The ref generator is injected and stubbed, so the spec is deterministic. An empty or invalid `seats` shows an empty checkout and does not throw. |
 | loyalty | `nav-contribution` declares `points`. Emitting `bookingConfirmedExample` adds 20 points. The badge and the page read the same `PointsStore`. An event emitted **before** the store exists does not count (`replay: false`), even when it was retained. |
-| notifications | `nav-contribution` declares no intents. Emitting `bookingConfirmedExample` shows a toast containing the `bookingRef`. It disappears after 3 s (fake timers). |
+| notifications | `nav-contribution` declares no intents. Emitting `notifyMessageExample` on `notify:show` shows its message as given. It disappears after 3 s (fake timers). |
 | account | `nav-contribution` declares `profile`. Renders the mock profile. |
 
 Two more specs in every repo that has them:
@@ -78,7 +78,7 @@ Two more specs in every repo that has them:
 | 2 | Exposed element | remote: bootstrap spec (exposed keys = defined tags) | shell: mounts the tag; fragment slot survives a rejected loader | the two fragment tags exposed; every exposed file returns HTTP 200 | pages and fragments render |
 | 3 | `nav-contribution` | page owner: declares id + path | shell: routes + resolver from fixtures; caller: emits the exact id literal | every remote exposes `nav-contribution` | no `[nav]` warnings in the console |
 | 4 | `routeParams` | caller: exact param names (and sorted `seats`) | page: renders for given params; shell: writes `routeParams` | none | no `[nav]` warnings; pages show the right data |
-| 5 | Bus events | booking: payload matches the example | loyalty, notifications: consume the example on a real bus | none | badge reaches 20, toast shows the ref |
+| 5 | Bus events | booking: payload matches the example, and it asks for a toast | loyalty and notifications: consume their example on a real bus | none | badge reaches 20, toast shows the ref |
 
 **What nothing automated catches:** two copies of the same literal that
 drift apart (an intent id, a param name, an event name, an example

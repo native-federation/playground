@@ -51,6 +51,11 @@ export interface BookingConfirmed {
   readonly ticketCount: number;
 }
 
+// A message for the moviegoer, already worded by the team it belongs to (ADR-14).
+export interface NotifyMessage {
+  readonly message: string;
+}
+
 // Every channel on the bus, by name.
 declare module '@softarc/native-federation-communication' {
   interface Channels {
@@ -60,5 +65,7 @@ declare module '@softarc/native-federation-communication' {
     'nav:resolve': NavResolver;
     // Command (emit with { retain: false }): a booking is counted once, by whoever listens now (ADR-05).
     'booking:confirmed': BookingConfirmed;
+    // Command (emit with { retain: false }): show a short-lived message to the moviegoer (ADR-14).
+    'notify:show': NotifyMessage;
   }
 }
