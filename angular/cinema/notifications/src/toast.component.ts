@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { bus } from '@softarc/native-federation-communication';
-import type { BookingConfirmed } from './contracts';
+import type { NotifyMessage } from './contracts';
 
 const visibleMs = 3000;
 
@@ -15,9 +15,8 @@ export class ToastComponent {
   private timer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
-    // replay: false: a booking confirmed before the toast loaded is not shown
-    // (see docs/decisions.md ADR-05).
-    const stop = bus.on('booking:confirmed', (booking) => this.show(booking), {
+    // replay: false: a message sent before the toast loaded is stale (ADR-14).
+    const stop = bus.on('notify:show', (notification) => this.show(notification), {
       replay: false,
     });
     inject(DestroyRef).onDestroy(() => {
@@ -26,8 +25,8 @@ export class ToastComponent {
     });
   }
 
-  private show({ bookingRef }: BookingConfirmed): void {
-    this.message.set(`Booking ${bookingRef} confirmed`);
+  private show({ message }: NotifyMessage): void {
+    this.message.set(message);
     clearTimeout(this.timer);
     this.timer = setTimeout(() => this.message.set(null), visibleMs);
   }
