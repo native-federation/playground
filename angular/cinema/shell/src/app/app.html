@@ -1,6 +1,6 @@
 <header>
   <mat-toolbar>
-    <a class="brand" navIntent="programme.list">
+    <a class="brand" routerLink="/">
       <svg
         width="28"
         height="28"
@@ -20,35 +20,43 @@
       Cinema
     </a>
     <nav aria-label="Main">
-      @let programme = isCurrent('programme.list');
-      <a
-        [matButton]="programme ? 'tonal' : 'text'"
-        navIntent="programme.list"
-        [attr.aria-current]="programme ? 'page' : null"
-      >
-        Programme
-      </a>
-      @let points = isCurrent('loyalty.points');
-      <a
-        [matButton]="points ? 'tonal' : 'text'"
-        navIntent="loyalty.points"
-        [attr.aria-current]="points ? 'page' : null"
-      >
-        Points
-      </a>
-      <mfe-loyalty-badge mfeRemote="@cinema/loyalty" />
-      @let account = isCurrent('account.profile');
-      <a
-        [matButton]="account ? 'tonal' : 'text'"
-        navIntent="account.profile"
-        [attr.aria-current]="account ? 'page' : null"
-      >
-        Account
-      </a>
+      @if (present.has('@cinema/programme')) {
+        @let programme = isCurrent('programme.list');
+        <a
+          [matButton]="programme ? 'tonal' : 'text'"
+          navIntent="programme.list"
+          [attr.aria-current]="programme ? 'page' : null"
+        >
+          Programme
+        </a>
+      }
+      @if (present.has('@cinema/loyalty')) {
+        @let points = isCurrent('loyalty.points');
+        <a
+          [matButton]="points ? 'tonal' : 'text'"
+          navIntent="loyalty.points"
+          [attr.aria-current]="points ? 'page' : null"
+        >
+          Points
+        </a>
+        <mfe-loyalty-badge mfeRemote="@cinema/loyalty" />
+      }
+      @if (present.has('@cinema/account')) {
+        @let account = isCurrent('account.profile');
+        <a
+          [matButton]="account ? 'tonal' : 'text'"
+          navIntent="account.profile"
+          [attr.aria-current]="account ? 'page' : null"
+        >
+          Account
+        </a>
+      }
     </nav>
   </mat-toolbar>
 </header>
 <main><router-outlet /></main>
-<mfe-notifications-toast mfeRemote="@cinema/notifications" />
+@if (present.has('@cinema/notifications')) {
+  <mfe-notifications-toast mfeRemote="@cinema/notifications" />
+}
 <footer>Cinema: a Native Federation polyrepo demo.</footer>
 <app-remote-switcher />

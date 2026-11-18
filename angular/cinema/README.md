@@ -137,17 +137,16 @@ Every repo also works on its own:
 The clearest way to see independence (also in
 [docs/testing.md](docs/testing.md#the-remote-down--redeploy-walkthrough-readme-script)).
 
-1. `./start-all.sh`, open http://localhost:4300 and the console. There are
+1. `./start-all.sh`, open http://localhost:4300 and the console. Open the
+   **Remotes** panel (bottom left), tick all seven and Apply. There are
    no `[nav]` or `[remote]` lines. Pick a screening, two seats, Continue,
    Confirm: the toast shows "Booking BR-… confirmed" for 3 s and the header
    badge goes from 0 to 20 pts without a reload.
 2. Stop `account` (kill the process on port 4307; Ctrl-C in `start-all.sh`
    would stop all eight) and reload. The
-   header **Account** link turns inert (no `href`, `role="link"`,
-   `aria-disabled="true"`).
-   The console shows the failed `remoteEntry.json` fetch, the orchestrator's
-   `Failed to load module @cinema/account/nav-contribution`, and
-   `[nav] unknown intent "account.profile"`. Everything else loads, including
+   header **Account** link disappears.
+   The console shows only the failed `remoteEntry.json` fetch and the
+   orchestrator's `[NF][1]` line for it. Everything else loads, including
    the other Angular 21 remotes: their shared Angular 21 now comes from
    another ng21 remote (:4302).
 3. Change the profile name in `account/src/profile.component.ts`, run

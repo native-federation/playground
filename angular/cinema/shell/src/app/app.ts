@@ -7,16 +7,18 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatToolbar } from '@angular/material/toolbar';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { NavIntentDirective } from '../shared/nav-intent.directive';
 import { RemoteElementDirective } from '../shared/remote-element';
 import { RemoteSwitcher } from '../remote-switcher/remote-switcher';
+import { CONTRIBUTIONS } from './contributions';
 
 @Component({
   selector: 'app-root',
   imports: [
     RouterOutlet,
+    RouterLink,
     MatToolbar,
     MatButton,
     NavIntentDirective,
@@ -30,6 +32,9 @@ import { RemoteSwitcher } from '../remote-switcher/remote-switcher';
 })
 export class App {
   private readonly router = inject(Router);
+  protected readonly present = new Set(
+    inject(CONTRIBUTIONS).map(({ remoteName }) => remoteName),
+  );
   private readonly section = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),

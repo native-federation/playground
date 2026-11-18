@@ -58,15 +58,17 @@ repo copies (ADR-03).
     remote that is down is skipped (with a `[nav]` warning);
   - builds one route per intent, mounted by one `RemoteShellComponent` that
     sets the tag and writes `routeParams`;
-  - always adds a `**` catch-all: a **redirect** to `programme`, or to any
-    parameterless page that did load. If none loaded, `**` is an empty route
+  - always adds a `**` catch-all: a **redirect** to the first parameterless
+    page that loaded, in manifest order (programme comes first). If none loaded, `**` is an empty route
     (`children: []`) that keeps the URL and renders nothing in the outlet, so
     the router never throws `NG04002`. There is no "not available" page;
   - emits the resolver on `nav:resolve` and handles `nav:navigate` (see
     [Events](#events));
   - the resolver is copied unchanged, with one addition: it
-    **`console.warn`s on an unknown intent id or a missing param**. Without
-    that, a misspelled id looks exactly like a remote that is down.
+    **`console.warn`s on a missing param, or on an unknown intent id whose
+    team did load**. Without that, a misspelled id looks exactly like a
+    remote that is down. An intent of a team that did not load returns
+    `null` silently (ADR-12).
 - `remote-element.ts`, adapted from the tractor store's remotes, mounts the
   two fragment slots. It also holds the remote loader, so the host's
   separate `load-remote.ts` is not copied.
@@ -208,11 +210,11 @@ flowchart LR
 
 - The two fragments show the two flavours: one that **shows state** (the
   badge) and one that **reacts to events** (the toast).
-- A fragment slot that fails to load **renders empty, with no error UI**.
-  The console shows the orchestrator's `[NF][6] Failed to load module …`
-  error and the shell's `[remote] failed to load <…>` error.
-  The page around it keeps working, which is what Geers calls a resilient
-  site.
+- The shell only renders a fragment slot, and only asks for its module,
+  when its remote loaded. A slot of a remote that loaded but whose fragment
+  fails **renders empty, with no error UI**, and logs the shell's
+  `[remote] failed to load <…>` error. The page around it keeps working,
+  which is what Geers calls a resilient site.
 - The badge and the `/loyalty` page are two elements of **one** loyalty
   application (see [A remote](#a-remote)). The `booking:confirmed`
   subscription lives in the root `PointsStore`, not in the badge, so the
@@ -221,16 +223,21 @@ flowchart LR
 The copied `[navIntent]` directive keeps an unresolved link in the DOM but
 removes its `href` and sets `role="link"` and `aria-disabled="true"`, so it
 is still announced as a (disabled) link: the link turns
-**inert**. The shell resolver also logs a `[nav]` warning for it.
+**inert**. The shell's own header links and fragments of a remote that did
+not load are not rendered at all.
 
-| Remote down | Effect |
+A remote that is switched off (ADR-11) or down behaves the same, except that
+a down remote leaves the orchestrator's `[NF][1]` line and the failed fetch
+in the console. Nothing else is logged (ADR-12).
+
+| Remote off or down | Effect |
 |---|---|
-| programme | `/` redirects to another parameterless page that loaded (`/loyalty` or `/account`). Deep links to other pages still work. |
+| programme | The Programme link is gone and `/` redirects to the next parameterless page that loaded (`/loyalty` or `/account`). Deep links to other pages still work. |
 | film | Film title links in the programme turn inert. |
-| seating / booking | The links into that step turn inert. With booking down, seating's "Continue" stays on the page and the shell logs `[nav] cannot navigate` (console only, no UI). Nothing else breaks. |
-| loyalty | The badge slot is empty, the header points link turns inert, and the booking still confirms. |
+| seating / booking | The links into that step turn inert. With booking off, seating's "Continue" does nothing. Nothing else breaks. |
+| loyalty | The Points link and the badge are gone, and the booking still confirms. |
 | notifications | No toast appears. Everything else works. |
-| account | The header account link turns inert. This is the scripted walkthrough (see testing.md). |
+| account | The Account link is gone. This is the scripted walkthrough (see testing.md). |
 
 ## Sharing contracts without a monorepo
 

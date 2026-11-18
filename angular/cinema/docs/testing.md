@@ -112,14 +112,17 @@ dependencies; it runs against the dev servers or a deployment.
 This is a manual demo script, and it is the clearest way to show
 independence.
 
-1. Start everything with `./start-all.sh`. Open the console: there are no
-   `[nav]` warnings. Book two seats and watch the toast and the badge
+1. Start everything with `./start-all.sh`. In the **Remotes** panel, tick
+   all seven and Apply. Open the console: there are no `[nav]` warnings. Book two seats and watch the toast and the badge
    reach 20.
-2. Stop `account`. Reload. The header account link turns inert, and
+2. Stop `account`. Reload. The header account link disappears, and
    nothing else changes.
 3. Change the profile text in `account`, then run `npm start` in `account`
    only. Reload (a hard reload if the browser cached `remoteEntry.json`; the
    shell fetches only the manifest with `no-cache`). The new text appears.
    No other repo was rebuilt, reinstalled or restarted.
 4. Optional: stop `loyalty` and confirm a booking. The toast still appears,
-   the badge slot is empty, and the producer never knew.
+   the Points link and the badge are gone, and the producer never knew.
+5. Untick everything but programme, seating and booking in the **Remotes**
+   panel and Apply. The console stays clean: a remote that is off logs
+   nothing (ADR-12).

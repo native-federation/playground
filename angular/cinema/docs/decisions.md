@@ -241,9 +241,31 @@ here once; the other documents link to it.
     `customElements.define` cannot be undone. Enabling live would need
     re-runnable routes in `navigation.ts`, so both directions reload.
   - A disabled remote behaves exactly like a remote that is down.
-- **Cost.** Disabled remotes log `[remote] failed to load` for their
-  fragment slots. Removing the tool means deleting the folder and three
+- **Cost.** Removing the tool means deleting the folder and three
   one-line touch points in `main.ts`, `app.ts` and `app.html`.
+
+## ADR-12: An absent remote is silent, a broken one logs
+
+- **Decision.**
+  - `bootstrap.ts` loads the nav contributions before Angular starts, and
+    only of the remotes the orchestrator initialised
+    (`nf.adapters.remoteInfoRepo.contains`). The result is provided as the
+    immutable `CONTRIBUTIONS` value: it is the one notion of "present".
+  - The shell renders header links and fragment slots only for present
+    remotes. The brand links to `/`, and `**` falls back to the first
+    parameterless page in manifest order.
+  - The resolver warns about an unknown intent only when its team (the part
+    before the dot) loaded. `nav:navigate` to an unresolvable intent is a
+    silent no-op.
+- **Why.** With the switcher (ADR-11), a remote being off is a normal
+  state, not an incident. Warnings are kept for what a developer can fix:
+  drift inside a loaded team, a missing param, an invalid contribution, a
+  fragment that fails although its remote loaded. A down remote still shows
+  the orchestrator's `[NF][1]` line: that is the outage signal.
+- **Cost.** The header still names its remotes in `app.html`; the guards
+  are a stopgap until remotes declare their own menu entries.
+  `remoteInfoRepo` is reached through the orchestrator's `adapters`, which
+  is on the public `NativeFederationResult` type.
 
 ## YAGNI: deliberately left out
 
