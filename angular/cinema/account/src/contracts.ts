@@ -15,4 +15,6 @@ export interface NavIntent {
   readonly path: string;
   // Routed intents render this element; intents without one are link-only.
   readonly element?: string;
+  // Shown in the shell's main menu; only on intents without `{params}`.
+  readonly menuLabel?: string;
 }
