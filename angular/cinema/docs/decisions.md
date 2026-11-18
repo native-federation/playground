@@ -59,6 +59,8 @@ here once; the other documents link to it.
     trimmed to what it touches.
     Example values live in `src/testing/contracts.examples.ts`.
   - The shell's copy is the reference.
+  - Optional fields live only in the copies that set them (`menuLabel`,
+    `fragments`, ADR-13). That knowingly lets the copies drift further.
   - Helpers are copied from the tractor store only where used:
     `nav-intent.directive.ts` with its spec, `nav-resolver.stub.ts`, and
     `testing/setup.ts` (a fresh real bus per test, in every repo except
@@ -111,7 +113,9 @@ here once; the other documents link to it.
 
 - **Decision.**
   - `mfe-loyalty-badge` (shows state) and `mfe-notifications-toast` (reacts
-    to events) sit in the shell layout.
+    to events). Since ADR-13 their remotes declare them, and the shell
+    places them in one of its two closed slots, `header` and `overlay`.
+    Adding a slot is a shell decision.
   - No remote embeds another remote. There are no header or footer remotes.
 - **Why.**
   - Fragments are the most instructive MFE mechanic, so they are kept.
@@ -119,7 +123,8 @@ here once; the other documents link to it.
     dependency, a loader and a manifest it otherwise does not need. The
     tractor store already shows it. Without it, remote `bootstrap()` takes
     no arguments.
-  - A failed fragment renders an empty slot.
+  - A failed fragment renders an empty slot. A fragment of a remote that
+    did not load is not rendered at all (ADR-12).
 - **Rejected.** Snacks embedded in booking's page: a double coupling that
   needs three servers to verify.
 
@@ -209,8 +214,10 @@ here once; the other documents link to it.
 
 - **Decision.**
   - Vitest per repo on a real bus, against its own example values.
-  - `shell/scripts/smoke.mjs` checks every `remoteEntry.json`: name,
-    exposes, and that each exposed file is served.
+  - `shell/scripts/smoke.mjs` checks every `remoteEntry.json`: name, the
+    `nav-contribution` expose, and that each exposed file is served. That
+    every declared element and fragment is exposed is checked by each
+    remote's `nav-contribution.spec.ts`.
   - A manual walkthrough checks that the sides agree.
 - **Why.** No test can import another repo. Smoke checks the real runtime
   surface cheaply, and it belongs to the repo that owns the manifest.
@@ -262,10 +269,29 @@ here once; the other documents link to it.
   drift inside a loaded team, a missing param, an invalid contribution, a
   fragment that fails although its remote loaded. A down remote still shows
   the orchestrator's `[NF][1]` line: that is the outage signal.
-- **Cost.** The header still names its remotes in `app.html`; the guards
-  are a stopgap until remotes declare their own menu entries.
-  `remoteInfoRepo` is reached through the orchestrator's `adapters`, which
+- **Cost.** `remoteInfoRepo` is reached through the orchestrator's `adapters`, which
   is on the public `NativeFederationResult` type.
+
+## ADR-13: The shell names no remote
+
+- **Decision.**
+  - A remote declares its main-menu entry with `menuLabel` on a
+    parameterless intent, and its fragments with
+    `fragments: [{ element, slot }]` in its `nav-contribution`.
+  - The shell builds the menu and the slots from the present contributions
+    (ADR-12), in manifest order. Remote names appear only in the manifest.
+  - Malformed fields are ignored, like an invalid contribution.
+- **Why.** A new remote can add a menu entry or a fragment without a shell
+  release, and a remote that is off simply contributes nothing. The copied
+  `NavIntentDirective` stays unchanged: links are hidden by not generating
+  them.
+- **Cost.**
+  - Deploy order: a remote that declares the fields works with an older
+    shell, which ignores them. A shell that relies on them drops the menu
+    entry and fragment of a remote that does not declare them yet. Remotes
+    deploy first.
+  - No `order`, icon or home flag: manifest order decides, and the brand
+    links to `/`.
 
 ## YAGNI: deliberately left out
 
@@ -308,7 +334,8 @@ here once; the other documents link to it.
   for one string; enforced by review.
 - **Renaming `mfe-booking-checkout` to `mfe-booking-summary`.** "checkout"
   was added to the glossary instead.
-- **Making the header hide links of a remote that is down.** The copied
-  directive renders an inert link; changing it would make it a fork rather
-  than a copy. (Fixes to the directive, such as `role="link"` on the inert
+- **Making the header hide links of a remote that is down by changing the
+  directive.** Resolved differently by ADR-13: the shell's header links of
+  an absent remote are never generated, and the copied directive still
+  renders an inert link for remote-rendered links. (Fixes to the directive, such as `role="link"` on the inert
   link, go into the tractor-store original too, so it stays a copy.)

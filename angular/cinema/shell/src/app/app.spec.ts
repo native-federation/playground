@@ -9,36 +9,55 @@ import { CONTRIBUTIONS, type RemoteContribution } from './contributions';
 @Component({ template: '<p>routed page</p>' })
 class RoutedPage {}
 
-// Only remoteName matters to the App; the contributions themselves feed navigation.ts.
-const loaded = (...names: string[]): RemoteContribution[] =>
-  names.map((remoteName) => ({
-    remoteName,
-    contribution: { basePath: remoteName.split('/')[1], intents: [] },
-  }));
+// Mirrors what the real remotes declare in their nav-contribution.
+const contributionsByRemote: Record<string, RemoteContribution['contribution']> = {
+  '@cinema/programme': {
+    basePath: 'programme',
+    intents: [{ id: 'list', path: '', element: 'mfe-programme-list', menuLabel: 'Programme' }],
+  },
+  '@cinema/film': {
+    basePath: 'film',
+    intents: [{ id: 'detail', path: '{filmId}', element: 'mfe-film-detail' }],
+  },
+  '@cinema/loyalty': {
+    basePath: 'loyalty',
+    intents: [{ id: 'points', path: '', element: 'mfe-loyalty-points', menuLabel: 'Points' }],
+    fragments: [{ element: 'mfe-loyalty-badge', slot: 'header' }],
+  },
+  '@cinema/notifications': {
+    basePath: 'notifications',
+    intents: [],
+    fragments: [{ element: 'mfe-notifications-toast', slot: 'overlay' }],
+  },
+  '@cinema/account': {
+    basePath: 'account',
+    intents: [{ id: 'profile', path: '', element: 'mfe-account-profile', menuLabel: 'Account' }],
+  },
+};
 
-const allRemotes = loaded(
-  '@cinema/programme',
-  '@cinema/loyalty',
-  '@cinema/notifications',
-  '@cinema/account',
-);
+const loaded = (...names: string[]): RemoteContribution[] =>
+  names.map((remoteName) => ({ remoteName, contribution: contributionsByRemote[remoteName] }));
 
 const render = (
   routes: Routes = [{ path: 'page', component: RoutedPage }],
-  contributions = allRemotes,
+  contributions = loaded(...Object.keys(contributionsByRemote)),
 ) => {
   TestBed.configureTestingModule({
     imports: [App],
     providers: [
       provideRouter(routes),
       { provide: CONTRIBUTIONS, useValue: contributions },
-      // The fragments never load here, so their slots stay empty.
+      // Loading succeeds at once, so each fragment mounts its element.
       { provide: LOAD_REMOTE, useValue: () => Promise.resolve() },
     ],
   });
   const fixture = TestBed.createComponent(App);
   fixture.detectChanges();
-  return { fixture, root: fixture.nativeElement as HTMLElement };
+  const root = fixture.nativeElement as HTMLElement;
+  // [navIntent] is a property binding, so links are identified by their label.
+  const labels = (selector = 'nav a') =>
+    [...root.querySelectorAll(selector)].map((a) => a.textContent?.trim());
+  return { fixture, root, labels };
 };
 
 describe('App', () => {
@@ -49,49 +68,42 @@ describe('App', () => {
     expect(fixture.nativeElement.textContent).toContain('routed page');
   });
 
-  it('links the main navigation by intent', () => {
-    const { root } = render();
-    const intents = [...root.querySelectorAll('nav a')].map((a) =>
-      a.getAttribute('navIntent'),
-    );
-    expect(intents).toEqual([
-      'programme.list',
-      'loyalty.points',
-      'account.profile',
-    ]);
+  it('builds the main menu from the menu labels, in manifest order', () => {
+    const { root, labels } = render();
+    // film's only intent needs a param and has no label, so it adds nothing.
+    expect(labels()).toEqual(['Programme', 'Points', 'Account']);
     expect(root.querySelector('nav')?.getAttribute('aria-label')).toBe('Main');
   });
 
   it('marks the nav link of the current section', async () => {
     // Mirrors the routes navigation.ts builds: basePath/path plus the '**' fallback.
-    const { fixture, root } = render([
+    const { fixture, labels } = render([
       { path: 'programme', component: RoutedPage },
       { path: 'account', component: RoutedPage },
       { path: 'film/:filmId', component: RoutedPage },
       { path: '**', redirectTo: 'programme' },
     ]);
     const router = TestBed.inject(Router);
-    const current = () =>
-      [...root.querySelectorAll('nav a[aria-current="page"]')].map((a) =>
-        a.getAttribute('navIntent'),
-      );
     const visit = async (url: string) => {
       await router.navigateByUrl(url);
       await fixture.whenStable();
-      return current();
+      return labels('nav a[aria-current="page"]');
     };
 
-    expect(await visit('/programme')).toEqual(['programme.list']);
-    expect(await visit('/account')).toEqual(['account.profile']);
+    expect(await visit('/programme')).toEqual(['Programme']);
+    expect(await visit('/account')).toEqual(['Account']);
     // A page outside the main navigation marks nothing.
     expect(await visit('/film/f-1')).toEqual([]);
     // router.url is read after the redirect, so '/' lights Programme.
-    expect(await visit('/')).toEqual(['programme.list']);
+    expect(await visit('/')).toEqual(['Programme']);
   });
 
-  it('places both cross-team fragments', () => {
-    const { root } = render();
-    expect(root.querySelector('mfe-loyalty-badge')).not.toBeNull();
+  it('mounts header fragments after their team links and overlays outside the header', async () => {
+    const { fixture, root } = render();
+    await fixture.whenStable();
+    const badge = root.querySelector('nav mfe-loyalty-badge');
+    expect(badge?.closest('app-remote-fragment')?.previousElementSibling?.textContent?.trim()).toBe('Points');
+    expect(root.querySelector('header mfe-notifications-toast')).toBeNull();
     expect(root.querySelector('mfe-notifications-toast')).not.toBeNull();
   });
 
@@ -101,12 +113,8 @@ describe('App', () => {
   });
 
   it('renders no link or fragment of a remote that did not load', () => {
-    const { root } = render(undefined, loaded('@cinema/programme'));
-    const intents = [...root.querySelectorAll('nav a')].map((a) =>
-      a.getAttribute('navIntent'),
-    );
-    expect(intents).toEqual(['programme.list']);
-    expect(root.querySelector('mfe-loyalty-badge')).toBeNull();
-    expect(root.querySelector('mfe-notifications-toast')).toBeNull();
+    const { root, labels } = render(undefined, loaded('@cinema/programme'));
+    expect(labels()).toEqual(['Programme']);
+    expect(root.querySelector('app-remote-fragment')).toBeNull();
   });
 });

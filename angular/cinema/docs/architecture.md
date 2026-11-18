@@ -69,14 +69,18 @@ repo copies (ADR-03).
     team did load**. Without that, a misspelled id looks exactly like a
     remote that is down. An intent of a team that did not load returns
     `null` silently (ADR-12).
-- `remote-element.ts`, adapted from the tractor store's remotes, mounts the
-  two fragment slots. It also holds the remote loader, so the host's
-  separate `load-remote.ts` is not copied.
+- `contributions.ts` loads the nav contributions of the present remotes
+  before Angular starts and derives the main menu and the fragment slots
+  from them (ADR-13).
+- `remote-fragment.ts` mounts one fragment element; `remote-element.ts`
+  holds the remote loader, so the host's separate `load-remote.ts` is not
+  copied.
 - `RemoteShellComponent` writes **path params only** into `routeParams`, so
   `RouteParams` is `Record<string, string>`.
-- The layout: a header with intent links to `programme.list`,
-  `loyalty.points` and `account.profile`; the `mfe-loyalty-badge` slot;
-  `mfe-notifications-toast`, mounted once; a footer; the global stylesheet.
+- The layout: a header whose menu holds one link per intent with a
+  `menuLabel` and the `header` fragments, each team's after its own links;
+  the `overlay` fragments, mounted once; a footer; the global stylesheet.
+  The layout names no remote.
   The shell's `<main>` owns the page container (max-width, padding); a
   remote renders only its content, never its own max-width or gutter.
 
@@ -113,8 +117,8 @@ There are five. Anything not on this list is private to one repo.
 | # | Contract | Shape | Who agrees |
 |---|---|---|---|
 | 1 | **Manifest** | `@cinema/<team>` → `remoteEntry.json` URL; the key equals the remote's federation name | Shell and the deployment |
-| 2 | **Exposed element** | Exposed key = tag name. Its module is a `RemoteElementModule`: `{ bootstrap(): Promise<void> }`. The shell's layout hard-codes two of these tags: `mfe-loyalty-badge` and `mfe-notifications-toast`. | Shell and each remote |
-| 3 | **`nav-contribution`** | `{ basePath, intents: [{ id, path, element }] }` with a **local** `id` (`'plan'`); the shell builds the full id `basePath.id` (`seating.plan`) | Shell, every remote, and each caller of an intent |
+| 2 | **Exposed element** | Exposed key = tag name. Its module is a `RemoteElementModule`: `{ bootstrap(): Promise<void> }`. Fragments are declared in the `nav-contribution`, never hard-coded in the shell. | Shell and each remote |
+| 3 | **`nav-contribution`** | `{ basePath, intents: [{ id, path, element, menuLabel? }], fragments?: [{ element, slot }] }` with a **local** `id` (`'plan'`); the shell builds the full id `basePath.id` (`seating.plan`). `slot` is `'header'` or `'overlay'`. | Shell, every remote, and each caller of an intent |
 | 4 | **`routeParams`** | One property the shell writes onto a routed element: **ids, plus the one documented `seats` string**. Param names equal the `{placeholders}` in the owner's path. | Shell, each page and each caller |
 | 5 | **Bus events** | `nav:navigate`, `nav:resolve`, `booking:confirmed` | Producer and consumers |
 

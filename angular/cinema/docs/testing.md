@@ -100,9 +100,6 @@ dependencies; it runs against the dev servers or a deployment.
 3. Assert the exposes:
    - every remote exposes `nav-contribution` (notifications' has no
      intents, see architecture.md § A remote);
-   - `@cinema/loyalty` exposes `mfe-loyalty-badge` and
-     `@cinema/notifications` exposes `mfe-notifications-toast` (the two tags
-     the shell's layout hard-codes);
    - every exposed module's file URL returns HTTP 200 (catches a partial
      deploy).
 4. Print a table with one line per remote.

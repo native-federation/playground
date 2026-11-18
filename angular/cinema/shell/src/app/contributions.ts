@@ -3,7 +3,7 @@ import type {
   FederationManifest,
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
-import type { NavContribution } from '../contracts';
+import type { NavContribution, NavFragment } from '../contracts';
 
 export interface RemoteContribution {
   readonly remoteName: string;
@@ -48,3 +48,43 @@ export const loadContributions = async (
     return [];
   });
 };
+
+export interface FragmentRef {
+  readonly remoteName: string;
+  readonly element: string;
+}
+
+export interface MenuEntry {
+  readonly basePath: string;
+  readonly links: readonly { readonly id: string; readonly label: string }[];
+  readonly fragments: readonly FragmentRef[];
+}
+
+// Contributions are remote data: a malformed or unknown fragment is ignored.
+export const fragmentsIn = (
+  contributions: readonly RemoteContribution[],
+  slot: NavFragment['slot'],
+): FragmentRef[] =>
+  contributions.flatMap(({ remoteName, contribution: { fragments } }) =>
+    (Array.isArray(fragments) ? fragments : [])
+      .filter((f) => f?.slot === slot && typeof f.element === 'string')
+      .map(({ element }) => ({ remoteName, element })),
+  );
+
+// One entry per team that contributes a menu link or a header fragment, in
+// manifest order. Intents with `{params}` can't be menu links.
+export const menuEntries = (
+  contributions: readonly RemoteContribution[],
+): MenuEntry[] =>
+  contributions
+    .map((remote) => {
+      const { basePath, intents } = remote.contribution;
+      return {
+        basePath,
+        links: intents
+          .filter((i) => typeof i.menuLabel === 'string' && !i.path.includes('{'))
+          .map((i) => ({ id: `${basePath}.${i.id}`, label: i.menuLabel! })),
+        fragments: fragmentsIn([remote], 'header'),
+      };
+    })
+    .filter((entry) => entry.links.length > 0 || entry.fragments.length > 0);

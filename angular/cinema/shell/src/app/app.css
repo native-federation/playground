@@ -41,7 +41,7 @@ nav {
   --mat-button-tonal-horizontal-padding: 16px;
 }
 
-mfe-loyalty-badge {
+nav app-remote-fragment {
   margin: 0 4px;
 }
 
