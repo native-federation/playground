@@ -16,6 +16,7 @@ describe('nav-contribution', () => {
       id: 'list',
       path: '',
       element: 'mfe-programme-list',
+      menuLabel: 'Programme',
     });
   });
 
