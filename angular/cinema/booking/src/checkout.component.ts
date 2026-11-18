@@ -78,6 +78,7 @@ export class CheckoutComponent {
       { bookingRef, ticketCount: this.seats().length },
       { retain: false },
     );
+    bus.emit('notify:show', { message: `Booking ${bookingRef} confirmed` }, { retain: false });
     // The Confirm button is gone after this render; move focus to the result instead of <body>.
     afterNextRender(() => this.heading()?.nativeElement.focus(), { injector: this.injector });
   }
