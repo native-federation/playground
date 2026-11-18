@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastComponent } from './toast.component';
-import { bookingConfirmedExample } from './testing/contracts.examples';
+import { notifyMessageExample } from './testing/contracts.examples';
 import { bus } from '@softarc/native-federation-communication';
 
-// As booking emits it: a command (ADR-05).
-const confirm = (bookingRef = bookingConfirmedExample.bookingRef) =>
-  bus.emit('booking:confirmed', { ...bookingConfirmedExample, bookingRef }, { retain: false });
+// As a producer emits it: a command (ADR-14).
+const notify = (message = notifyMessageExample.message) =>
+  bus.emit('notify:show', { message }, { retain: false });
 
 // Under fake timers, whenStable() would hang on the zoneless scheduler's own timer,
 // so these specs render with detectChanges().
@@ -31,9 +31,9 @@ describe('ToastComponent', () => {
     expect(toast()).toBeNull();
   });
 
-  it('shows the booking ref for 3 s', () => {
+  it('shows the message as given, for 3 s', () => {
     const { toast } = render();
-    confirm();
+    notify();
     expect(toast()).toBe('Booking BR-7F3A confirmed');
     vi.advanceTimersByTime(2999);
     expect(toast()).toBe('Booking BR-7F3A confirmed');
@@ -41,12 +41,12 @@ describe('ToastComponent', () => {
     expect(toast()).toBeNull();
   });
 
-  // The first booking's timer must not hide the second toast early.
-  it('restarts the 3 s for a second booking', () => {
+  // The first message's timer must not hide the second toast early.
+  it('restarts the 3 s for a second message', () => {
     const { toast } = render();
-    confirm('BR-0001');
+    notify('Booking BR-0001 confirmed');
     vi.advanceTimersByTime(2000);
-    confirm('BR-0002');
+    notify('Booking BR-0002 confirmed');
     expect(toast()).toBe('Booking BR-0002 confirmed');
     vi.advanceTimersByTime(2999);
     expect(toast()).toBe('Booking BR-0002 confirmed');
@@ -54,10 +54,10 @@ describe('ToastComponent', () => {
     expect(toast()).toBeNull();
   });
 
-  // replay: false (ADR-05): even a value retained by a producer that forgot retain: false
+  // replay: false (ADR-14): even a value retained by a producer that forgot retain: false
   // would show a stale toast. The bus replays synchronously, inside on().
-  it('ignores a booking confirmed before it existed', () => {
-    bus.emit('booking:confirmed', bookingConfirmedExample);
+  it('ignores a message sent before it existed', () => {
+    bus.emit('notify:show', notifyMessageExample);
     const { toast } = render();
     expect(toast()).toBeNull();
   });
@@ -65,13 +65,13 @@ describe('ToastComponent', () => {
   // A destroyed toast leaves no pending timer and no bus listener behind.
   it('cleans up its timer and subscription on destroy', async () => {
     const { fixture } = render();
-    confirm();
+    notify();
     // Lets the zoneless scheduler's pending render timers run, so only the 3 s timer is left.
     await vi.advanceTimersByTimeAsync(0);
     expect(vi.getTimerCount()).toBe(1);
     fixture.destroy();
     expect(vi.getTimerCount()).toBe(0);
-    confirm();
+    notify();
     expect(vi.getTimerCount()).toBe(0);
   });
 });

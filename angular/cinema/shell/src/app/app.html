@@ -1,6 +1,6 @@
 <header>
   <mat-toolbar>
-    <a class="brand" navIntent="programme.list">
+    <a class="brand" routerLink="/">
       <svg
         width="28"
         height="28"
@@ -20,34 +20,27 @@
       Cinema
     </a>
     <nav aria-label="Main">
-      @let programme = isCurrent('programme.list');
-      <a
-        [matButton]="programme ? 'tonal' : 'text'"
-        navIntent="programme.list"
-        [attr.aria-current]="programme ? 'page' : null"
-      >
-        Programme
-      </a>
-      @let points = isCurrent('loyalty.points');
-      <a
-        [matButton]="points ? 'tonal' : 'text'"
-        navIntent="loyalty.points"
-        [attr.aria-current]="points ? 'page' : null"
-      >
-        Points
-      </a>
-      <mfe-loyalty-badge mfeRemote="@cinema/loyalty" />
-      @let account = isCurrent('account.profile');
-      <a
-        [matButton]="account ? 'tonal' : 'text'"
-        navIntent="account.profile"
-        [attr.aria-current]="account ? 'page' : null"
-      >
-        Account
-      </a>
+      @for (entry of menu; track entry.basePath) {
+        @let current = isCurrent(entry.basePath);
+        @for (link of entry.links; track link.id) {
+          <a
+            [matButton]="current ? 'tonal' : 'text'"
+            [navIntent]="link.id"
+            [attr.aria-current]="current ? 'page' : null"
+          >
+            {{ link.label }}
+          </a>
+        }
+        @for (fragment of entry.fragments; track fragment.element) {
+          <app-remote-fragment [remoteName]="fragment.remoteName" [element]="fragment.element" />
+        }
+      }
     </nav>
   </mat-toolbar>
 </header>
 <main><router-outlet /></main>
-<mfe-notifications-toast mfeRemote="@cinema/notifications" />
+@for (fragment of overlays; track fragment.element) {
+  <app-remote-fragment [remoteName]="fragment.remoteName" [element]="fragment.element" />
+}
 <footer>Cinema: a Native Federation polyrepo demo.</footer>
+<app-remote-switcher />

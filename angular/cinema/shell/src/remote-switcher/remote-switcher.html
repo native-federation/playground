@@ -1,0 +1,22 @@
+<button
+  matButton="tonal"
+  aria-controls="remote-switcher"
+  [attr.aria-expanded]="open()"
+  (click)="toggleOpen()"
+>
+  Remotes {{ loaded.length }}/{{ remotes.length }}
+</button>
+@if (open()) {
+  <aside id="remote-switcher" role="dialog" aria-labelledby="remote-switcher-title" cdkDrag>
+    <h2 id="remote-switcher-title">Remotes</h2>
+    <fieldset>
+      <legend>Loaded after reload</legend>
+      @for (name of remotes; track name) {
+        <mat-checkbox [checked]="draft().includes(name)" (change)="toggle(name, $event.checked)">
+          {{ name }}
+        </mat-checkbox>
+      }
+    </fieldset>
+    <button matButton="filled" [disabled]="!canApply()" (click)="apply()">Apply &amp; reload</button>
+  </aside>
+}

@@ -17,6 +17,7 @@ describe('nav-contribution', () => {
       id: 'profile',
       path: '',
       element: 'mfe-account-profile',
+      menuLabel: 'Account',
     });
   });
 

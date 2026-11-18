@@ -11,6 +11,8 @@ export interface RemoteElementModule {
 export interface NavContribution {
   readonly basePath: string;
   readonly intents: readonly NavIntent[];
+  // Elements the shell mounts at startup, in one of its slots (ADR-06).
+  readonly fragments?: readonly NavFragment[];
 }
 
 export interface NavIntent {
@@ -19,6 +21,14 @@ export interface NavIntent {
   readonly path: string;
   // Routed intents render this element; intents without one are link-only.
   readonly element?: string;
+  // Shown in the shell's main menu; only on intents without `{params}`.
+  readonly menuLabel?: string;
+}
+
+export interface NavFragment {
+  // An exposed key, like a routed element.
+  readonly element: string;
+  readonly slot: 'header' | 'overlay';
 }
 
 // Fills `{param}` segments of an intent path; leftover keys become the query string.
@@ -41,6 +51,11 @@ export interface BookingConfirmed {
   readonly ticketCount: number;
 }
 
+// A message for the moviegoer, already worded by the team it belongs to (ADR-14).
+export interface NotifyMessage {
+  readonly message: string;
+}
+
 // Every channel on the bus, by name.
 declare module '@softarc/native-federation-communication' {
   interface Channels {
@@ -50,5 +65,7 @@ declare module '@softarc/native-federation-communication' {
     'nav:resolve': NavResolver;
     // Command (emit with { retain: false }): a booking is counted once, by whoever listens now (ADR-05).
     'booking:confirmed': BookingConfirmed;
+    // Command (emit with { retain: false }): show a short-lived message to the moviegoer (ADR-14).
+    'notify:show': NotifyMessage;
   }
 }

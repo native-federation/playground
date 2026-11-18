@@ -7,6 +7,8 @@
 export interface NavContribution {
   readonly basePath: string;
   readonly intents: readonly NavIntent[];
+  // Elements the shell mounts at startup, in one of its slots (ADR-06).
+  readonly fragments?: readonly NavFragment[];
 }
 
 export interface NavIntent {
@@ -17,15 +19,21 @@ export interface NavIntent {
   readonly element?: string;
 }
 
-export interface BookingConfirmed {
-  readonly bookingRef: string;
-  readonly ticketCount: number;
+export interface NavFragment {
+  // An exposed key, like a routed element.
+  readonly element: string;
+  readonly slot: 'header' | 'overlay';
+}
+
+// A message for the moviegoer, already worded by the team it belongs to (ADR-14).
+export interface NotifyMessage {
+  readonly message: string;
 }
 
 // Every channel on the bus, by name.
 declare module '@softarc/native-federation-communication' {
   interface Channels {
-    // Command (emit with { retain: false }): a booking is counted once, by whoever listens now (ADR-05).
-    'booking:confirmed': BookingConfirmed;
+    // Command (emit with { retain: false }): show a short-lived message to the moviegoer (ADR-14).
+    'notify:show': NotifyMessage;
   }
 }

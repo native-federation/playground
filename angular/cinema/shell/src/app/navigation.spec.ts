@@ -15,6 +15,7 @@ import {
   programmeContribution,
   seatingContribution,
 } from '../testing/nav-contribution.fixture';
+import { loadContributions } from './contributions';
 import { provideNavigation } from './navigation';
 import { bus, type ChannelValue } from '@softarc/native-federation-communication';
 
@@ -39,7 +40,10 @@ const setup = async (
     .spyOn(Router.prototype, 'navigateByUrl')
     .mockResolvedValue(true);
   TestBed.configureTestingModule({
-    providers: [provideRouter([]), provideNavigation(nf, manifest)],
+    providers: [
+      provideRouter([]),
+      provideNavigation(await loadContributions(nf, manifest)),
+    ],
   });
   await TestBed.inject(ApplicationInitStatus).donePromise;
   const router = TestBed.inject(Router);
@@ -62,50 +66,8 @@ describe('provideNavigation', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  describe('loading contributions', () => {
-    it("requests every manifest remote's nav-contribution module", async () => {
-      const nf = bothRemotes();
-      await setup(nf);
-      expect(nf.loadRemoteModule).toHaveBeenCalledWith(
-        '@cinema/programme',
-        'nav-contribution',
-      );
-      expect(nf.loadRemoteModule).toHaveBeenCalledWith(
-        '@cinema/seating',
-        'nav-contribution',
-      );
-    });
-
-    it('skips a remote that fails to load and warns', async () => {
-      // fakeNfByRemote throws for seating, which is in the manifest but not here.
-      const nf = fakeNfByRemote({
-        '@cinema/programme': { navContribution: programmeContribution },
-      });
-      const { router } = await setup(nf);
-      expect(router.config.map((r) => r.path)).toEqual(['programme', '**']);
-      expect(consoleWarn).toHaveBeenCalledWith(
-        '[nav] skipping a remote:',
-        expect.any(Error),
-      );
-    });
-
-    it('skips a remote whose export is not a valid contribution', async () => {
-      const nf = fakeNfByRemote({
-        '@cinema/programme': { default: programmeContribution },
-        '@cinema/seating': { navContribution: { basePath: 'seating' } },
-      });
-      const { router } = await setup(nf);
-      expect(router.config.map((r) => r.path)).toEqual(['**']);
-      expect(consoleWarn).toHaveBeenCalledTimes(2);
-      expect(consoleWarn).toHaveBeenCalledWith(
-        '[nav] skipping a remote:',
-        expect.any(Error),
-      );
-    });
-  });
-
   describe('routes', () => {
-    it('registers one route per routed intent plus a redirect to programme', async () => {
+    it('registers one route per routed intent plus a redirect to the first page', async () => {
       const { router } = await setup(bothRemotes());
       expect(router.config.map((r) => r.path)).toEqual([
         'programme',
@@ -115,7 +77,7 @@ describe('provideNavigation', () => {
       expect(router.config.at(-1)?.redirectTo).toBe('programme');
     });
 
-    it('falls back to the first page without params when programme is down', async () => {
+    it('falls back to the first page without params, in manifest order', async () => {
       const nf = fakeNfByRemote({
         '@cinema/seating': { navContribution: seatingContribution },
         '@x/account': {
@@ -237,17 +199,23 @@ describe('provideNavigation', () => {
       );
     });
 
-    it('returns null and warns for an unknown intent or a missing path param', async () => {
+    it('returns null and warns for an unknown intent in a loaded team or a missing path param', async () => {
       const { resolve } = await setup(bothRemotes());
-      expect(resolve('nope.nothing')).toBeNull();
+      expect(resolve('programme.nothing')).toBeNull();
       expect(resolve('seating.plan')).toBeNull();
       expect(resolve('seating.plan', { row: 'A' })).toBeNull();
       expect(consoleWarn).toHaveBeenCalledWith(
-        '[nav] unknown intent "nope.nothing"',
+        '[nav] unknown intent "programme.nothing"',
       );
       expect(consoleWarn).toHaveBeenCalledWith(
         '[nav] intent "seating.plan" is missing param "screeningId"',
       );
+    });
+
+    it('returns null silently for an intent of a team that did not load', async () => {
+      const { resolve } = await setup(bothRemotes());
+      expect(resolve('film.detail', { filmId: 'f-1' })).toBeNull();
+      expect(consoleWarn).not.toHaveBeenCalled();
     });
   });
 
@@ -258,17 +226,12 @@ describe('provideNavigation', () => {
       expect(navigateByUrl).toHaveBeenCalledWith('/seating/s1');
     });
 
-    it('logs instead of navigating when the intent cannot be resolved', async () => {
+    it('does nothing when the target team did not load', async () => {
       const { navigate, navigateByUrl } = await setup(bothRemotes());
-      navigate({ id: 'nope.nothing' });
-      navigate({ id: 'seating.plan' });
+      navigate({ id: 'booking.checkout', payload: { seats: 'A1' } });
       expect(navigateByUrl).not.toHaveBeenCalled();
-      expect(consoleError).toHaveBeenCalledWith(
-        expect.stringContaining('nope.nothing'),
-      );
-      expect(consoleError).toHaveBeenCalledWith(
-        expect.stringContaining('seating.plan'),
-      );
+      expect(consoleWarn).not.toHaveBeenCalled();
+      expect(consoleError).not.toHaveBeenCalled();
     });
 
     it('does not replay a command emitted before the shell listened', async () => {

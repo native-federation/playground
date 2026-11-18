@@ -10,11 +10,22 @@ const exposedKeys = [
 ].map(([, key]) => key);
 
 describe('nav-contribution', () => {
-  it('declares notifications with no intents (a fragment, no page)', () => {
-    expect(navContribution).toEqual({ basePath: 'notifications', intents: [] });
+  it('declares no intents, only the toast as an overlay fragment', () => {
+    expect(navContribution).toEqual({
+      basePath: 'notifications',
+      intents: [],
+      fragments: [{ element: 'mfe-notifications-toast', slot: 'overlay' }],
+    });
   });
 
   it('is itself exposed', () => {
     expect(exposedKeys).toContain('nav-contribution');
   });
+
+  it.each((navContribution.fragments ?? []).map(({ element }) => element))(
+    'exposes the fragment <%s>',
+    (element) => {
+      expect(exposedKeys).toContain(element);
+    },
+  );
 });

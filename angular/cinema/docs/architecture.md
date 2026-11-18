@@ -37,7 +37,8 @@ flowchart TD
 ```
 
 The one domain event, `booking:confirmed`, goes remote → remote (booking →
-loyalty, notifications) over the same bus. The shell never subscribes to it.
+loyalty) over the same bus, and so does the one generic command,
+`notify:show` (any team → notifications). The shell subscribes to neither.
 
 ### The shell
 
@@ -58,23 +59,29 @@ repo copies (ADR-03).
     remote that is down is skipped (with a `[nav]` warning);
   - builds one route per intent, mounted by one `RemoteShellComponent` that
     sets the tag and writes `routeParams`;
-  - always adds a `**` catch-all: a **redirect** to `programme`, or to any
-    parameterless page that did load. If none loaded, `**` is an empty route
+  - always adds a `**` catch-all: a **redirect** to the first parameterless
+    page that loaded, in manifest order (programme comes first). If none loaded, `**` is an empty route
     (`children: []`) that keeps the URL and renders nothing in the outlet, so
     the router never throws `NG04002`. There is no "not available" page;
   - emits the resolver on `nav:resolve` and handles `nav:navigate` (see
     [Events](#events));
   - the resolver is copied unchanged, with one addition: it
-    **`console.warn`s on an unknown intent id or a missing param**. Without
-    that, a misspelled id looks exactly like a remote that is down.
-- `remote-element.ts`, adapted from the tractor store's remotes, mounts the
-  two fragment slots. It also holds the remote loader, so the host's
-  separate `load-remote.ts` is not copied.
+    **`console.warn`s on a missing param, or on an unknown intent id whose
+    team did load**. Without that, a misspelled id looks exactly like a
+    remote that is down. An intent of a team that did not load returns
+    `null` silently (ADR-12).
+- `contributions.ts` loads the nav contributions of the present remotes
+  before Angular starts and derives the main menu and the fragment slots
+  from them (ADR-13).
+- `remote-fragment.ts` mounts one fragment element; `remote-element.ts`
+  holds the remote loader, so the host's separate `load-remote.ts` is not
+  copied.
 - `RemoteShellComponent` writes **path params only** into `routeParams`, so
   `RouteParams` is `Record<string, string>`.
-- The layout: a header with intent links to `programme.list`,
-  `loyalty.points` and `account.profile`; the `mfe-loyalty-badge` slot;
-  `mfe-notifications-toast`, mounted once; a footer; the global stylesheet.
+- The layout: a header whose menu holds one link per intent with a
+  `menuLabel` and the `header` fragments, each team's after its own links;
+  the `overlay` fragments, mounted once; a footer; the global stylesheet.
+  The layout names no remote.
   The shell's `<main>` owns the page container (max-width, padding); a
   remote renders only its content, never its own max-width or gutter.
 
@@ -111,10 +118,10 @@ There are five. Anything not on this list is private to one repo.
 | # | Contract | Shape | Who agrees |
 |---|---|---|---|
 | 1 | **Manifest** | `@cinema/<team>` → `remoteEntry.json` URL; the key equals the remote's federation name | Shell and the deployment |
-| 2 | **Exposed element** | Exposed key = tag name. Its module is a `RemoteElementModule`: `{ bootstrap(): Promise<void> }`. The shell's layout hard-codes two of these tags: `mfe-loyalty-badge` and `mfe-notifications-toast`. | Shell and each remote |
-| 3 | **`nav-contribution`** | `{ basePath, intents: [{ id, path, element }] }` with a **local** `id` (`'plan'`); the shell builds the full id `basePath.id` (`seating.plan`) | Shell, every remote, and each caller of an intent |
+| 2 | **Exposed element** | Exposed key = tag name. Its module is a `RemoteElementModule`: `{ bootstrap(): Promise<void> }`. Fragments are declared in the `nav-contribution`, never hard-coded in the shell. | Shell and each remote |
+| 3 | **`nav-contribution`** | `{ basePath, intents: [{ id, path, element, menuLabel? }], fragments?: [{ element, slot }] }` with a **local** `id` (`'plan'`); the shell builds the full id `basePath.id` (`seating.plan`). `slot` is `'header'` or `'overlay'`. | Shell, every remote, and each caller of an intent |
 | 4 | **`routeParams`** | One property the shell writes onto a routed element: **ids, plus the one documented `seats` string**. Param names equal the `{placeholders}` in the owner's path. | Shell, each page and each caller |
-| 5 | **Bus events** | `nav:navigate`, `nav:resolve`, `booking:confirmed` | Producer and consumers |
+| 5 | **Bus events** | `nav:navigate`, `nav:resolve`, `booking:confirmed`, `notify:show` | Producer and consumers |
 
 The runtime contract is **strings**: tag names, exposed keys, intent ids,
 param names, event names and the manifest's remote names. TypeScript types
@@ -133,7 +140,7 @@ prefix (Geers: "establish team prefixes").
 | `basePath` = first URL segment | `<team>` | `/seating/...` |
 | Intent id | `<team>.<thing>` | `seating.plan` |
 | Domain event | `<team>:<past-tense-verb>` | `booking:confirmed` |
-| Infrastructure event | `nav:<verb>` | `nav:navigate` |
+| Infrastructure event | `<capability>:<verb>` | `nav:navigate`, `notify:show` |
 
 Avoid names that stutter. `mfe-seating-plan` is fine. `mfe-seating-seat-plan`
 is not.
@@ -186,7 +193,8 @@ value a **command**: only current listeners get it, and nothing is kept.
 |---|---|---|---|
 | `nav:navigate` | command | any remote → shell | emitted with `{ retain: false }` (`navigateTo()` in `src/shared/navigate.ts`, inline in seating); the shell listens with `{ replay: false }`: an old navigation must never be replayed |
 | `nav:resolve` | state: the shell's `NavResolver` | shell → any `[navIntent]` | `bus.emit('nav:resolve', resolve)`, retained; `bus.on` without options: a link that renders late still gets the resolver |
-| `booking:confirmed` | domain fact, sent as a command | booking → loyalty, notifications | `{ retain: false }` and `{ replay: false }`, see [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only) |
+| `booking:confirmed` | domain fact, sent as a command | booking → loyalty | `{ retain: false }` and `{ replay: false }`, see [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only) |
+| `notify:show` | command: `{ message }`, worded by the sender | any remote → notifications | `{ retain: false }` and `{ replay: false }`, see [ADR-14](decisions.md#adr-14-notifications-shows-messages-it-knows-no-domain) |
 
 ## Fragments and resilience
 
@@ -207,12 +215,12 @@ flowchart LR
 ```
 
 - The two fragments show the two flavours: one that **shows state** (the
-  badge) and one that **reacts to events** (the toast).
-- A fragment slot that fails to load **renders empty, with no error UI**.
-  The console shows the orchestrator's `[NF][6] Failed to load module …`
-  error and the shell's `[remote] failed to load <…>` error.
-  The page around it keeps working, which is what Geers calls a resilient
-  site.
+  badge) and one that **takes commands** (the toast).
+- The shell only renders a fragment slot, and only asks for its module,
+  when its remote loaded. A slot of a remote that loaded but whose fragment
+  fails **renders empty, with no error UI**, and logs the shell's
+  `[remote] failed to load <…>` error. The page around it keeps working,
+  which is what Geers calls a resilient site.
 - The badge and the `/loyalty` page are two elements of **one** loyalty
   application (see [A remote](#a-remote)). The `booking:confirmed`
   subscription lives in the root `PointsStore`, not in the badge, so the
@@ -221,16 +229,21 @@ flowchart LR
 The copied `[navIntent]` directive keeps an unresolved link in the DOM but
 removes its `href` and sets `role="link"` and `aria-disabled="true"`, so it
 is still announced as a (disabled) link: the link turns
-**inert**. The shell resolver also logs a `[nav]` warning for it.
+**inert**. The shell's own header links and fragments of a remote that did
+not load are not rendered at all.
 
-| Remote down | Effect |
+A remote that is switched off (ADR-11) or down behaves the same, except that
+a down remote leaves the orchestrator's `[NF][1]` line and the failed fetch
+in the console. Nothing else is logged (ADR-12).
+
+| Remote off or down | Effect |
 |---|---|
-| programme | `/` redirects to another parameterless page that loaded (`/loyalty` or `/account`). Deep links to other pages still work. |
+| programme | The Programme link is gone and `/` redirects to the next parameterless page that loaded (`/loyalty` or `/account`). Deep links to other pages still work. |
 | film | Film title links in the programme turn inert. |
-| seating / booking | The links into that step turn inert. With booking down, seating's "Continue" stays on the page and the shell logs `[nav] cannot navigate` (console only, no UI). Nothing else breaks. |
-| loyalty | The badge slot is empty, the header points link turns inert, and the booking still confirms. |
+| seating / booking | The links into that step turn inert. With booking off, seating's "Continue" does nothing. Nothing else breaks. |
+| loyalty | The Points link and the badge are gone, and the booking still confirms. |
 | notifications | No toast appears. Everything else works. |
-| account | The header account link turns inert. This is the scripted walkthrough (see testing.md). |
+| account | The Account link is gone. This is the scripted walkthrough (see testing.md). |
 
 ## Sharing contracts without a monorepo
 
@@ -257,8 +270,8 @@ touches.**
 - Copy rule: the `Channels` entries the repo emits or subscribes to (none
   in account); `NavPayload` and
   `NavResolver` if it has the directive; `NavContribution` in every remote;
-  `RouteParams` if a page takes params; `BookingConfirmed` for booking,
-  loyalty and notifications.
+  `RouteParams` if a page takes params; `BookingConfirmed` for booking and
+  loyalty; `NotifyMessage` for booking and notifications.
 - Copied helpers, each from the tractor store, each **only where used**:
 
   | File | In |

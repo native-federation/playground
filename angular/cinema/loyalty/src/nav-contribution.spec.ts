@@ -13,7 +13,13 @@ describe('nav-contribution', () => {
   it('declares loyalty.points at the base path', () => {
     expect(navContribution.basePath).toBe('loyalty');
     expect(navContribution.intents).toEqual([
-      { id: 'points', path: '', element: 'mfe-loyalty-points' },
+      { id: 'points', path: '', element: 'mfe-loyalty-points', menuLabel: 'Points' },
+    ]);
+  });
+
+  it('puts the badge in the shell header', () => {
+    expect(navContribution.fragments).toEqual([
+      { element: 'mfe-loyalty-badge', slot: 'header' },
     ]);
   });
 
@@ -28,4 +34,11 @@ describe('nav-contribution', () => {
   )('exposes the routed element <%s>', (element) => {
     expect(exposedKeys).toContain(element);
   });
+
+  it.each((navContribution.fragments ?? []).map(({ element }) => element))(
+    'exposes the fragment <%s>',
+    (element) => {
+      expect(exposedKeys).toContain(element);
+    },
+  );
 });

@@ -7,6 +7,8 @@
 export interface NavContribution {
   readonly basePath: string;
   readonly intents: readonly NavIntent[];
+  // Elements the shell mounts at startup, in one of its slots (ADR-06).
+  readonly fragments?: readonly NavFragment[];
 }
 
 export interface NavIntent {
@@ -15,6 +17,14 @@ export interface NavIntent {
   readonly path: string;
   // Routed intents render this element; intents without one are link-only.
   readonly element?: string;
+  // Shown in the shell's main menu; only on intents without `{params}`.
+  readonly menuLabel?: string;
+}
+
+export interface NavFragment {
+  // An exposed key, like a routed element.
+  readonly element: string;
+  readonly slot: 'header' | 'overlay';
 }
 
 export interface BookingConfirmed {

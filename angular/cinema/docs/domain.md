@@ -74,7 +74,9 @@ Some classifications can be argued. *Film* could be seen as supporting
 rather than generic, and *notifications* is arguably a technical capability
 rather than a business subdomain. Both are kept generic because the demo
 needs examples of the "buy, don't build" category, and the classification
-does not change the boundaries.
+does not change the boundaries. Notifications is kept honest by knowing no
+domain: each team words its own message and sends it with `notify:show`
+(ADR-14).
 
 The generic MFEs are **nearly empty on purpose**. They show that the
 smallest possible remote is one `nav-contribution` plus one element.
@@ -85,13 +87,14 @@ There is one event: **BookingConfirmed**.
 
 | Event | Producer | Consumers | Payload (snapshot) |
 |---|---|---|---|
-| `booking:confirmed` | booking | loyalty, notifications | `{ bookingRef, ticketCount }` |
+| `booking:confirmed` | booking | loyalty | `{ bookingRef, ticketCount }` |
 
 - The producer does not know its consumers. Adding a third consumer means
   no change to booking.
 - The payload is a **snapshot**: it holds everything the consumers need
-  (loyalty counts tickets, notifications shows the ref), so no consumer has
-  to call booking back.
+  (loyalty counts tickets), so no consumer has to call booking back.
+- Booking's toast is not a consumer: booking sends its own message with
+  `notify:show`.
 - How it is subscribed, and who may consume it, is decided once in
   [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only).
 
@@ -121,7 +124,7 @@ flowchart LR
     FILM -- "intent programme.list" --> PROG
     SEAT -- "intent booking.checkout {screeningId, seats}" --> BOOK
     BOOK e1@== "booking:confirmed" ==> LOY
-    BOOK e2@== "booking:confirmed" ==> NOTI
+    BOOK -- "command notify:show {message}" --> NOTI
 
     Shell -. "header link" .-> PROG
     Shell -. "mounts fragment, header link" .-> LOY
@@ -152,7 +155,7 @@ subdomains meet:
 | seating | Seat plans and the current hold (local state) | Price anything, or create bookings |
 | booking | Ticket pricing, `bookingRef`, the confirmation | Know seat plans, award points, or show toasts |
 | loyalty | The points total | Know prices or seats. It only counts tickets from the event. |
-| notifications | Which events produce which message | Hold any domain state |
+| notifications | How a message is shown, and for how long | Know any team's events or word their messages |
 | account | The mock profile | Hold bookings or points |
 
 ## Slicing: pages vs fragments
@@ -164,7 +167,7 @@ navigates to, and a fragment is a piece placed inside someone else's page*.
   `mfe-seating-plan`, `mfe-booking-checkout`, `mfe-loyalty-points`,
   `mfe-account-profile`.
 - **Fragments (2), placed only by the shell:** `mfe-loyalty-badge` (shows
-  state) and `mfe-notifications-toast` (reacts to events).
+  state) and `mfe-notifications-toast` (takes commands).
 
 Booking's confirmation is a **state of the checkout page**, not a second
 page. That keeps the busiest MFE to one element.

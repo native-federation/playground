@@ -49,13 +49,14 @@ Ports start at 4300 so the demo runs next to the other examples here
 | 3 | `seating` | 4303 | 22 | `@cinema/seating` | **core** | page `mfe-seating-plan` | 5×8 seat grid, toggle seats, "Continue" | **The URL is the contract**: the hold travels as intent params |
 | 4 | `booking` | 4304 | 22 | `@cinema/booking` | **core** | page `mfe-booking-checkout` | Shows the hold at a flat €12 per ticket. "Confirm" shows a booking ref | **Publishing a domain event** (`booking:confirmed`) |
 | 5 | `loyalty` | 4305 | 22 | `@cinema/loyalty` | supporting | page `mfe-loyalty-points`, fragment `mfe-loyalty-badge` | +10 points per ticket. The badge shows the total | **Consuming an event**, a **fragment in the shell**, and **state inside one remote** (badge and page share one store) |
-| 6 | `notifications` | 4306 | 21 | `@cinema/notifications` | generic | fragment `mfe-notifications-toast` | Shows "Booking BR-… confirmed" for 3 s | **A fragment with no page and no intents** that only reacts to events |
+| 6 | `notifications` | 4306 | 21 | `@cinema/notifications` | generic | fragment `mfe-notifications-toast` | Shows any team's message, such as "Booking BR-… confirmed", for 3 s | **A fragment with no page and no intents** that only takes a command (`notify:show`) and knows no domain |
 | 7 | `account` | 4307 | 21 | `@cinema/account` | generic | page `mfe-account-profile` | Mock profile | **The minimal remote** (template to copy) and the **remote-down / redeploy walkthrough** |
 
 Every remote also exposes `nav-contribution`. The happy path is
 `programme.list` → `seating.plan` → `booking.checkout`, with a side trip to
-`film.detail`. When the booking is confirmed, `booking:confirmed` fans out
-to loyalty and notifications.
+`film.detail`. When the booking is confirmed, booking publishes
+`booking:confirmed`, which loyalty consumes, and asks for a toast with
+`notify:show`, which notifications displays.
 
 ## Polyrepo layout
 
@@ -137,17 +138,16 @@ Every repo also works on its own:
 The clearest way to see independence (also in
 [docs/testing.md](docs/testing.md#the-remote-down--redeploy-walkthrough-readme-script)).
 
-1. `./start-all.sh`, open http://localhost:4300 and the console. There are
+1. `./start-all.sh`, open http://localhost:4300 and the console. Open the
+   **Remotes** panel (bottom left), tick all seven and Apply. There are
    no `[nav]` or `[remote]` lines. Pick a screening, two seats, Continue,
    Confirm: the toast shows "Booking BR-… confirmed" for 3 s and the header
    badge goes from 0 to 20 pts without a reload.
 2. Stop `account` (kill the process on port 4307; Ctrl-C in `start-all.sh`
    would stop all eight) and reload. The
-   header **Account** link turns inert (no `href`, `role="link"`,
-   `aria-disabled="true"`).
-   The console shows the failed `remoteEntry.json` fetch, the orchestrator's
-   `Failed to load module @cinema/account/nav-contribution`, and
-   `[nav] unknown intent "account.profile"`. Everything else loads, including
+   header **Account** link disappears.
+   The console shows only the failed `remoteEntry.json` fetch and the
+   orchestrator's `[NF][1]` line for it. Everything else loads, including
    the other Angular 21 remotes: their shared Angular 21 now comes from
    another ng21 remote (:4302).
 3. Change the profile name in `account/src/profile.component.ts`, run

@@ -59,6 +59,8 @@ here once; the other documents link to it.
     trimmed to what it touches.
     Example values live in `src/testing/contracts.examples.ts`.
   - The shell's copy is the reference.
+  - Optional fields live only in the copies that set them (`menuLabel`,
+    `fragments`, ADR-13). That knowingly lets the copies drift further.
   - Helpers are copied from the tractor store only where used:
     `nav-intent.directive.ts` with its spec, `nav-resolver.stub.ts`, and
     `testing/setup.ts` (a fresh real bus per test, in every repo except
@@ -92,15 +94,16 @@ here once; the other documents link to it.
 
 - **Decision.**
   - `booking:confirmed { bookingRef, ticketCount }` is the only domain
-    event. Its consumers are loyalty and notifications.
+    event. Its consumer is loyalty. (Until ADR-14, notifications consumed
+    it too.)
   - Booking emits it with `{ retain: false }`, so the bus keeps nothing for
     a listener that subscribes later. Both consumers still subscribe with
     `{ replay: false }`, as a guard against a producer that forgets.
   - **Rule:** a domain event may only be consumed by elements the shell
     mounts at startup. Pages get cross-team data from the URL.
 - **Why.**
-  - One event shows publish/subscribe and fan-out to two consumers the
-    producer does not know.
+  - One event shows publish/subscribe to a consumer the producer does not
+    know; adding a second consumer needs no change to booking.
   - The payload is a snapshot, so no consumer calls back.
   - Replaying an additive fact would double-count points.
 - **Cost.** "Mounted at startup" really means "loaded before the first
@@ -110,8 +113,10 @@ here once; the other documents link to it.
 ## ADR-06: Cross-team fragments are in, but exactly two, placed only by the shell
 
 - **Decision.**
-  - `mfe-loyalty-badge` (shows state) and `mfe-notifications-toast` (reacts
-    to events) sit in the shell layout.
+  - `mfe-loyalty-badge` (shows state) and `mfe-notifications-toast` (takes
+    commands). Since ADR-13 their remotes declare them, and the shell
+    places them in one of its two closed slots, `header` and `overlay`.
+    Adding a slot is a shell decision.
   - No remote embeds another remote. There are no header or footer remotes.
 - **Why.**
   - Fragments are the most instructive MFE mechanic, so they are kept.
@@ -119,7 +124,8 @@ here once; the other documents link to it.
     dependency, a loader and a manifest it otherwise does not need. The
     tractor store already shows it. Without it, remote `bootstrap()` takes
     no arguments.
-  - A failed fragment renders an empty slot.
+  - A failed fragment renders an empty slot. A fragment of a remote that
+    did not load is not rendered at all (ADR-12).
 - **Rejected.** Snacks embedded in booking's page: a double coupling that
   needs three servers to verify.
 
@@ -209,8 +215,10 @@ here once; the other documents link to it.
 
 - **Decision.**
   - Vitest per repo on a real bus, against its own example values.
-  - `shell/scripts/smoke.mjs` checks every `remoteEntry.json`: name,
-    exposes, and that each exposed file is served.
+  - `shell/scripts/smoke.mjs` checks every `remoteEntry.json`: name, the
+    `nav-contribution` expose, and that each exposed file is served. That
+    every declared element and fragment is exposed is checked by each
+    remote's `nav-contribution.spec.ts`.
   - A manual walkthrough checks that the sides agree.
 - **Why.** No test can import another repo. Smoke checks the real runtime
   surface cheaply, and it belongs to the repo that owns the manifest.
@@ -223,6 +231,93 @@ here once; the other documents link to it.
 - **Decision.** The shell runs on 4300 and the remotes on 4301 to 4307.
 - **Why.** The other examples in this repository use 4200 to 4203, so the
   demo can run next to them without port collisions.
+
+## ADR-11: A remote switcher in the shell, applied by reload
+
+- **Decision.**
+  - `shell/src/remote-switcher/` is demo tooling: a draggable panel with one
+    checkbox per remote. `main.ts` filters the fetched manifest before
+    `initFederation`.
+  - The selection lives in `sessionStorage['cinema.remotes']`. The default is
+    programme, seating, booking and loyalty: the happy path plus the event
+    consumer, all on Angular 22.
+  - Apply reloads the page, both to enable and to disable a remote.
+- **Why.**
+  - The manifest stays complete (ADR-07); filtering at runtime keeps smoke
+    and `start-all.sh` unchanged.
+  - A remote cannot be removed from a live page: there is no public API, and
+    `customElements.define` cannot be undone. Enabling live would need
+    re-runnable routes in `navigation.ts`, so both directions reload.
+  - A disabled remote behaves exactly like a remote that is down.
+- **Cost.** Removing the tool means deleting the folder and three
+  one-line touch points in `main.ts`, `app.ts` and `app.html`.
+
+## ADR-12: An absent remote is silent, a broken one logs
+
+- **Decision.**
+  - `bootstrap.ts` loads the nav contributions before Angular starts, and
+    only of the remotes the orchestrator initialised
+    (`nf.adapters.remoteInfoRepo.contains`). The result is provided as the
+    immutable `CONTRIBUTIONS` value: it is the one notion of "present".
+  - The shell renders header links and fragment slots only for present
+    remotes. The brand links to `/`, and `**` falls back to the first
+    parameterless page in manifest order.
+  - The resolver warns about an unknown intent only when its team (the part
+    before the dot) loaded. `nav:navigate` to an unresolvable intent is a
+    silent no-op.
+- **Why.** With the switcher (ADR-11), a remote being off is a normal
+  state, not an incident. Warnings are kept for what a developer can fix:
+  drift inside a loaded team, a missing param, an invalid contribution, a
+  fragment that fails although its remote loaded. A down remote still shows
+  the orchestrator's `[NF][1]` line: that is the outage signal.
+- **Cost.** `remoteInfoRepo` is reached through the orchestrator's `adapters`, which
+  is on the public `NativeFederationResult` type.
+
+## ADR-13: The shell names no remote
+
+- **Decision.**
+  - A remote declares its main-menu entry with `menuLabel` on a
+    parameterless intent, and its fragments with
+    `fragments: [{ element, slot }]` in its `nav-contribution`.
+  - The shell builds the menu and the slots from the present contributions
+    (ADR-12), in manifest order. Remote names appear only in the manifest.
+  - Malformed fields are ignored, like an invalid contribution.
+- **Why.** A new remote can add a menu entry or a fragment without a shell
+  release, and a remote that is off simply contributes nothing. The copied
+  `NavIntentDirective` stays unchanged: links are hidden by not generating
+  them.
+- **Cost.**
+  - Deploy order: a remote that declares the fields works with an older
+    shell, which ignores them. A shell that relies on them drops the menu
+    entry and fragment of a remote that does not declare them yet. Remotes
+    deploy first.
+  - No `order`, icon or home flag: manifest order decides, and the brand
+    links to `/`.
+
+## ADR-14: Notifications shows messages, it knows no domain
+
+- **Decision.**
+  - Notifications listens to one command, `notify:show { message }`, and
+    shows the message as given for 3 s. It no longer consumes
+    `booking:confirmed`.
+  - The team that owns the fact words the message: booking emits
+    `notify:show` with "Booking BR-… confirmed" next to its domain event.
+  - Like `booking:confirmed`, it is emitted with `{ retain: false }` and
+    subscribed with `{ replay: false }`: a stale message is never shown.
+- **Why.**
+  - A notifications team that consumes every team's events must learn
+    every team's language, and every new toast needs a release in its
+    repo. That is slicing by technical capability: a bottleneck coupled to
+    everyone.
+  - It makes the difference between the two kinds of messages visible.
+    Loyalty applies its own rule to a domain event (+10 points per ticket).
+    Notifications just does what a command tells it.
+- **Cost.**
+  - Booking now emits twice on confirm, and `booking:confirmed` has only
+    one consumer, so the demo no longer shows fan-out to two consumers.
+  - A remote that only renders a toast is too thin for a real MFE. In
+    production this is a shell capability or a shared component. It stays
+    a remote here because it shows a fragment that takes commands.
 
 ## YAGNI: deliberately left out
 
@@ -265,7 +360,8 @@ here once; the other documents link to it.
   for one string; enforced by review.
 - **Renaming `mfe-booking-checkout` to `mfe-booking-summary`.** "checkout"
   was added to the glossary instead.
-- **Making the header hide links of a remote that is down.** The copied
-  directive renders an inert link; changing it would make it a fork rather
-  than a copy. (Fixes to the directive, such as `role="link"` on the inert
+- **Making the header hide links of a remote that is down by changing the
+  directive.** Resolved differently by ADR-13: the shell's header links of
+  an absent remote are never generated, and the copied directive still
+  renders an inert link for remote-rendered links. (Fixes to the directive, such as `role="link"` on the inert
   link, go into the tractor-store original too, so it stays a copy.)

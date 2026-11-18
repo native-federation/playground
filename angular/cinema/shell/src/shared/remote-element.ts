@@ -1,10 +1,4 @@
-import {
-  Directive,
-  ElementRef,
-  HostAttributeToken,
-  InjectionToken,
-  inject,
-} from '@angular/core';
+import { InjectionToken } from '@angular/core';
 import type { NativeFederationResult } from '@softarc/native-federation-orchestrator';
 import type { RemoteElementModule } from '../contracts';
 
@@ -22,20 +16,3 @@ export const createRemoteLoader =
     );
     await mod.bootstrap();
   };
-
-// Put on an `mfe-*` tag to load and define that element from its remote:
-// <mfe-loyalty-badge mfeRemote="@cinema/loyalty" />
-@Directive({ selector: '[mfeRemote]' })
-export class RemoteElementDirective {
-  constructor() {
-    const remoteName = inject(new HostAttributeToken('mfeRemote'));
-    const element =
-      inject<ElementRef<HTMLElement>>(ElementRef).nativeElement.localName;
-    inject(LOAD_REMOTE)(remoteName, element).catch((err) =>
-      console.error(
-        `[remote] failed to load <${element}> from "${remoteName}"`,
-        err,
-      ),
-    );
-  }
-}
