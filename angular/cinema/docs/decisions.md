@@ -403,12 +403,12 @@ Amends ADR-04, ADR-05 and ADR-15.
     `/booking/{screeningId}/{seats}` and checkout reads only `routeParams`,
     never the bus. The `seats` string is now booking's own: the summary
     writes it, checkout reads it (`seats-param.ts`).
-  - **Rule: micro-frontends communicate only over the bus.** An element
-    gets its *configuration* once from whoever places it: an id attribute
-    for a fragment, `routeParams` for a page. Everything that changes at
-    runtime, or that one micro-frontend tells another, is a bus channel,
-    also between two elements on the same page. No DOM `CustomEvent`s
-    between teams, and no attributes that change at runtime.
+  - **Rule: micro-frontends communicate over the bus.** Attributes and URL
+    params stay where they fit: configuring an element (an id attribute,
+    `routeParams`) and handing off between pages (the checkout URL).
+    Everything else one micro-frontend tells another is a bus channel, also
+    between two elements on the same page. No DOM `CustomEvent`s between
+    teams.
   - ADR-05's rule "consumed only by elements the shell mounts at startup"
     applies to domain facts and commands. Retained state may be read by a
     page's fragments. ADR-15's "an embedded fragment emits and consumes no
