@@ -224,6 +224,16 @@ all channels, so it needs no list of channel names. `tap.replay()` adds the
 values retained before it started, such as `nav:intents`. The envelope does
 not say which app emitted, so the panel does not either.
 
+**Teams**, the third pill in the dock, outlines every part of the page in
+the colour of the team that serves it, with the team's name on a label:
+pages dashed and lightly tinted, embedded fragments solid, so a fragment
+inside a page reads as solid inside dashed. The shell stays unmarked, so
+anything without a label is the shell. It is on by default and remembered
+per browser. The styles are one block in `shell/src/styles.scss` that maps
+each `mfe-*` tag to its team: demo tooling, so the shell knowing the tag
+names is accepted there and nowhere else. Outlines and a pseudo-element
+only, so switching it never moves the layout.
+
 ## Fragments and resilience
 
 There are four cross-team fragments. A remote declares each one in its

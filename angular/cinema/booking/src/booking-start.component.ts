@@ -12,6 +12,7 @@ import { TICKET_PRICE } from './ticket-price';
       >Book · €{{ price }} per seat</a
     >
   `,
+  styles: ':host { display: inline-block; }',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookingStartComponent {
