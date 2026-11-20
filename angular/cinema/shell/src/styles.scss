@@ -62,9 +62,10 @@ mfe-seating-plan { --team: var(--team-seating); }
 mfe-account-profile { --team: var(--team-account); }
 
 // The M3 roles the remotes already use, derived from --team, so their buttons, chips and seats
-// take the team's hue (state layers follow). On the host, so it beats the theme on <html>.
+// take the team's hue (state layers follow). On the host, so it beats the theme on <html>; :where keeps it
+// at zero specificity, so the per-team cues below override it.
 // Card backgrounds are resolved on <html>: tinting one means setting --mat-card-*-container-color here.
-:is(
+:where(
   mfe-programme-list, mfe-film-detail, mfe-film-card, mfe-seating-plan, mfe-booking-checkout,
   mfe-booking-start, mfe-booking-summary, mfe-loyalty-points, mfe-loyalty-badge, mfe-account-profile,
   .team-link
@@ -79,6 +80,12 @@ mfe-account-profile { --team: var(--team-account); }
   --mat-sys-tertiary-container: color-mix(in oklab, var(--team) 24%, white);
   --mat-sys-on-tertiary-container: var(--mat-sys-on-primary-container);
   --mat-card-outlined-outline-color: color-mix(in oklab, var(--team) 35%, white);
+}
+
+// Programme's cards frame film's and booking's pieces: a navy frame around teal and amber clashes,
+// so it stays neutral and programme's navy is on its own content (the day labels).
+mfe-programme-list {
+  --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
 }
 
 // Where a piece has no coloured element of its own, one quiet cue, so nested pieces still read apart.

@@ -236,7 +236,8 @@ menu link carries a dot in its colour as the legend.
   colour and derives the Material roles the remotes already use
   (`--mat-sys-primary`, the containers) from it, so their buttons, chips and
   seats take the team's hue without changing the remotes.
-- Every page's outlined cards get a light outline in the team's colour, and
+- Every page's outlined cards get a light outline in the team's colour,
+  except programme's, which frame other teams' pieces and stay neutral; and
   booking's summary a top stripe. Film's title, poster icons and heading are
   in full teal, chosen opposite booking's amber because the two always sit
   together on programme's cards. Booking's Book button is filled, so it is
