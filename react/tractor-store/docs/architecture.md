@@ -26,6 +26,8 @@ meet.
 
 ## The two-layer model
 
+Two layers, with a small, explicit contract between them.
+
 ```mermaid
 flowchart TD
     subgraph HostSide["HOST"]
@@ -33,7 +35,7 @@ flowchart TD
         HA["Owns the URL<br/>(react-router)"]
         HB["Owns page chrome<br/>(layout, error UI)"]
         HC["Loads remotes via<br/>Native Federation"]
-        HD["Resolves intents<br/>to URLs"]
+        HD["Publishes the<br/>intent table"]
     end
 
     subgraph RemoteSide["REMOTE (×3)"]
@@ -46,7 +48,7 @@ flowchart TD
 
     HostSide e1@==>|"federation.manifest.json"| RemoteSide
     HostSide e2@==>|"loads nav-contribution<br/>+ mfe-* elements"| RemoteSide
-    RemoteSide e3@-->|"emits nav:navigate<br/>via __NF_REGISTRY__"| HostSide
+    RemoteSide e3@-->|"emits nav:navigate<br/>on the event bus"| HostSide
 
     e1@{animate: true}
     e2@{animate: true}
@@ -107,6 +109,7 @@ This code is deliberately repeated in every remote rather than hidden
 behind a shared helper. Open any `bootstrap.tsx` and the whole path from
 "the host asked for `mfe-header`" to "the tag is defined" is on screen.
 
+The browser's standard custom-element machinery does the integration.
 Four consequences worth calling out:
 
 - **Plain HTML is the contract.** A consumer drops `<mfe-cart>` in its
@@ -181,22 +184,17 @@ and reads the keys it needs. Clean separation, zero collisions.
 
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant R as react-router (host)
-    participant S as RemoteShell
-    participant L as createRemoteLoader
-    participant B as remote bootstrap()
-    participant E as Custom element
-
-    U->>R: navigate to /explore/products/tractors
-    R->>S: render route, props {remoteName, element: 'mfe-category'}
-    S->>L: loadRemote('@tractor-store/explore', 'mfe-category')
-    L->>B: nf.loadRemoteModule(...) → bootstrap(env, nf)
-    B->>B: customElements.define('mfe-category', …)
-    L-->>S: resolved
-    S->>E: document.createElement('mfe-category')
-    S->>E: el.routeParams = { category: 'tractors' }
-    Note over S,E: an effect keeps routeParams<br/>live as the URL changes
+    participant User
+    participant Router as Host router
+    participant Shell as Remote shell
+    participant Explore as explore
+    participant Element as mfe-category
+    User->>Router: Open /explore/products/tractors
+    Router->>Shell: Show mfe-category from explore
+    Shell->>Explore: First visit only: load the code, start explore's app, register the tag
+    Shell->>Element: Create the element
+    Shell->>Element: Pass routeParams { category: tractors }
+    Note over Shell,Element: routeParams stays in step with the URL
 ```
 
 `RemoteShell` (`apps/host/src/app/remote-shell.tsx`) follows exactly
@@ -207,36 +205,48 @@ fails it shows an error message. `useParams` + `useSearchParams` are
 merged into one `routeParams` object, memoised on its JSON so the element
 only sees a new object when a value actually changed.
 
-### 2. The event bus (`window.__NF_REGISTRY__`)
+### 2. The event bus (`@softarc/native-federation-communication`)
 
 Custom elements solve composition: a remote can mount another remote's
 UI. But the remotes also need to _talk_ to each other. They do that
-through a small, shared event bus that each app's `main.tsx` installs
-before React loads.
+through a small event bus, the
+[`@softarc/native-federation-communication`][nf-comm] package. In
+these docs it is always called _the event bus_.
 
-The bus lives on `window.__NF_REGISTRY__` and is created at the top of
-every app's `main.tsx`, so a remote running standalone gets a bus too:
+The host installs it: the first import of
+`apps/host/src/app/bootstrap.tsx` is
+`import '@softarc/native-federation-communication/install'`, which puts
+one bus on `globalThis.__NF_BUS__` before any remote loads. Every `bus`
+call, from any app, uses that one; without an installed bus every call
+is dropped, and the first one warns (once per copy). A remote's exposed modules never install. A
+remote served standalone is its own host, so its `main.tsx` runs
+`await import('@softarc/native-federation-communication/install')`
+after `initFederation`, before it loads its first `bootstrap.tsx`.
+Every app bundles its own copy of the package (it is listed in `skip`
+in each `federation.config.mjs`, so Native Federation does not share
+it, see [Contracts](#contracts-not-a-shared-library)); the copies
+still find the one bus on the global (see
+[Multiple copies][nf-comm-copies]).
 
-```ts
-window.__NF_REGISTRY__ ??= Object.freeze(
-  createRegistry({ maxStreams: 20, maxEvents: 1, removePercentage: 0.25 })(),
-);
-```
-
-It is the [event registry][nf-registry] of the Native Federation
-orchestrator: event streams (`emit(name, data)` / `on(name, handler)`)
-plus latched resources (`register(name, value)` / `onReady(name,
-handler)`). The apps call it directly; there is no wrapper around it.
-What the teams agree on is the `Events` interface in
-`libs/contracts/index.ts`, which maps every event name to its payload
-type:
+A _channel_ is a string name. `bus.emit(channel, value)` delivers the
+value to the channel's listeners and _retains_ it as the channel's
+current state; `bus.on(channel, listener)` subscribes and returns
+`off`; `bus.peek(channel)` reads the retained value (see the
+[API][nf-comm-api]). The apps call `bus` directly; there is no wrapper
+around it. What the teams agree on is the package's `Channels`
+interface, which `libs/contracts/index.ts` augments with every channel
+name and its value type:
 
 ```ts
 // libs/contracts/index.ts
-export interface Events {
-  'nav:navigate': NavigatePayload;
-  'nav:resolve': NavResolver;
-  'store:selected': StoreSelectedPayload;
+declare module '@softarc/native-federation-communication' {
+  interface Channels {
+    // Command (emit with { retain: false }): ask the host to navigate to an intent.
+    'nav:navigate': NavigatePayload;
+    // State: the host's NavIntents, retained for links that render later.
+    'nav:intents': NavIntents;
+    'store:selected': StoreSelectedPayload;
+  }
 }
 ```
 
@@ -244,42 +254,75 @@ Emitting and listening look the same in every app:
 
 ```tsx
 // apps/explore/src/features/store-picker/StorePicker.tsx
-window.__NF_REGISTRY__!.emit<Events['store:selected']>('store:selected', { id: store.id });
+bus.emit('store:selected', { id: store.id });
 
 // apps/checkout/src/features/checkout/Checkout.tsx
-useEffect(
-  () =>
-    window.__NF_REGISTRY__!.on<Events['store:selected']>('store:selected', ({ data }) =>
-      setStoreId(data.id),
-    ),
-  [],
-);
+useEffect(() => bus.on('store:selected', ({ id }) => setStoreId(id)), []);
 ```
 
 `on` returns its unsubscribe function, which doubles as the effect's
-cleanup. It replays the last event to a new subscriber by default. The
-host subscribes to `nav:navigate` with `{ replay: 0 }`, because a
-navigation command must never be replayed. `nav:resolve` is a resource,
-so a link that renders after the host published it receives it at once.
+cleanup. The listener gets the value itself. If the channel holds a
+retained value, `on` delivers it synchronously, before it returns, then
+every later emit. That suits state: `store:selected` and `nav:intents`
+reach an element that renders after they were emitted. A navigation
+request is a _command_ instead, which must never be replayed: every
+remote emits `nav:navigate` with `{ retain: false }` (through its one
+`navigateTo` helper in `shared/navigate.ts`), so it reaches only the
+listeners subscribed at that moment, and the host also subscribes with
+`{ replay: false }`.
 
-> **Gotcha:** `register(name, value)` treats a function `value` as a
-> provider and stores what it _returns_. The host publishes its resolver
-> function as `register('nav:resolve', () => resolve)`.
+[nf-comm]: https://github.com/native-federation/communication
+[nf-comm-api]: https://github.com/native-federation/communication/blob/main/docs/api.md
+[nf-comm-copies]: https://github.com/native-federation/communication/blob/main/docs/multiple-copies.md
+[nf-comm-typing]: https://github.com/native-federation/communication/blob/main/docs/typing.md
 
-[nf-registry]: https://native-federation.com/docs/v4/orchestrator/event-registry
+With the augmentation, `bus.emit` and `bus.on` are typed without type
+arguments: a value that doesn't match the contract is a compile-time
+error, and a listener's parameter has the channel's type. In other
+code, `ChannelValue<'store:selected'>` names that type. The channel
+name itself is still a string; a misspelt one compiles as another,
+untyped channel (see [what the types don't catch][nf-comm-typing]), so
+keep names in `Channels` and search for them when you rename one.
 
-The type parameter (`Events['store:selected']`) makes a payload that
-doesn't match the contract a compile-time error. The event name itself
-is still a string, so keep it next to the type in `Events` and search
-for it when you rename it.
+> Cam Jackson, _martinfowler.com_: "_Custom events allow micro
+> frontends to communicate indirectly, which is a good way to minimise
+> direct coupling, though it does make it harder to determine and
+> enforce the contract that exists between micro frontends._"
+
+The `Channels` augmentation is the answer to Jackson's caveat: every
+channel's contract is in one file that both ends import as a type.
 
 #### The channels in use today
 
-| Event            | Direction                 | Purpose                                                                         |
-| ---------------- | ------------------------- | ------------------------------------------------------------------------------- |
-| `nav:navigate`   | remote → host             | Intent-based navigation requests (from `<NavLink>` or emitted directly)         |
-| `nav:resolve`    | host → remotes (resource) | The `NavResolver` (`(id, payload) => url \| null`) so links render real `href`s |
-| `store:selected` | explore → checkout        | Notify checkout when the user picks a pickup store                              |
+```mermaid
+flowchart LR
+    subgraph Host["host"]
+        SN[Host navigation]
+        NR[(intent table)]
+    end
+    subgraph Explore["explore"]
+        SP[mfe-store-picker]
+    end
+    subgraph Decide["decide"]
+        PD[mfe-product]
+    end
+    subgraph Checkout["checkout"]
+        CO[mfe-checkout]
+    end
+
+    PD -- "nav:navigate" --> SN
+    CO -- "nav:navigate" --> SN
+    NR -- "nav:intents (state)" --> Explore
+    NR -- "nav:intents (state)" --> Decide
+    NR -- "nav:intents (state)" --> Checkout
+    SP -- "store:selected" --> CO
+```
+
+| Channel          | Direction              | Purpose                                                                         |
+| ---------------- | ---------------------- | ------------------------------------------------------------------------------- |
+| `nav:navigate`   | remote → host (command) | Intent-based navigation requests (from `<NavLink>` or `navigateTo`)            |
+| `nav:intents`    | host → remotes (state) | The `NavIntents` table (intent id → path template) so links render real `href`s |
+| `store:selected` | explore → checkout (state) | Notify checkout when the user picks a pickup store                          |
 
 State that stays inside one remote does not need the bus. All of
 checkout's elements (`<mfe-cart>`, `<mfe-mini-cart>`,
@@ -289,6 +332,11 @@ and `useSyncExternalStore` keeps them in step. A second browser tab is
 kept in sync by the store listening to the window's `storage` events.
 
 ### 3. Intent-based navigation
+
+Custom elements compose UI. The event bus carries state. The
+_navigation_ problem is bigger than either: every team wants to link
+to pages owned by other teams, without hard-coding URLs that those
+other teams may rename.
 
 Each remote declares a `nav-contribution`
 (`apps/<remote>/src/nav-contribution.ts`) listing its routable intents:
@@ -308,33 +356,57 @@ export const navContribution: NavContribution = {
 The remote owns relative intent IDs (`cart`, `checkout`, `thanks`).
 The host prepends each contribution's `basePath` when it registers
 them, producing the public IDs other teams link to (`checkout.cart`,
-etc.). Remotes link by intent, never by URL. Full walkthrough in
+etc.). Remotes link by intent, never by URL, and each remote's
+`<NavLink>` component makes that ergonomic in JSX. Full walkthrough in
 [navigation.md](./navigation.md).
 
+> Cam Jackson, _martinfowler.com_: "_Using the page URL for this
+> purpose ticks many boxes … It's declarative, not imperative.
+> I.e. 'this is where we are', rather than 'please do this thing'._"
+
+The intent layer is what makes that declarative-URL model work
+_without_ every team having to know every other team's URL scheme.
+
 ## The bootstrap chain
+
+How a host page comes alive, end to end. First the host starts:
 
 ```mermaid
 sequenceDiagram
     participant Browser
-    participant Main as apps/host/src/main.tsx
-    participant Boot as app/bootstrap.tsx
-    participant Nav as app/navigation.tsx
-    participant Router as react-router
-
-    Browser->>Main: load
-    Main->>Main: install __NF_REGISTRY__ (if missing)
-    Main->>Main: fetch env.config.json + federation.manifest.json
-    Main->>Main: initFederation(manifest, …)
-    Main->>Boot: bootstrap(env, nf, manifest)
-    Boot->>Boot: load global.css + Raleway + helper.js
-    Boot->>Nav: createNavigation(nf, manifest)
-    Nav->>Nav: load every remote's nav-contribution<br/>(Promise.allSettled)
-    Nav->>Router: createBrowserRouter([…remote routes, '*' → fallback])
-    Nav->>Nav: register('nav:resolve', () => resolve)
-    Nav->>Nav: on('nav:navigate', …, { replay: 0 })
-    Boot->>Router: createRoot(#root).render(<RouterProvider>)
-    Router-->>Browser: first paint
+    participant Main as Host main
+    participant Boot as Host bootstrap
+    participant Bus
+    participant Nav as Host navigation
+    Browser->>Main: Load the page
+    Main->>Main: Fetch env.config.json and federation.manifest.json
+    Main->>Main: Start Native Federation (initFederation)
+    Main->>Boot: Start the host
+    Boot->>Bus: Install the bus (/install)
+    Boot->>Boot: Load global.css, the font and helper.js
+    Boot->>Nav: Start Host navigation
 ```
+
+Then Host navigation builds the routes and the intent table, the same
+startup step as in [navigation.md](./navigation.md#at-startup-each-team-declares-its-pages):
+
+```mermaid
+sequenceDiagram
+    participant Nav as Host navigation
+    participant Remotes as explore · decide · checkout
+    participant Router as Host router
+    participant Bus
+    Nav->>Remotes: Which pages do you have?
+    Remotes-->>Nav: nav-contribution, e.g. decide: product → /product/{id}
+    Nav->>Router: One route per page, plus a fallback for unknown URLs
+    Nav->>Bus: Share the intent table (nav:intents)
+    Router->>Router: Show the first page
+```
+
+`bootstrap.tsx` awaits `createNavigation` before it renders. The
+`nav:navigate` listener (`handleNavigateCommands`) is an effect of the
+root `NavigationRoot` component, so it subscribes just after the first
+render.
 
 Every app's `main.tsx` does the same three steps; only the last line
 differs. The host bootstraps its React app, a standalone remote
@@ -364,8 +436,32 @@ package external. Two artefacts drive everything, both fetched with
   `nf.loadRemoteModule(remoteName, exposedModule)` resolves to the
   right bundle.
 
-`__NF_REGISTRY__` is installed _before_ federation init, so remotes
-that touch the bus during their own bootstrap always find it there.
+The event bus is installed once `initFederation` has resolved: the
+host's `bootstrap.tsx` imports `/install` first, and a standalone
+remote's `main.tsx` imports it before its first `bootstrap.tsx`. So
+`globalThis.__NF_BUS__` holds the bus before any remote code runs (see
+[The event bus](#2-the-event-bus-softarcnative-federation-communication)).
+
+## Native Federation vs. Module Federation
+
+Native Federation is the standards-based alternative to webpack's
+Module Federation. It implements the same mental model — remotes
+publish a `remoteEntry`, the host imports modules from named remotes
+at runtime — on top of ECMAScript Modules and Import Maps instead
+of webpack runtime, so it works with esbuild, Vite or Rspack and needs
+no framework-specific builder.
+
+> Manfred Steyer, _Announcing Native Federation 1.0_: "_Native
+> Federation brings the proven mental model of webpack Module
+> Federation to the browser — built on ESM and Import Maps,
+> independent of any specific build tool._"
+
+This workspace uses
+[`@softarc/native-federation-esbuild`](https://www.npmjs.com/package/@softarc/native-federation-esbuild)
+(called from each app's `build.mjs`) plus
+`@softarc/native-federation-orchestrator` (the runtime behind
+`initFederation` and `loadRemoteModule`). The event bus is a separate
+package, [`@softarc/native-federation-communication`][nf-comm].
 
 ## Contracts, not a shared library
 
@@ -374,20 +470,22 @@ bootstrap, the custom-element wrapper, the remote loader, the link
 component, the button) lives in the app that uses it, even when that
 means three copies. That keeps each app readable on its own and lets
 each team change its copy without coordinating a release with the
-others.
+others. Third-party packages are dependencies, not team code: React is
+shared through federation, and the event bus package is bundled into
+each app.
 
 What the teams _do_ agree on lives in one types-only file,
 `libs/contracts/index.ts`, imported as `@tractor-store/contracts`
 (a path alias in `tsconfig.base.json`):
 
-| Type                                                 | Agreed between                                     |
-| ---------------------------------------------------- | -------------------------------------------------- |
-| `EnvironmentConfig`                                  | every app's `env.config.json`                      |
-| `RemoteElementModule`                                | the loaders and every exposed `bootstrap.tsx`      |
-| `NavContribution`, `NavIntent`                       | each remote's `nav-contribution.ts` and the host   |
-| `NavPayload`, `NavResolver`, `RouteParams`           | the host's navigation and the remotes' pages/links |
-| `Events` (+ payload types), `window.__NF_REGISTRY__` | everyone on the event bus                          |
-| `JSX.IntrinsicElements` for embeddable `mfe-*` tags  | the owning team and every team embedding the tag   |
+| Type                                                | Agreed between                                     |
+| --------------------------------------------------- | -------------------------------------------------- |
+| `EnvironmentConfig`                                 | every app's `env.config.json`                      |
+| `RemoteElementModule`                               | the loaders and every exposed `bootstrap.tsx`      |
+| `NavContribution`, `NavIntent`                      | each remote's `nav-contribution.ts` and the host   |
+| `NavPayload`, `NavIntents`, `RouteParams`           | the host's navigation and the remotes' pages/links |
+| `Channels` augmentation (+ payload types)           | everyone on the event bus                          |
+| `JSX.IntrinsicElements` for embeddable `mfe-*` tags | the owning team and every team embedding the tag   |
 
 Because it is imported with `import type` only, it compiles away:
 nothing from it exists at runtime and nothing needs to be shared
@@ -399,7 +497,20 @@ shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion:
   .patch(['react', 'react-dom'], { includeSecondaries: { keepAll: true } })
   .get(),
 sharedMappings: [],
-skip: ['react-dom/server', 'react-dom/server.node', 'react-dom/server.browser', 'react-dom/test-utils'],
+skip: [
+  'react-dom/server',
+  'react-dom/server.node',
+  'react-dom/server.browser',
+  'react-dom/test-utils',
+  // Bundled into every app instead of shared: each copy finds the page's one bus on globalThis.__NF_BUS__.
+  // A regex, because a string skips only the root entry and would leave /install shared.
+  /^@softarc\/native-federation-communication(\/|$)/,
+],
+features: {
+  denseChunking: true,
+  denseExternals: true,
+  integrityHashes: true,
+},
 ```
 
 What the flags mean:
@@ -415,7 +526,19 @@ What the flags mean:
 - **`sharedMappings: []`.** Left out, Native Federation would share
   every TypeScript path alias. There is nothing to share, so it is
   turned off explicitly.
-- **`skip`** drops the server-only `react-dom` entry points.
+- **`skip`** drops the server-only `react-dom` entry points. It also
+  keeps the event bus package and its subpaths (`/install`) out of
+  `shared`: every app bundles its own copy, so no app depends on
+  another one's version of it, and all copies use the one bus on
+  `globalThis.__NF_BUS__`.
+- **`features`** are the same three as in the Angular store, so both
+  stores' `remoteEntry.json` files have the same format and a remote
+  can be swapped between them (see [Hot swap](./hot-swap.md)).
+  `denseChunking` writes the shared chunks compactly, `denseExternals`
+  groups every entry point of a shared package under one record, and
+  `integrityHashes` adds a hash for every file. Since Native
+  Federation 4.10, each exposed module also lists the chunks it reaches
+  (`exposes[].chunks`), so a runtime can preload them.
 
 > Cam Jackson, _martinfowler.com_: "_Be careful to ensure that your
 > shared components contain only UI logic, and no business or domain
@@ -451,4 +574,6 @@ another remote, only the types in `@tractor-store/contracts`.
 - [Navigation](./navigation.md) — how the intent system makes the
   boundary navigable without coupling.
 - [Features](./features.md) — concrete catalogue of what each remote
-  ships and which events it speaks.
+  ships and which channels it speaks.
+- [Hot swap](./hot-swap.md) — swapping a remote between the Angular
+  and React stores at runtime.

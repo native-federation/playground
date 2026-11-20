@@ -24,6 +24,8 @@ Promise.all([
       hostRemoteEntry: './remoteEntry.json',
       logLevel: 'debug',
     });
+    // Standalone, this app is its own host; its exposed modules never install.
+    await import('@softarc/native-federation-communication/install');
     const home = await import('./features/home/bootstrap');
     await home.bootstrap(env, nf);
   })

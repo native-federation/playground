@@ -23,7 +23,8 @@ export default withNativeFederation({
     'rxjs/testing',
     'rxjs/webSocket',
     // Bundled into every app instead of shared: each copy finds the page's one bus on globalThis.__NF_BUS__.
-    '@softarc/native-federation-communication',
+    // A regex, because a string skips only the root entry and would leave /install shared.
+    /^@softarc\/native-federation-communication(\/|$)/,
   ],
 
   features: {

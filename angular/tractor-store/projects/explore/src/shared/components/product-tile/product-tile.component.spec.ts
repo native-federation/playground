@@ -5,7 +5,7 @@ import { cdnImageLoader } from '../../../app.config';
 import { categoryFixture } from '../../../testing/category.fixture';
 import { testEnv } from '../../../testing/env.fixture';
 import { ProductTileComponent } from './product-tile.component';
-import { publishNavResolver } from '../../../testing/nav-resolver.stub';
+import { publishNavIntents } from '../../../testing/nav-intents.stub';
 
 const [product] = categoryFixture[0].products;
 
@@ -16,7 +16,7 @@ describe('ProductTileComponent', () => {
         { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
     });
-    publishNavResolver((id, payload) => `${id}/${payload?.['id']}`);
+    publishNavIntents({ 'decide.product': '/decide/product/{id}' });
   });
 
   async function render() {
@@ -36,7 +36,7 @@ describe('ProductTileComponent', () => {
 
   it('links to the product page', async () => {
     expect((await render()).querySelector('a')?.getAttribute('href')).toBe(
-      `decide.product/${product.id}`,
+      `/decide/product/${product.id}`,
     );
   });
 

@@ -1,7 +1,7 @@
 # Features
 
 A catalogue of what each team ships, the fragments they expose, the
-events they speak, and the cross-remote dependencies between them.
+channels they speak, and the cross-remote dependencies between them.
 Use this document as a map when you need to find where something
 lives or what would break if you renamed an `mfe-*` tag.
 
@@ -56,7 +56,7 @@ public IDs.
 
 | Public intent ID              | Path                          | Renders          |
 | ----------------------------- | ----------------------------- | ---------------- |
-| `explore.home`                | `/explore/`                   | `mfe-home`       |
+| `explore.home`                | `/explore`                    | `mfe-home`       |
 | `explore.products`            | `/explore/products`           | `mfe-category`   |
 | `explore.products.category`   | `/explore/products/{category}` | `mfe-category`   |
 | `explore.stores`              | `/explore/stores`             | `mfe-stores`     |
@@ -71,7 +71,7 @@ That is the only cross-team dependency explore consumes; everything
 else under `mfe-header`, `mfe-footer`, and `mfe-recommendations` is
 its own.
 
-### Events it emits
+### Channels it emits
 
 - `store:selected` — when the user picks a pickup store inside
   `mfe-store-picker`
@@ -159,7 +159,7 @@ add-to-cart widgets that other teams embed.
 `mfe-mini-cart` and `mfe-add-to-cart` are exposed *for* other remotes
 but load no foreign fragments themselves.
 
-### Events it speaks
+### Channels it speaks
 
 - **Listens to** `store:selected` from explore — pre-fills the order's
   store field when the user picks a store
@@ -193,7 +193,8 @@ A condensed view of who pulls what from whom:
 Two heuristics fall out of the table:
 
 - **Explore is the chrome layer.** Every other remote's full-page
-  views pull in `mfe-header` + `mfe-footer` from explore, so the
+  views pull in `mfe-footer` from explore, and all but checkout's
+  checkout page also pull in `mfe-header`, so the
   chrome stays consistent without being duplicated three times.
 - **Checkout exposes interaction primitives.** `mfe-mini-cart` and
   `mfe-add-to-cart` are not full pages — they are small interactive
@@ -207,8 +208,8 @@ Every channel on the bus
 
 | Channel          | Kind    | Emitter                              | Subscriber                                   |
 | ---------------- | ------- | ------------------------------------ | -------------------------------------------- |
-| `nav:navigate`   | command | `navigateTo` (`[navIntent]`, checkout page) | host (`provideNavigation`)            |
-| `nav:resolve`    | state   | host (publishes its resolver)        | `NavIntentDirective` in every remote         |
+| `nav:navigate`   | command | `navigateTo` (`[navIntent]`, checkout page) | host (`handleNavigateCommands`)       |
+| `nav:intents`    | state   | host (publishes the intent table)    | `NavIntentDirective` in every remote         |
 | `store:selected` | state   | explore (`mfe-store-picker`)         | checkout (`mfe-checkout`)                    |
 
 A state value is retained, so a late subscriber gets the current one;
@@ -232,7 +233,7 @@ types-only file, `libs/contracts/index.ts` (alias
 | `EnvironmentConfig`                       | the shape of every app's `env.config.json`                    |
 | `RemoteElementModule`                     | what every exposed `mfe-*` module exports (`bootstrap`)       |
 | `NavContribution`, `NavIntent`            | each remote's `nav-contribution.ts`                           |
-| `NavPayload`, `NavResolver`, `RouteParams`| links in the remotes and params on routed elements            |
+| `NavPayload`, `NavIntents`, `RouteParams` | links in the remotes and params on routed elements            |
 | `Channels` (augmented) and the payload types | every channel on the bus and its value type                 |
 
 Everything else, including the bootstrap, the remote loader, the

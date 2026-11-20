@@ -5,7 +5,7 @@ import { cdnImageLoader } from '../../../app.config';
 import { CartStore } from '../../../data/cart-store';
 import { CART_STORAGE_KEY } from '../../../data/cart-storage';
 import { testEnv } from '../../../testing/env.fixture';
-import { publishNavResolver } from '../../../testing/nav-resolver.stub';
+import { publishNavIntents } from '../../../testing/nav-intents.stub';
 import { variantFixture } from '../../../testing/variant.fixture';
 import { LineItemComponent, type LineItemView } from './line-item.component';
 
@@ -63,11 +63,7 @@ describe('LineItemComponent', () => {
   });
 
   it('links to the product intent with {id, sku}', () => {
-    publishNavResolver((id, payload = {}) =>
-      id === 'decide.product'
-        ? `/product/${payload['id']}?sku=${payload['sku']}`
-        : null,
-    );
+    publishNavIntents({ 'decide.product': '/product/{id}' });
     const links = (create().nativeElement as HTMLElement).querySelectorAll('a');
     for (const link of links) {
       expect(link.getAttribute('href')).toBe(

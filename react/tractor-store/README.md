@@ -20,11 +20,11 @@ boundary in place:
 - **Custom elements as the integration surface.** Every remote registers
   its UI as `<mfe-*>` web components. Other apps drop the tag into their
   JSX — no React component, hook, or context crosses the line.
-- **A central event bus on `window.__NF_REGISTRY__`.** Remotes publish
-  and subscribe to small, stable, *typed* events instead of calling
-  each other directly. Navigation and store selection ride on this
-  bus; every event's payload type is listed in one `Events` interface
-  in `libs/contracts`.
+- **A central event bus ([`@softarc/native-federation-communication`][nf-comm]).**
+  Remotes publish and subscribe to small, stable, *typed* channels
+  instead of calling each other directly. Navigation and store
+  selection ride on this bus; every channel's value type is declared
+  once, in the package's `Channels` interface, from `libs/contracts`.
 - **Intent-based navigation.** A link in *decide* that should open the
   cart never types `'/checkout/cart'`. It renders
   `<NavLink intent="checkout.cart">`; the host owns the URL.
@@ -32,7 +32,9 @@ boundary in place:
 The apps share **no runtime code**: only a types-only contracts file.
 Every app's bootstrap, remote loader and link component is written out
 in that app, so you can follow the whole flow without leaving its
-folder.
+folder. The bus is a third-party package that every app bundles its
+own copy of; the copies find one bus per page on
+`globalThis.__NF_BUS__`.
 
 Each idea is documented in detail under [`docs/`](./docs/) — start there
 if you want the why and how.
@@ -43,19 +45,20 @@ if you want the why and how.
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | [docs/README.md](./docs/README.md)             | Overview, mental model, and a "where does X live" index. **Start here.**                                           |
 | [docs/architecture.md](./docs/architecture.md) | The host/remote contract, the three decoupling mechanisms (custom elements, event bus, intent navigation), and the contracts-only sharing policy. |
-| [docs/navigation.md](./docs/navigation.md)     | The intent-based navigation system — how `<NavLink>` + a host-owned resolver replace cross-MFE URL hard-coding.   |
-| [docs/features.md](./docs/features.md)         | Catalogue of what each team ships, the events they speak, and the cross-remote dependencies between them.          |
+| [docs/navigation.md](./docs/navigation.md)     | The intent-based navigation system — how `<NavLink>` + a host-published intent table replace cross-MFE URL hard-coding.   |
+| [docs/features.md](./docs/features.md)         | Catalogue of what each team ships, the channels they speak, and the cross-remote dependencies between them.          |
+| [docs/hot-swap.md](./docs/hot-swap.md)         | Swapping a remote between the Angular and React stores at runtime — same remote names, contracts and `mfe-*` tags.  |
 
 ## Technologies at a glance
 
 | Aspect                      | Solution                                                  |
 | --------------------------- | --------------------------------------------------------- |
-| 🛠️ Frameworks, libraries    | [React 18][react], [native-federation][nf]                |
+| 🛠️ Frameworks, libraries    | [React 18][react], [native-federation][nf] 4.10           |
 | 📝 Rendering                | CSR (client-side rendering)                               |
-| 🐚 Application shell        | Host app with route-based shell components (react-router) |
+| 🐚 Application shell        | Host app; every route mounts a remote shell (react-router) |
 | 🧩 Client-side integration  | Custom elements wrapping React roots, loaded as remotes   |
 | 🧩 Server-side integration  | None (static hosting)                                     |
-| 📣 Communication            | Typed events on `window.__NF_REGISTRY__`                  |
+| 📣 Communication            | Typed channels on one bus ([native-federation-communication][nf-comm]) |
 | 🗺️ Navigation               | SPA inside host, intent IDs across remotes                |
 | 🎨 Styling                  | CSS strings adopted into each element's shadow root       |
 | 🍱 Design system            | None shared: each remote owns its components              |
@@ -66,6 +69,7 @@ if you want the why and how.
 [esbuild]: https://esbuild.github.io/
 [concurrently]: https://github.com/open-cli-tools/concurrently
 [http-server]: https://github.com/http-party/http-server
+[nf-comm]: https://github.com/native-federation/communication
 
 ## Project structure
 
@@ -88,18 +92,19 @@ The three remotes share one layout:
 
 ```
 src/
-├── main.tsx                   # standalone dev entry
+├── main.tsx                   # standalone dev entry (installs the event bus after initFederation)
 ├── app.tsx                    # getApp(), createCustomElement(), useStyles(), useCdn()
 ├── nav-contribution.ts        # the routes/intents this remote offers the host
 ├── features/<name>/
 │   ├── bootstrap.tsx          # defines the <mfe-name> custom element
 │   └── <Name>.tsx             # the page or fragment component (+ its styles)
-├── shared/                    # useRemoteElement, NavLink, useAsync, local components
+├── shared/                    # useRemoteElement, NavLink, navigateTo, useAsync, local components
+├── testing/                   # setup.ts (real event bus per test)
 └── data/                      # <entity>.ts, <entity>.data.ts
 ```
 
 The host reads `main.tsx → app/bootstrap.tsx → app/navigation.tsx →
-app/remote-shell.tsx`.
+app/navigation-root.tsx → app/remote-shell.tsx`.
 
 ## How to run locally
 
@@ -133,7 +138,8 @@ The ports deliberately differ from the [Angular store](../../angular/tractor-sto
 (4200–4203), so both can run side by side. They share the same remote
 names, contracts and `mfe-*` tags, so you can hot-swap a remote: point
 `@tractor-store/explore` in one host's `public/federation.manifest.json`
-at the other store's explore (`:4201` ↔ `:4301`).
+at the other store's explore (`:4201` ↔ `:4301`). See
+[docs/hot-swap.md](./docs/hot-swap.md).
 
 You can also start a single app:
 
@@ -148,12 +154,20 @@ marked external.
 
 ### Testing
 
-Unit tests are written with [Vitest]. Run every app's suite, or type-check:
+Unit and component tests are written with [Vitest]; component tests use
+`jsdom`. Run every app's suite, or type-check:
 
 ```bash
 pnpm test
 pnpm typecheck
 ```
+
+Every app's `src/testing/setup.ts` (wired up in its `vitest.config.mjs`)
+puts a fresh, real event bus from `createBus()`
+(`@softarc/native-federation-communication/setup`) on
+`globalThis.__NF_BUS__` before each test, so no test sees another
+test's retained values. It also rethrows errors from bus listeners, so a
+failed `expect` inside a listener fails the test.
 
 [Vitest]: https://vitest.dev/
 

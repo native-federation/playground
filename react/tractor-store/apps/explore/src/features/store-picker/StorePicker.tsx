@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { Events } from '@tractor-store/contracts';
+import { bus } from '@softarc/native-federation-communication';
 import { useCdn, useStyles } from '../../app';
 import { getStores, type Store } from '../../data/store';
 import { Button } from '../../shared/components/Button';
@@ -18,7 +18,7 @@ export function StorePicker() {
   const select = (store: Store): void => {
     setSelected(store);
     dialog.current?.close();
-    window.__NF_REGISTRY__!.emit<Events['store:selected']>('store:selected', { id: store.id });
+    bus.emit('store:selected', { id: store.id });
   };
 
   return (

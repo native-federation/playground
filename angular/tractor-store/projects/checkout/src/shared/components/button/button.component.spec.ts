@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
-import { publishNavResolver } from '../../../testing/nav-resolver.stub';
+import { publishNavIntents } from '../../../testing/nav-intents.stub';
 import { ButtonComponent } from './button.component';
 
 function render(inputs: Record<string, unknown> = {}) {
@@ -42,7 +42,7 @@ describe('ButtonComponent', () => {
   });
 
   it('renders a link to the intent when navIntent is set', () => {
-    publishNavResolver((id) => (id === 'checkout.cart' ? '/cart' : null));
+    publishNavIntents({ 'checkout.cart': '/cart' });
     const el = render({ navIntent: 'checkout.cart' });
     expect(el.querySelector('button')).toBeNull();
     expect(el.querySelector('a')?.getAttribute('href')).toBe('/cart');

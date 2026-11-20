@@ -46,16 +46,17 @@ if you want the why and how.
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | [docs/README.md](./docs/README.md)             | Overview, mental model, and a "where does X live" index. **Start here.**                                           |
 | [docs/architecture.md](./docs/architecture.md) | The host/remote contract, the three decoupling mechanisms (custom elements, event bus, intent navigation), and the contracts-only sharing policy. |
-| [docs/navigation.md](./docs/navigation.md)     | The intent-based navigation system — how `[navIntent]` + a host-owned resolver replace cross-MFE URL hard-coding. |
-| [docs/features.md](./docs/features.md)         | Catalogue of what each team ships, the events they speak, and the cross-remote dependencies between them.          |
+| [docs/navigation.md](./docs/navigation.md)     | The intent-based navigation system — how `[navIntent]` + a host-published intent table replace cross-MFE URL hard-coding. |
+| [docs/features.md](./docs/features.md)         | Catalogue of what each team ships, the channels they speak, and the cross-remote dependencies between them.        |
+| [docs/hot-swap.md](./docs/hot-swap.md)         | Swapping a remote between the Angular and React stores at runtime — same remote names, contracts and `mfe-*` tags.  |
 
 ## Technologies at a glance
 
 | Aspect                      | Solution                                                |
 | --------------------------- | ------------------------------------------------------- |
-| 🛠️ Frameworks, libraries    | [angular] (zoneless), [native-federation][nf]           |
+| 🛠️ Frameworks, libraries    | [angular] (zoneless), [native-federation][nf] 4.10      |
 | 📝 Rendering                | CSR (client-side rendering)                             |
-| 🐚 Application shell        | Host app with route-based shell components              |
+| 🐚 Application shell        | Host app; every route mounts a remote shell             |
 | 🧩 Client-side integration  | Custom elements ([@angular/elements]) loaded as remotes |
 | 🧩 Server-side integration  | None (static hosting)                                   |
 | 📣 Communication            | Typed channels on one bus ([native-federation-communication][nf-comm]) |
@@ -94,24 +95,24 @@ The three remotes share one layout:
 
 ```
 src/
-├── main.ts                    # standalone dev entry
+├── main.ts                    # standalone dev entry (installs the event bus after initFederation)
 ├── app.config.ts              # getAppInjector(): one Angular app per remote
 ├── nav-contribution.ts        # the routes/intents this remote offers the host
 ├── features/<name>/
 │   ├── bootstrap.ts           # defines the <mfe-name> custom element
 │   └── <name>.page.ts         # or <name>.component.ts for fragments
-├── shared/                    # [mfeRemote], [navIntent], local components
+├── shared/                    # [mfeRemote], [navIntent], navigate.ts (navigateTo, urlFor), local components
 ├── data/                      # <entity>.ts, <entity>.service.ts, <entity>.data.ts
 └── testing/                   # setup.ts (real event bus per test), fixtures, stubs
 ```
 
 The host reads `main.ts → app/bootstrap.ts → app/navigation.ts →
-app/remote-shell.component.ts`.
+app/app.ts → app/remote-shell.component.ts`.
 
 Each remote exposes a handful of fragments (e.g. `mfe-cart`, `mfe-header`,
 `mfe-mini-cart`) registered as custom elements via `@angular/elements`.
 The host loads these on demand through Native Federation and renders them
-inside route-based shell components.
+inside the remote shell (`RemoteShellComponent`), one per route.
 
 ## How to run locally
 
@@ -141,6 +142,13 @@ remote's `public/federation.manifest.json`. Only the host loads the CDN's
 global stylesheet and font, so a standalone remote looks plainer than the
 integrated store.
 
+The ports deliberately differ from the [React store](../../react/tractor-store/)
+(4300–4303), so both can run side by side. They share the same remote
+names, contracts and `mfe-*` tags, so you can hot-swap a remote: point
+`@tractor-store/explore` in one host's `public/federation.manifest.json`
+at the other store's explore (`:4201` ↔ `:4301`). See
+[docs/hot-swap.md](./docs/hot-swap.md).
+
 You can also serve a single app:
 
 ```bash
@@ -155,6 +163,13 @@ full suite per project:
 ```bash
 pnpm ng test host --watch=false     # or explore / decide / checkout
 ```
+
+Every project's `src/testing/setup.ts` (wired up as `setupFiles` in
+`angular.json`) puts a fresh, real event bus from `createBus()`
+(`@softarc/native-federation-communication/setup`) on
+`globalThis.__NF_BUS__` before each test, so no test sees another
+test's retained values. It also rethrows errors from bus listeners, so a
+failed `expect` inside a listener fails the test.
 
 [Vitest]: https://vitest.dev/
 
@@ -183,7 +198,6 @@ project these aspects deserve more attention.
 Open follow-ups:
 
 - [ ] Web performance optimisations (preload critical remotes, deeper code splitting).
-- [ ] Error boundaries / fallback UI when a remote fails to load.
 - [ ] Wire a real backend instead of static fixtures.
 
 ## About the authors

@@ -4,12 +4,6 @@ import {
   globalThisStorageEntry,
   useShimImportMap,
 } from '@softarc/native-federation-orchestrator/options';
-import { createRegistry } from '@softarc/native-federation-orchestrator/registry';
-
-// The event bus must exist before any remote code runs.
-window.__NF_REGISTRY__ ??= Object.freeze(
-  createRegistry({ maxStreams: 20, maxEvents: 1, removePercentage: 0.25 })(),
-);
 
 // Always revalidate: these files differ per deployment.
 const fetchJson = (url: string) =>
@@ -30,6 +24,8 @@ Promise.all([
       hostRemoteEntry: './remoteEntry.json',
       logLevel: 'debug',
     });
+    // Standalone, this app is its own host; its exposed modules never install.
+    await import('@softarc/native-federation-communication/install');
     const product = await import('./features/product/bootstrap');
     await product.bootstrap(env, nf);
     // Standalone dev has no host to set routeParams from the URL, so show a fixed product.

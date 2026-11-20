@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FilterComponent, type FilterItem } from './filter.component';
-import { publishNavResolver } from '../../../testing/nav-resolver.stub';
+import { publishNavIntents } from '../../../testing/nav-intents.stub';
 
 const filters: FilterItem[] = [
   { link: { intent: 'explore.products' }, name: 'All', active: false },
@@ -25,10 +25,10 @@ const filters: FilterItem[] = [
 
 describe('FilterComponent', () => {
   beforeEach(() => {
-    // Echoes the intent and payload back, so the href shows what the link points at.
-    publishNavResolver(
-      (id, payload) => `/${id}?${new URLSearchParams(payload)}`,
-    );
+    publishNavIntents({
+      'explore.products': '/explore/products',
+      'explore.products.category': '/explore/products/{category}',
+    });
   });
 
   async function render() {
@@ -47,8 +47,8 @@ describe('FilterComponent', () => {
   it('links the other filters to their intent', async () => {
     const links = [...(await render()).querySelectorAll('a')];
     expect(links.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
-      ['All', '/explore.products?'],
-      ['Autonomous', '/explore.products.category?category=autonomous'],
+      ['All', '/explore/products'],
+      ['Autonomous', '/explore/products/autonomous'],
     ]);
   });
 });

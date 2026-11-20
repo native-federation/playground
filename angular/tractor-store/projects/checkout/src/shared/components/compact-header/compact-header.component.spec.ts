@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
-import { publishNavResolver } from '../../../testing/nav-resolver.stub';
+import { publishNavIntents } from '../../../testing/nav-intents.stub';
 import { CompactHeaderComponent } from './compact-header.component';
 
 function create() {
@@ -17,7 +17,7 @@ describe('CompactHeaderComponent', () => {
   });
 
   it('links the logo to the explore home intent', () => {
-    publishNavResolver((id) => (id === 'explore.home' ? '/' : null));
+    publishNavIntents({ 'explore.home': '/' });
     expect(create().querySelector('a')?.getAttribute('href')).toBe('/');
   });
 

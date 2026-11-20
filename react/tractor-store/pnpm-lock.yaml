@@ -9,14 +9,17 @@ importers:
   .:
     devDependencies:
       '@softarc/native-federation':
-        specifier: ~4.9.0
-        version: 4.9.0
+        specifier: ~4.10.0
+        version: 4.10.1
+      '@softarc/native-federation-communication':
+        specifier: 4.0.0-next.2
+        version: 4.0.0-next.2
       '@softarc/native-federation-esbuild':
-        specifier: ~4.3.0
-        version: 4.3.0(@softarc/native-federation@4.9.0)
+        specifier: ~4.4.0
+        version: 4.4.0(@softarc/native-federation@4.10.1)
       '@softarc/native-federation-orchestrator':
-        specifier: ~4.9.0
-        version: 4.9.0(@softarc/native-federation@4.9.0)
+        specifier: ~4.10.0
+        version: 4.10.2(@softarc/native-federation@4.10.1)
       '@types/node':
         specifier: ^22.10.5
         version: 22.19.19
@@ -53,9 +56,12 @@ importers:
 
   apps/checkout:
     dependencies:
+      '@softarc/native-federation-communication':
+        specifier: 4.0.0-next.2
+        version: 4.0.0-next.2
       '@softarc/native-federation-orchestrator':
-        specifier: ~4.9.0
-        version: 4.9.0(@softarc/native-federation@4.9.0)
+        specifier: ~4.10.0
+        version: 4.10.2(@softarc/native-federation@4.10.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -65,9 +71,12 @@ importers:
 
   apps/decide:
     dependencies:
+      '@softarc/native-federation-communication':
+        specifier: 4.0.0-next.2
+        version: 4.0.0-next.2
       '@softarc/native-federation-orchestrator':
-        specifier: ~4.9.0
-        version: 4.9.0(@softarc/native-federation@4.9.0)
+        specifier: ~4.10.0
+        version: 4.10.2(@softarc/native-federation@4.10.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -77,9 +86,12 @@ importers:
 
   apps/explore:
     dependencies:
+      '@softarc/native-federation-communication':
+        specifier: 4.0.0-next.2
+        version: 4.0.0-next.2
       '@softarc/native-federation-orchestrator':
-        specifier: ~4.9.0
-        version: 4.9.0(@softarc/native-federation@4.9.0)
+        specifier: ~4.10.0
+        version: 4.10.2(@softarc/native-federation@4.10.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -89,9 +101,12 @@ importers:
 
   apps/host:
     dependencies:
+      '@softarc/native-federation-communication':
+        specifier: 4.0.0-next.2
+        version: 4.0.0-next.2
       '@softarc/native-federation-orchestrator':
-        specifier: ~4.9.0
-        version: 4.9.0(@softarc/native-federation@4.9.0)
+        specifier: ~4.10.0
+        version: 4.10.2(@softarc/native-federation@4.10.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -627,22 +642,26 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@softarc/native-federation-esbuild@4.3.0':
-    resolution: {integrity: sha512-lMwlw3dmMCP8+64sBkWd9617ci3hArAXNQ/A6EymJndqQ7qjILFD4GG7CICLOS2mQfjbesgPFWroismImcOPMw==}
-    peerDependencies:
-      '@softarc/native-federation': ~4.9.0
+  '@softarc/native-federation-communication@4.0.0-next.2':
+    resolution: {integrity: sha512-NQSAaKGuRe1kFqw00Tqb1Z7vrC9Ywlp1C5SB0EraC5HT+qOcmPCnRmKnXZChI8mgMvpT9oxEiYqEMvo3l0VU8w==}
+    engines: {node: '>=20.6.0'}
 
-  '@softarc/native-federation-orchestrator@4.9.0':
-    resolution: {integrity: sha512-qPe4SrIgdLC6k3Hpcb7v+rFrtHEpIOYUfIj6OsmaAL8z1hUKd9YSliTRE7Q12spFfDj2x9jG+RPebrtj2ImDjw==}
-    engines: {node: '>=24.16.0'}
+  '@softarc/native-federation-esbuild@4.4.0':
+    resolution: {integrity: sha512-sYP8rSIUAxqmalG7MlRUrhBTKZjnUSSnyPBRfE81+MGvOKYFjExmdAOeSyuMOBrUdLaQL1ZJNZNwZ3AIc9clxQ==}
     peerDependencies:
-      '@softarc/native-federation': ^4.8.0
+      '@softarc/native-federation': ~4.10.0
+
+  '@softarc/native-federation-orchestrator@4.10.2':
+    resolution: {integrity: sha512-Q38qg/BLZA74TcczHt6flGRYyNOxWn6hbTNHkbJNxZerRQgXujT1ZsQ51GCttxrfkQX0Cp1wWvinssrOmR9F5A==}
+    engines: {node: '>=20.6.0'}
+    peerDependencies:
+      '@softarc/native-federation': ^4.10.0
     peerDependenciesMeta:
       '@softarc/native-federation':
         optional: true
 
-  '@softarc/native-federation@4.9.0':
-    resolution: {integrity: sha512-XwXxZprCd69C6DC0NFBTLqqpVVvcwzhTU+Nka4Mom/1av6ofTHYcZAu/tcr22Rtenj87LB2LN/uEAMbWLiHgkg==}
+  '@softarc/native-federation@4.10.1':
+    resolution: {integrity: sha512-c0khoJzzQIwdUU0IEQJea4jLlubp4rKR16eUsgGhRhzHGrs7ngz5tPW5wCenmUpB6ZMdUlPUlz7oD/P3dIO+aw==}
 
   '@softarc/sheriff-core@0.20.0':
     resolution: {integrity: sha512-dTm5dOUMOGTV3ql7ZIuI8rE+gZawIcJLEluqRYX3KDVJ215vfUzpC9LlSL4pTW0lAAeNLelmPZBzY57jLvOPpg==}
@@ -1166,6 +1185,7 @@ packages:
 
   tldts-core@7.4.20:
     resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
+    deprecated: Partial release, see https://github.com/remusao/tldts/issues/2735. Use >=7.4.22.
 
   tldts@7.4.19:
     resolution: {integrity: sha512-48dH6aSpQnpbzDUc4vIQZ1VjB8tkK+e8c1yx05/SZK+rkssgjEOlxDd/yU8/a4vGYQ9vRgJr9dwMq9TJ0b3X2Q==}
@@ -1624,18 +1644,20 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.60.4':
     optional: true
 
-  '@softarc/native-federation-esbuild@4.3.0(@softarc/native-federation@4.9.0)':
+  '@softarc/native-federation-communication@4.0.0-next.2': {}
+
+  '@softarc/native-federation-esbuild@4.4.0(@softarc/native-federation@4.10.1)':
     dependencies:
-      '@softarc/native-federation': 4.9.0
+      '@softarc/native-federation': 4.10.1
       esbuild: 0.28.2
 
-  '@softarc/native-federation-orchestrator@4.9.0(@softarc/native-federation@4.9.0)':
+  '@softarc/native-federation-orchestrator@4.10.2(@softarc/native-federation@4.10.1)':
     dependencies:
       semver: 7.8.1
     optionalDependencies:
-      '@softarc/native-federation': 4.9.0
+      '@softarc/native-federation': 4.10.1
 
-  '@softarc/native-federation@4.9.0':
+  '@softarc/native-federation@4.10.1':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
       '@softarc/sheriff-core': 0.20.0(typescript@5.9.3)

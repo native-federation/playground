@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import type { NavigatePayload } from '@tractor-store/contracts';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { CartStore } from '../../data/cart-store';
 import { CART_STORAGE_KEY } from '../../data/cart-storage';
 import { LOAD_REMOTE } from '../../shared/remote-element';
@@ -56,13 +56,11 @@ describe('CheckoutPage', () => {
   it('fills the read-only store id from a store picked earlier', async () => {
     selectStore('hamburg');
     const { fixture, root } = render();
-    // The bus replays the last event asynchronously.
-    await vi.waitFor(async () => {
-      await fixture.whenStable();
-      expect(root.querySelector<HTMLInputElement>('#c_storeId')!.value).toBe(
-        'hamburg',
-      );
-    });
+    // The bus delivers the retained value before `on` returns; whenStable lets the form render it.
+    await fixture.whenStable();
+    expect(root.querySelector<HTMLInputElement>('#c_storeId')!.value).toBe(
+      'hamburg',
+    );
   });
 
   it('clears the cart and asks the host to navigate to thanks on submit', async () => {
