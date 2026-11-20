@@ -16,7 +16,14 @@ h2 {
 }
 
 a {
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
   color: var(--mat-sys-primary);
+  text-decoration: underline;
 }
 
 .facts {

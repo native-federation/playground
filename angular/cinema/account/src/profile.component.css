@@ -43,6 +43,7 @@ h2 {
 
 mat-list {
   padding: 0;
+  --mat-list-list-item-leading-icon-color: var(--mat-sys-primary);
   --mat-list-list-item-two-line-container-height: 72px;
 }
 
@@ -53,5 +54,4 @@ mat-list-item {
 /* the list's .mdc-list-item__start sets fill: currentColor, which would fill these outline icons */
 [matListItemIcon] {
   fill: none;
-  color: var(--mat-sys-primary);
 }

@@ -238,10 +238,11 @@ menu link carries a dot in its colour as the legend.
   seats take the team's hue without changing the remotes.
 - Every page's outlined cards get a light outline in the team's colour,
   except programme's, which frame other teams' pieces and stay neutral; and
-  booking's summary a top stripe. Film's title, poster icons and heading are
-  in full magenta: on programme's card it sits with booking's amber and
-  programme's navy day labels, three hues that stay apart, also for common
-  colour-vision deficiencies. Booking's Book button is filled, so it is
+  booking's summary a top stripe. Film's posters carry its magenta (tint and
+  icon; titles only on hover): on programme's card it sits with booking's
+  amber and programme's navy day labels, three hues that stay apart, also
+  for common colour-vision deficiencies. Colour stays on small areas, so the
+  three don't read as loud. Booking's Book button is filled, so it is
   amber everywhere. The dev dock stays neutral.
 - The palette and the mapping live in the shell only, so the header dots
   and the accents can't drift apart. The cost: the shell knows every tag
