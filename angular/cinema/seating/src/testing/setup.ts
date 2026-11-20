@@ -1,4 +1,4 @@
-import { createBus } from '@softarc/native-federation-communication';
+import { createBus } from '@softarc/native-federation-communication/setup';
 import { afterEach, beforeEach, vi } from 'vitest';
 
 // Every test gets a fresh, real event bus: `bus` reads globalThis.__NF_BUS__ on every call.

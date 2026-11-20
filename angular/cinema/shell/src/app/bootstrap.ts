@@ -1,3 +1,5 @@
+// The shell is the host: it installs the page's one bus before anything uses it.
+import '@softarc/native-federation-communication/install';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';

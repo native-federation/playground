@@ -164,8 +164,8 @@ here once; the other documents link to it.
 
   The orchestrator is in every repo (`initFederation` in `main.ts`). The
   bus, [`@softarc/native-federation-communication`](https://github.com/native-federation/communication), is a runtime
-  dependency of every repo except programme and account, pinned to `4.0.0-next.0` while
-  it is a prerelease, and listed in `skip` in `federation.config.mjs`: each
+  dependency of every repo except programme and account, pinned to `4.0.0-next.2` while
+  it is a prerelease, and skipped with a regex (the package and its subpaths) in `federation.config.mjs`: each
   repo bundles its own copy, so its version never has to align across
   repos (architecture.md § Shared dependencies and versions).
 

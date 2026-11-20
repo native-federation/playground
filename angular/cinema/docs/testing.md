@@ -18,7 +18,8 @@ There is no CI in the first version, so nothing is a gate.
 **A fresh, real event bus per test.** Every repo except programme and account has
 `src/testing/setup.ts`, copied from
 [`tractor-store/projects/host/src/testing/setup.ts`](../../tractor-store/projects/host/src/testing/setup.ts),
-listed in the `angular.json` test target's `setupFiles`:
+listed in the `angular.json` test target's `setupFiles`. `createBus` comes
+from `@softarc/native-federation-communication/setup`:
 
 ```ts
 beforeEach(() => {

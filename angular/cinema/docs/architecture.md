@@ -188,9 +188,12 @@ to `routeParams`.
 
 ### Events
 
-The bus is [`@softarc/native-federation-communication`](https://github.com/native-federation/communication). No repo
-installs it: the first `bus` call on the page installs it on
-`globalThis.__NF_BUS__`, and every copy of the package finds that one bus,
+The bus is [`@softarc/native-federation-communication`](https://github.com/native-federation/communication). The shell
+installs it once, on `globalThis.__NF_BUS__`, with
+`import '@softarc/native-federation-communication/install'` as the first
+import of `app/bootstrap.ts` (`main.ts` is too early: shared packages resolve
+only after `initFederation`). Exposed modules never install it. Every copy
+of the package finds that one bus,
 whichever Angular major or share scope the repo uses (see
 [Shared dependencies and versions](#shared-dependencies-and-versions)).
 `bus.emit(channel, value)` retains the value, and `bus.on` hands a retained
@@ -359,9 +362,10 @@ federation config and the verified drift behaviour are stated once, in
 [ADR-08](decisions.md#adr-08-versions-are-aligned-by-convention).
 
 The bus package is the exception: it is not shared. Every repo that uses
-the bus lists `@softarc/native-federation-communication` in `skip` in its
-`federation.config.mjs`, so each bundles its own copy, and the copies meet
-on `globalThis.__NF_BUS__` (see the package's
+the bus lists `/^@softarc\/native-federation-communication(\/|$)/` in
+`skip` in its `federation.config.mjs`, so each bundles its own copy (a
+regex, because a plain string leaves subpaths such as `/install` shared).
+The copies meet on `globalThis.__NF_BUS__` (see the package's
 [multiple copies](https://github.com/native-federation/communication/blob/main/docs/multiple-copies.md)). No repo has
 to match another's version of it.
 
@@ -379,8 +383,11 @@ to match another's version of it.
      map comes from its own `remoteEntry.json`;
   2. sets fixed `routeParams` on the element that `src/index.html` mounts,
      for example `{ screeningId: 's-101' }` (before the upgrade, so the
-     first render has them), then imports `./bootstrap` and calls
-     `bootstrap()`.
+     first render has them);
+  3. if the remote uses the bus, installs it with
+     `await import('@softarc/native-federation-communication/install')`:
+     standalone, the remote is its own host;
+  4. imports `./bootstrap` and calls `bootstrap()`.
 
   Links stay inert, because there is no shell to publish `nav:intents`. Standalone
   mode is for working on one element. It is not production.

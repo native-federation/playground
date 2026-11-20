@@ -14,6 +14,8 @@ initFederation({}, {
   logLevel: 'debug',
 })
   .then(async () => {
+    // Standalone, this app is its own host; its exposed modules never install.
+    await import('@softarc/native-federation-communication/install');
     const { bootstrap } = await import('./bootstrap');
     await bootstrap();
   })
