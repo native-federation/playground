@@ -227,8 +227,8 @@ not say which app emitted, so the panel does not either.
 ### Team colours
 
 Every micro-frontend is lightly accented in its own colour, always: programme
-navy, film magenta, seating teal, booking amber, loyalty green, account
-sky. Only the hue changes; shape, type, spacing and surfaces stay shared, so
+navy, film pine, seating teal, booking gold, loyalty brick, account plum.
+They are muted inks at one lightness and chroma, so only the hue varies. Only the hue changes; shape, type, spacing and surfaces stay shared, so
 it reads as one product. The shell's header is neutral, and each team's
 menu link carries a dot in its colour as the legend.
 
@@ -238,9 +238,9 @@ menu link carries a dot in its colour as the legend.
   seats take the team's hue without changing the remotes.
 - Every page's outlined cards get a light outline in the team's colour,
   except programme's, which frame other teams' pieces and stay neutral; and
-  booking's summary a top stripe. Film's posters carry its magenta (tint and
+  booking's summary a top stripe. Film's posters carry its pine (tint and
   icon; titles only on hover): on programme's card it sits with booking's
-  amber and programme's navy day labels, three hues that stay apart, also
+  gold and programme's navy day labels, three hues that stay apart, also
   for common colour-vision deficiencies. Colour stays on small areas, so the
   three don't read as loud. Booking's Book button is filled, so it is
   amber everywhere. The dev dock stays neutral.

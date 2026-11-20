@@ -46,12 +46,13 @@ body {
 // Team colours: every micro-frontend is lightly accented in its own colour (docs/architecture.md § Team colours).
 // Palette and tag mapping live here only, so the header's dots use the same values.
 :root {
-  --team-programme: #1d4e9e;
-  --team-film: #a3407f;
-  --team-seating: #00727a;
+  // Muted inks at one lightness and chroma, so only the hue varies.
+  --team-programme: #2f4f80;
+  --team-film: #24705f;
+  --team-seating: #2a6f78;
   --team-booking: #94661f;
-  --team-loyalty: #007a55;
-  --team-account: #2a7bae;
+  --team-loyalty: #a04a35;
+  --team-account: #7c467f;
 }
 
 mfe-programme-list { --team: var(--team-programme); }
