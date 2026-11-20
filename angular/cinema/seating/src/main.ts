@@ -6,7 +6,7 @@ import {
 } from '@softarc/native-federation-orchestrator/options';
 import type { RouteParams } from './contracts';
 
-// Standalone only: no shell, so Continue emits nav:navigate but nothing navigates.
+// Standalone only: no booking, so the hold is retained on the bus but no summary shows it.
 initFederation({}, {
   ...useShimImportMap({ shimMode: true }),
   logger: consoleLogger,

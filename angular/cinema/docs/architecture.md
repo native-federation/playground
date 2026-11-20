@@ -124,8 +124,8 @@ There are six. Anything not on this list is private to one repo.
 | 2 | **Exposed element** | Exposed key = tag name. Its module is a `RemoteElementModule`: `{ bootstrap(): Promise<void> }`. Fragments are declared in the `nav-contribution`, never hard-coded in the shell. | Shell and each remote |
 | 3 | **`nav-contribution`** | `{ basePath, intents: [{ id, path, element, menuLabel? }], fragments?: [{ element, slot? }] }` with a **local** `id` (`'plan'`); the shell builds the full id `basePath.id` (`seating.plan`). `slot` is absent (pages embed it) or `'header'` (the shell also places it). | Shell, every remote, and each caller of an intent |
 | 4 | **`routeParams`** | One property the shell writes onto a routed element: **ids, plus the one documented `seats` string**. Param names equal the `{placeholders}` in the owner's path. | Shell, each page and each caller |
-| 5 | **Bus events** | `nav:navigate`, `nav:intents`, `booking:confirmed` | Producer and consumers |
-| 6 | **Embedded fragment** | Tag plus **one id as an attribute**: `<mfe-film-card film-id>`, `<mfe-booking-start screening-id>`. It emits and consumes no domain events. | The fragment's owner and the host page (programme) |
+| 5 | **Bus channels** | `nav:navigate`, `nav:intents`, `booking:confirmed`, `seating:hold` | Producer and consumers |
+| 6 | **Embedded fragment** | Tag plus **one id as an attribute**: `<mfe-film-card film-id>`, `<mfe-booking-start screening-id>`, `<mfe-booking-summary screening-id>`. It emits no domain events and consumes none, except that the summary reads seating's retained `seating:hold` (ADR-16). | The fragment's owner and the host page (programme; seating for the summary) |
 
 Pages take one `routeParams` property, and embedded fragments take named id
 attributes. That is two input conventions on purpose: a route passes a bag
@@ -149,6 +149,7 @@ prefix (Geers: "establish team prefixes").
 | Intent id | `<team>.<thing>` | `seating.plan` |
 | Domain event | `<team>:<past-tense-verb>` | `booking:confirmed` |
 | Infrastructure event | `<capability>:<noun or verb>` | `nav:navigate`, `nav:intents` |
+| Team state (retained) | `<team>:<noun>` | `seating:hold` |
 
 Avoid names that stutter. `mfe-seating-plan` is fine. `mfe-seating-seat-plan`
 is not.
@@ -170,12 +171,15 @@ team owns its URL prefix**, and no team's URL borrows another team's noun.
 `/` and every unknown URL redirect to `/programme` (see
 [The shell](#the-shell)).
 
-**The `seats` format** is the only structured value in a route:
+**The `seats` format** is the only structured value in a route. It is
+booking's own since ADR-16: booking's summary writes it (`formatSeats`) and
+checkout reads it (`parseSeats`), both in `booking/src/seats-param.ts`.
 
 - seat codes joined by commas, **sorted** by row letter, then by seat
-  number (`A1,A2,B10`, never `A2,A1`);
-- seating never emits an empty hold ("Continue" is disabled until a seat is
-  held);
+  number (`A1,A2,B10`, never `A2,A1`); seating's `seating:hold` already
+  lists them in that order;
+- booking never links to an empty hold ("Continue" is a disabled button
+  until a seat is held);
 - booking treats an empty or unparsable value from a deep link as an empty
   checkout, and does not throw;
 - the shell URL-encodes it, but Angular's router leaves `,` unescaped, so
@@ -202,13 +206,10 @@ value a **command**: only current listeners get it, and nothing is kept.
 
 | Channel | Kind | Direction | Emitted / subscribed with |
 |---|---|---|---|
-| `nav:navigate` | command | any remote → shell | emitted with `{ retain: false }` (`navigateTo()` in `src/shared/navigate.ts`, inline in seating); the shell listens with `{ replay: false }`: an old navigation must never be replayed |
+| `nav:navigate` | command | any remote → shell | emitted with `{ retain: false }` (`navigateTo()` in `src/shared/navigate.ts`); the shell listens with `{ replay: false }`: an old navigation must never be replayed |
 | `nav:intents` | state: the shell's `NavIntents`, frozen | shell → any `[navIntent]` | `bus.emit('nav:intents', intents)`, retained; `bus.on` without options: a link that renders late still gets the table, and one that renders before it waits for it |
 | `booking:confirmed` | domain fact, sent as a command | booking → loyalty | `{ retain: false }` and `{ replay: false }`, see [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only) |
-
-Seating's "Continue" is a button that submits the hold, not a link, so it
-emits `nav:navigate` inline instead of copying the directive and
-`navigate.ts`.
+| `seating:hold` | state: `SeatHold { screeningId, seats }`, seats in grid order | seating → booking's summary | retained, emitted from one `effect()` on every change, including the empty hold on first render and on a new screening; `bus.on` without options, filtered on the summary's `screening-id`, see [ADR-16](decisions.md#adr-16-seatings-hold-is-shared-state-the-handoff-stays-in-the-url) |
 
 To watch the bus, open **Events** next to **Remotes** at the bottom left
 of the shell (`shell/src/event-log/`, demo tooling like the remote
@@ -222,7 +223,7 @@ not say which app emitted, so the panel does not either.
 
 ## Fragments and resilience
 
-There are three cross-team fragments. A remote declares each one in its
+There are four cross-team fragments. A remote declares each one in its
 `nav-contribution`; the shell **defines** every declared fragment, and a
 `slot` only says where the shell also **places** it
 ([ADR-15](decisions.md#adr-15-pages-may-embed-declared-fragments-the-shell-defines-them)).
@@ -232,6 +233,7 @@ There are three cross-team fragments. A remote declares each one in its
 | `mfe-loyalty-badge` | loyalty | shell `header` slot | none |
 | `mfe-film-card` | film | programme's screening card | `film-id` |
 | `mfe-booking-start` | booking | programme's screening card | `screening-id` |
+| `mfe-booking-summary` | booking | seating's page, beside the plan | `screening-id` (and seating's `seating:hold` on the bus) |
 
 ```mermaid
 flowchart LR
@@ -247,8 +249,14 @@ flowchart LR
     end
     B -. "loaded from" .-> LOY["@cinema/loyalty"]
     P -. "loaded from" .-> ANY["whichever remote owns the route"]
+    subgraph Plan["seating page (in the outlet)"]
+        SP["seat plan (seating)"]
+        S["mfe-booking-summary"]
+    end
     F -. "defined by the shell from" .-> FILM["@cinema/film"]
     K -. "defined by the shell from" .-> BOOK["@cinema/booking"]
+    S -. "defined by the shell from" .-> BOOK
+    SP -- "seating:hold on the bus" --> S
 ```
 
 **How embedding works.**
@@ -310,7 +318,7 @@ in the console. Nothing else is logged (ADR-12).
 | programme | The Programme link is gone and `/` redirects to the next parameterless page that loaded (`/loyalty` or `/account`). Deep links to other pages still work. |
 | film | The programme cards keep day, time and Book; the film area is empty. |
 | seating | The Book links turn inert. |
-| booking | The cards have no Book link, so the journey cannot start (no fallback is added). Seating's "Continue" does nothing. |
+| booking | The cards have no Book link, so the journey cannot start (no fallback is added). Seating's page shows the plan without the summary, so there is no Continue. |
 | loyalty | The Points link and the badge are gone, and the booking still confirms. |
 | account | The Account link is gone. This is the scripted walkthrough (see testing.md). |
 
@@ -334,13 +342,14 @@ touches.**
   The file is listed in the tsconfig `include`, so the augmentation applies
   without being imported.
 - Example values live in **`src/testing/contracts.examples.ts`**
-  (`bookingConfirmedExample`, `seatsParamExample`), so production code
+  (`bookingConfirmedExample`, `seatHoldExample`; booking also keeps its own
+  `seatsParamExample`), so production code
   imports no contract values.
 - Copy rule: the `Channels` entries the repo emits or subscribes to (none
   in account); `NavPayload` and
   `NavIntents` if it has the directive; `NavContribution` in every remote;
   `RouteParams` if a page takes params; `BookingConfirmed` for booking and
-  loyalty; `NavFragment` where a remote declares a fragment.
+  loyalty; `SeatHold` for seating and booking; `NavFragment` where a remote declares a fragment.
 - Copied helpers, each from the tractor store, each **only where used**:
 
   | File | In |

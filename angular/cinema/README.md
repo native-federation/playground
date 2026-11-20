@@ -49,8 +49,8 @@ Ports start at 4300 so the demo runs next to the other examples here
 | 0 | `shell` | 4300 | 22 | `@cinema/shell` | (app, not a subdomain) | none | Layout, router, manifest, bus, remote switcher, event log | The host: discovery, routing, intent resolution, the header slot, **defines every declared fragment** |
 | 1 | `programme` | 4301 | 22 | `@cinema/programme` | supporting | page `mfe-programme-list` | Lists this week's screenings: day and time | Landing page. **A page assembled from other teams' fragments** |
 | 2 | `film` | 4302 | 21 | `@cinema/film` | generic | page `mfe-film-detail`, fragment `mfe-film-card` | Poster, title, synopsis, runtime, age label | **Route params in** (`routeParams`), and an **embedded fragment** with an id attribute |
-| 3 | `seating` | 4303 | 22 | `@cinema/seating` | **core** | page `mfe-seating-plan` | 5×8 seat grid, toggle seats, "Continue" | **The URL is the contract**: the hold travels as intent params |
-| 4 | `booking` | 4304 | 22 | `@cinema/booking` | **core** | page `mfe-booking-checkout`, fragment `mfe-booking-start` | "Book · €12 per seat" on each card; the checkout shows the hold and a booking ref on "Confirm" | **The team that owns the conversion owns the call to action**, and **publishing a domain event** (`booking:confirmed`) |
+| 3 | `seating` | 4303 | 22 | `@cinema/seating` | **core** | page `mfe-seating-plan` | 5×8 seat grid, toggle seats; embeds booking's summary | **Sharing state over the bus** (`seating:hold`) with another team's fragment on the same page |
+| 4 | `booking` | 4304 | 22 | `@cinema/booking` | **core** | page `mfe-booking-checkout`, fragments `mfe-booking-start`, `mfe-booking-summary` | "Book · €12 per seat" on each card; the summary prices the hold beside the seat plan; the checkout shows the hold and a booking ref on "Confirm" | **The team that owns the conversion owns the call to action**, **the URL is the contract** for the handoff to checkout, and **publishing a domain event** (`booking:confirmed`) |
 | 5 | `loyalty` | 4305 | 22 | `@cinema/loyalty` | supporting | page `mfe-loyalty-points`, fragment `mfe-loyalty-badge` | +10 points per ticket. The badge shows the total | **Consuming an event**, a **fragment in the shell**, and **state inside one remote** (badge and page share one store) |
 | 6 | `account` | 4307 | 21 | `@cinema/account` | generic | page `mfe-account-profile` | Mock profile | **The minimal remote** (template to copy) and the **remote-down / redeploy walkthrough** |
 
@@ -146,8 +146,9 @@ Every repo also works on its own:
    Angular majors: programme's day and time (22), film's poster, title,
    runtime and age label (21), and booking's "Book · €12 per seat" (22).
 3. Click a film title to open `film.detail`, then "Back".
-4. Click **Book** to open `seating.plan`, pick two seats, "Continue" to
-   `booking.checkout`, then "Confirm". The header badge goes from 0 to 20
+4. Click **Book** to open `seating.plan` and pick two seats: booking's
+   summary beside the plan prices them as you click (`seating:hold`, see
+   **Events**). "Continue" to `booking.checkout`, then "Confirm". The header badge goes from 0 to 20
    pts without a reload (`booking:confirmed` → loyalty).
 5. **Degrade.** Untick *film* and Apply: the cards keep day, time and Book,
    and the film area is empty. Tick it again, untick *booking* and Apply:

@@ -1,0 +1,22 @@
+<aside aria-labelledby="booking-summary-title">
+  <h2 id="booking-summary-title">Your seats</h2>
+  @if (seats().length) {
+    <mat-chip-set role="list" aria-label="Held seats">
+      @for (seat of seats(); track seat) {
+        <mat-chip role="listitem">{{ seat }}</mat-chip>
+      }
+    </mat-chip-set>
+  }
+  <p class="price" aria-live="polite">{{ priceText() }}</p>
+  @if (seats().length) {
+    <a
+      matButton="filled"
+      navIntent="booking.checkout"
+      [navPayload]="{ screeningId: screeningId(), seats: seatsParam() }"
+      >Continue</a
+    >
+  } @else {
+    <!-- A link can't be disabled; with no seats there is nowhere to go. -->
+    <button type="button" matButton="filled" disabled>Continue</button>
+  }
+</aside>

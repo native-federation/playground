@@ -46,7 +46,7 @@ the demo does not need them.
 | screening | programme | One film (by `filmId`) shown at one day and time in the hall. Elsewhere it is referenced only by `screeningId`. |
 | programme | programme | The list of screenings this week. |
 | seat | seating | A physical place in the hall, coded `A1` to `E8`. It is `free`, `taken` or `held`. |
-| hold | seating | The seats the moviegoer selected for one screening, before checkout. It lives in the URL once it leaves seating. |
+| hold | seating | The seats the moviegoer selected for one screening, before checkout. Seating shares it as retained state (`seating:hold`) for booking's summary on the same page; it lives in the URL once it leaves seating. |
 | checkout | booking | The page that turns a hold into tickets and, on confirm, into a booking. |
 | ticket | booking | The right to one seat at one screening. Each ticket costs a flat €12, a price only booking knows. |
 | booking | booking | A confirmed set of tickets, identified by a `bookingRef` such as `BR-7F3A`. |
@@ -97,8 +97,12 @@ There is one event: **BookingConfirmed**.
   [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only).
 
 **SeatsHeld is a pivotal moment but not an event.** The hold travels to
-booking **in the URL** (`/booking/{screeningId}/{seats}`), see
+checkout **in the URL** (`/booking/{screeningId}/{seats}`), see
 [ADR-04](decisions.md#adr-04-the-hold-travels-in-the-url-not-on-the-bus).
+While it is being chosen, seating shares it as retained **state**
+(`seating:hold`), not as a fact: booking's summary beside the plan shows
+and prices it, and nothing counts it
+([ADR-16](decisions.md#adr-16-seatings-hold-is-shared-state-the-handoff-stays-in-the-url)).
 
 ## Context map
 
@@ -149,8 +153,8 @@ These arrows are the complete set of ways subdomains meet:
 |---|---|---|
 | programme | Screenings: `screeningId` → `filmId`, day and time. The landing page that assembles the card. | Hold any film content (not even the title), know prices, or know seat availability |
 | film | Film content, the film card and the detail page | Know when a film is screened (that belongs to programme) |
-| seating | Seat plans and the current hold (local state) | Price anything, or create bookings |
-| booking | The price per seat, `bookingRef`, the confirmation, and the call to action that starts a booking | Know seat plans or film content, or award points |
+| seating | Seat plans and the current hold (local state, shared as `seating:hold`) | Price anything, create bookings, or know where the journey continues |
+| booking | The price per seat, `bookingRef`, the confirmation, the call to action that starts a booking, and the summary that continues it to checkout | Know seat plans or film content, or award points |
 | loyalty | The points total | Know prices or seats. It only counts tickets from the event. |
 | account | The mock profile | Hold bookings or points |
 

@@ -17,14 +17,8 @@ import { MatDivider } from '@angular/material/divider';
 import { BOOKING_REF } from './booking-ref';
 import { bus } from '@softarc/native-federation-communication';
 import type { RouteParams } from './contracts';
-import { TICKET_PRICE } from './ticket-price';
-
-// Deep links may carry anything: an unparsable value is an empty checkout
-// (see docs/architecture.md § Intents).
-const parseSeats = (seats = ''): readonly string[] => {
-  const parts = seats.split(',');
-  return seats && parts.every((seat) => /^[A-Z][0-9]+$/.test(seat)) ? parts : [];
-};
+import { parseSeats } from './seats-param';
+import { TICKET_PRICE, ticketsText } from './ticket-price';
 
 @Component({
   selector: 'app-checkout',
@@ -43,10 +37,7 @@ export class CheckoutComponent {
   protected readonly screeningId = computed(() => this.routeParams()['screeningId'] ?? '');
   protected readonly seats = computed(() => parseSeats(this.routeParams()['seats']));
   protected readonly total = computed(() => this.seats().length * TICKET_PRICE);
-  private readonly ticketsText = computed(() => {
-    const count = this.seats().length;
-    return count === 1 ? '1 ticket' : `${count} tickets`;
-  });
+  private readonly ticketsText = computed(() => ticketsText(this.seats().length));
   protected readonly lineText = computed(() => `${this.ticketsText()} × €${TICKET_PRICE}`);
   protected readonly summary = computed(() =>
     [

@@ -76,20 +76,29 @@ here once; the other documents link to it.
 
 ## ADR-04: The hold travels in the URL, not on the bus
 
+**Amended by ADR-16:** the hold is also shared as state on the bus, for
+booking's summary on seating's page; the handoff to checkout is unchanged.
+
 - **Decision.**
   - Seating navigates by intent to `booking.checkout` with
-    `{ screeningId, seats: 'A1,A2' }`. The `seats` format is defined in
+    `{ screeningId, seats: 'A1,A2' }` (since ADR-16, booking's summary does).
+    The `seats` format is defined in
     architecture.md § Intents.
-  - There is no `seats-held` event.
+  - There is no `seats-held` event: no one-shot fact that checkout depends
+    on. ADR-16's `seating:hold` is retained state for display only.
 - **Why.**
   - A URL survives a reload, and booking can be tested by setting one
     `routeParams` input.
   - There is no timing dependency on whether booking was already listening.
     That was the main hidden bug in the event-based variant.
-- **Cost.** The `seats` string is an implicit contract, pinned down only by
-  `seatsParamExample`.
+- **Cost.** The `seats` string was an implicit contract between seating and
+  booking, pinned down only by `seatsParamExample`. Since ADR-16 booking
+  both writes and reads it.
 
 ## ADR-05: One domain event, sent as a command, shell-mounted consumers only
+
+**Narrowed by ADR-16:** the shell-mounted rule is for domain facts and
+commands; a page's fragment may read retained state.
 
 - **Decision.**
   - `booking:confirmed { bookingRef, ticketCount }` is the only domain
@@ -306,6 +315,9 @@ Superseded by ADR-15: notifications removed.
 
 ## ADR-15: Pages may embed declared fragments; the shell defines them
 
+**Amended by ADR-16:** another embeddable fragment, `mfe-booking-summary`,
+placed by seating, reads seating's retained `seating:hold`.
+
 - **Decision.**
   - **Notifications is removed.** The `notifications` repo, its manifest
     entry, the `overlay` slot, the `notify:show` channel and
@@ -370,6 +382,64 @@ Superseded by ADR-15: notifications removed.
     longer links anywhere. Booking takes copies.
   - Account keeps :4307 (ADR-10).
 
+## ADR-16: Seating's hold is shared state; the handoff stays in the URL
+
+Amends ADR-04, ADR-05 and ADR-15.
+
+- **Decision.**
+  - **The "Your seats" card moves to booking** as the declared fragment
+    `mfe-booking-summary` (input `screening-id`). Seating's page embeds it
+    beside the plan. It shows the held seats, the price ("2 tickets × €12 =
+    €24") and Continue, a `[navIntent]` link to `booking.checkout`.
+  - **Seating publishes its hold** on the retained channel
+    `seating:hold { screeningId, seats: readonly string[] }`, seats in grid
+    order. It emits from **one `effect()`** on the hold, so the empty hold on
+    first render and on a new screening replaces whatever is retained.
+    Without that, coming back to a screening would replay an earlier visit's
+    seats while the plan shows none.
+  - The summary subscribes with replay and **ignores a hold for another
+    screening**.
+  - **The handoff stays in the URL** (ADR-04): Continue navigates to
+    `/booking/{screeningId}/{seats}` and checkout reads only `routeParams`,
+    never the bus. The `seats` string is now booking's own: the summary
+    writes it, checkout reads it (`seats-param.ts`).
+  - ADR-05's rule "consumed only by elements the shell mounts at startup"
+    applies to domain facts and commands. Retained state may be read by a
+    page's fragments. ADR-15's "an embedded fragment emits and consumes no
+    domain events" gets this one exception.
+- **Why.**
+  - Ownership: booking owns the price and the call to action that starts a
+    booking (domain.md). The card showed both concerns on seating's page,
+    and seating had to know booking's intent id and URL format. Now seating
+    only knows seats.
+  - Why the bus and not a `seats` attribute: a custom element's attributes
+    are just as framework-agnostic, and seating does place the summary, so
+    an attribute would work and could never be stale. The bus is chosen
+    because the hold becomes **state any team can read without seating
+    changing** (a header basket, analytics), and because this demo exists
+    to show micro-frontends sharing state over the bus. That second reason
+    is a demo choice, stated as one.
+  - Retained, not a command: the summary and the plan mount in no fixed
+    order, and replaying a hold is harmless, unlike `booking:confirmed`.
+- **Cost.**
+  - The contract between the two teams is now a channel name, a payload key
+    set and a tag, all strings. A drifted tag or channel leaves seating's
+    page without Continue, so the journey dead-ends, quieter than a
+    drifted `seats` string, which showed an empty checkout.
+  - The retained hold outlives seating's page. The effect and the
+    screening filter keep it harmless; nothing clears it.
+  - Seating standalone, or with booking off, shows the plan with no summary
+    and no Continue.
+  - The empty-hold rule is a discipline seating must keep; its spec pins it.
+- **Choices made along the way.**
+  - `seating:hold`, a noun: it is state, named like `nav:intents`, not a
+    past-tense fact. "Hold" is seating's word (domain.md).
+  - `seats` is an array, not `'A1,A2'`: the comma string is a URL format and
+    stays inside booking.
+  - Continue is a link when seats are held and a disabled button when none
+    are, because a link cannot be disabled.
+  - No "hold cleared" command, no handshake, no per-screening store.
+
 ## YAGNI: deliberately left out
 
 | Cut | Why it does not earn its place |
@@ -380,7 +450,7 @@ Superseded by ADR-15: notifications removed.
 | Discovery service | Replacing one manifest file per environment is enough (ADR-07). |
 | Manifests in remotes, a loader or registry for embeds, `env`/`nf` on `bootstrap` | The shell defines every declared fragment, so no remote needs to find another remote (ADR-15). |
 | CDN server, `env.config.json`, image loader, fonts besides the shell's Roboto | Each repo serves its own `public/` (ADR-07). |
-| `seats-held` and `snack-added` events | Timing and replay bugs. URL instead (ADR-04, ADR-01). |
+| A `seats-held` fact and a `snack-added` event | Timing and replay bugs. URL instead (ADR-04, ADR-01). The hold is shared only as retained state (ADR-16). |
 | `screeningId` in `booking:confirmed` | Neither consumer uses it (ADR-05). |
 | `account:signed-in` and any auth | Its only consumer would be cosmetic. |
 | Backend, HTTP, persistence, points history | Inline mock data. A reload resets the booking and the points. |

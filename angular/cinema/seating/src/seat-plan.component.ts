@@ -1,14 +1,23 @@
-import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  CUSTOM_ELEMENTS_SCHEMA,
+  effect,
+  input,
+  linkedSignal,
+} from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard } from '@angular/material/card';
-import { MatChip, MatChipSet } from '@angular/material/chips';
 import { bus } from '@softarc/native-federation-communication';
 import type { RouteParams } from './contracts';
 import { allSeats, numbers, rows, takenSeats } from './seats';
 
 @Component({
   selector: 'app-seat-plan',
-  imports: [MatButton, MatCard, MatChipSet, MatChip],
+  imports: [MatButton, MatCard],
+  // mfe-booking-summary belongs to booking; the shell defines it (ADR-15).
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './seat-plan.component.html',
   styleUrl: './seat-plan.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,31 +34,18 @@ export class SeatPlanComponent {
     source: this.screeningId,
     computation: () => [],
   });
-  protected readonly heldSeats = computed(() =>
-    allSeats.filter((seat) => this.held().includes(seat)),
-  );
-  protected readonly seatsParam = computed(() => this.heldSeats().join(','));
-  protected readonly countText = computed(() => {
-    const count = this.heldSeats().length;
-    if (count === 0) return 'No seats held';
-    return count === 1 ? '1 seat held' : `${count} seats held`;
-  });
+  private readonly heldSeats = computed(() => allSeats.filter((seat) => this.held().includes(seat)));
+
+  constructor() {
+    // An effect, not toggle(): the reset on a new screening or a revisit must replace the retained hold too (ADR-16).
+    effect(() =>
+      bus.emit('seating:hold', { screeningId: this.screeningId(), seats: this.heldSeats() }),
+    );
+  }
 
   protected toggle(seat: string): void {
     this.held.update((held) =>
       held.includes(seat) ? held.filter((s) => s !== seat) : [...held, seat],
-    );
-  }
-
-  protected continue(): void {
-    // A command: retain: false, so a listener that subscribes later never gets it.
-    bus.emit(
-      'nav:navigate',
-      {
-        id: 'booking.checkout',
-        payload: { screeningId: this.screeningId(), seats: this.seatsParam() },
-      },
-      { retain: false },
     );
   }
 }

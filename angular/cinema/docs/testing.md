@@ -51,8 +51,8 @@ The spec names map onto the "pattern it demonstrates" column in the
 | shell | Builds routes from contributions. **Survives a rejected contribution** (`allSettled`). Resolves intents to URLs, and **warns** on an unknown id or a missing param. Unknown URLs redirect to `programme`. Mounts the tag and writes `routeParams`. A fragment slot **renders empty when the loader rejects** (stub loader); `'overlay'` and `'footer'` are invalid slots. `declaredFragments` returns fragments with and without a slot; `defineFragments` calls a stub loader once per fragment, does not await, and a rejection logs and does not throw. With empty `sessionStorage`, `applyRemoteSelection(manifest)` loads every key. |
 | programme | `nav-contribution` declares `list` with path `''`. Each card embeds `mfe-film-card` with `film-id` and `mfe-booking-start` with `screening-id`: the spec asserts those exact tag and attribute literals per screening. Each card's `aria-labelledby` points at ids that exist, and the group labels differ. |
 | film | `nav-contribution` declares `detail` with path `{filmId}` and the fragment `mfe-film-card`. Renders the film for `routeParams = { filmId }`. An unknown id shows "not found". Through the custom element: after `bootstrap()`, `film-id="f-1"` renders the title, which links to `film.detail`; also when the attribute is set **before** the tag is defined (the real runtime order). |
-| seating | `nav-contribution` declares `plan` with path `{screeningId}`. Renders taken seats deterministically for `screeningId`. Toggling A2 then A1 and pressing "Continue" emits `nav:navigate` with id `booking.checkout` and payload `{ screeningId, seats: seatsParamExample }` (`'A1,A2'`, sorted). "Continue" is disabled with no seats held. |
-| booking | `nav-contribution` declares `checkout` with path `{screeningId}/{seats}` and the fragment `mfe-booking-start`. Through the custom element (attribute set before and after the define): `screening-id` gives a link that resolves to `seating.plan`, shows "€12", and a click emits `nav:navigate {id: 'seating.plan', payload: {screeningId}}`. Given `routeParams` with the decoded `seatsParamExample`, shows 2 tickets and €24. "Confirm" emits `booking:confirmed` with the **same key set** as `bookingConfirmedExample`, `bookingRef` matching `/^BR-[0-9A-F]{4}$/` and `ticketCount` equal to the number of seats. The ref generator is injected and stubbed, so the spec is deterministic. An empty or invalid `seats` shows an empty checkout and does not throw. |
+| seating | `nav-contribution` declares `plan` with path `{screeningId}`. Renders taken seats deterministically for `screeningId`. Toggling A2 then A1 retains `seating:hold` equal to `seatHoldExample` (grid order, same key set). It retains an **empty** hold on first render, after releasing the last seat, on a new screening, and over an earlier visit's retained hold. Embeds `mfe-booking-summary` with `screening-id`: the spec asserts both literals. |
+| booking | `nav-contribution` declares `checkout` with path `{screeningId}/{seats}` and the fragments `mfe-booking-start` and `mfe-booking-summary`. Through the custom element (attribute set before and after the define): `screening-id` gives a link that resolves to `seating.plan`, shows "€12", and a click emits `nav:navigate {id: 'seating.plan', payload: {screeningId}}`. Given `routeParams` with the decoded `seatsParamExample`, shows 2 tickets and €24. "Confirm" emits `booking:confirmed` with the **same key set** as `bookingConfirmedExample`, `bookingRef` matching `/^BR-[0-9A-F]{4}$/` and `ticketCount` equal to the number of seats. The ref generator is injected and stubbed, so the spec is deterministic. An empty or invalid `seats` shows an empty checkout and does not throw. The summary, through the custom element: shows a hold retained **before** the tag was defined; prices `seatHoldExample` as "2 tickets × €12 = €24"; Continue links to and asks for `booking.checkout` with `seatsParamExample`; follows picks and releases, with a disabled Continue for an empty hold; ignores a hold for another screening. `seats-param.spec.ts` round-trips `seatHoldExample.seats` and `seatsParamExample`. |
 | loyalty | `nav-contribution` declares `points`. Emitting `bookingConfirmedExample` adds 20 points. The badge and the page read the same `PointsStore`. An event emitted **before** the store exists does not count (`replay: false`), even when it was retained. |
 | account | `nav-contribution` declares `profile`. Renders the mock profile. |
 
@@ -78,9 +78,9 @@ Two more specs in every repo that has them:
 | 1 | Manifest | the checked-in dev manifest | shell loads it | every `remoteEntry.json` reachable; its `name` equals the manifest key | app loads |
 | 2 | Exposed element | remote: bootstrap spec (exposed keys = defined tags); `nav-contribution.spec.ts`: every declared element and fragment is exposed (ADR-09) | shell: mounts the tag; fragment slot survives a rejected loader | every remote's `name` matches and it exposes `nav-contribution`; every exposed file returns HTTP 200 | pages and fragments render |
 | 3 | `nav-contribution` | page owner: declares id + path | shell: routes + `nav:intents` from fixtures; caller: emits the exact id literal | every remote exposes `nav-contribution` | no `[nav]` warnings in the console |
-| 4 | `routeParams` | caller: exact param names (and sorted `seats`) | page: renders for given params; shell: writes `routeParams` | none | no `[nav]` warnings; pages show the right data |
-| 5 | Bus events | booking: payload matches the example | loyalty: consumes the example on a real bus | none | badge reaches 20 |
-| 6 | Embedded fragment | film and booking: custom-element specs set the attribute literal (`film-id`, `screening-id`) and render | programme: asserts the tag and attribute literals per card | none | each card shows film and Book (walkthrough step 1) |
+| 4 | `routeParams` | caller: exact param names (booking's summary builds `seats`) | page: renders for given params; shell: writes `routeParams` | none | no `[nav]` warnings; pages show the right data |
+| 5 | Bus channels | booking: `booking:confirmed` matches the example; seating: `seating:hold` matches `seatHoldExample`, including the empty holds | loyalty: consumes the example on a real bus; booking's summary: shows the example, ignores another screening | none | badge reaches 20; the summary fills and empties with the plan |
+| 6 | Embedded fragment | film and booking: custom-element specs set the attribute literal (`film-id`, `screening-id`) and render | programme: asserts the tag and attribute literals per card; seating: asserts `mfe-booking-summary` with `screening-id` | none | each card shows film and Book; seating's page shows the summary (walkthrough step 1) |
 
 **What nothing automated catches:** two copies of the same literal that
 drift apart (an intent id, a param name, an event name, an example
@@ -116,7 +116,10 @@ independence.
 1. Start everything with `./start-all.sh`. The **Remotes** panel has all
    six ticked by default. Open the console: there are no `[nav]` or
    `[remote]` lines. Each programme card shows film's card and booking's
-   Book link. Book two seats and watch the badge reach 20.
+   Book link. Book two seats: booking's summary beside the plan follows
+   each click (open **Events** to see `seating:hold`). Continue, go back
+   to the same screening: the plan and the summary are both empty. Book
+   again and watch the badge reach 20.
 2. Stop `account`. Reload. The header account link disappears, and
    nothing else changes.
 3. Change the profile text in `account`, then run `npm start` in `account`
@@ -127,5 +130,6 @@ independence.
    Points link and the badge are gone, and the producer never knew.
 5. Untick `film` and Apply. The cards keep day, time and Book; the film
    area is empty. Tick it again, untick `booking` and Apply. There is no
-   Book link, so the journey cannot start. The console stays clean: a
-   remote that is off logs nothing (ADR-12).
+   Book link, so the journey cannot start. Open `/seating/s-101` directly:
+   the plan renders with no summary and no Continue. The console stays
+   clean: a remote that is off logs nothing (ADR-12).

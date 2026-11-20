@@ -15,8 +15,8 @@ describe('bootstrap', () => {
   // module; customElements.define would throw on the second call.
   beforeAll(() => Promise.all([bootstrap(), bootstrap()]));
 
-  it('exposes the checkout and the start link', () => {
-    expect(exposedTags).toEqual(['mfe-booking-checkout', 'mfe-booking-start']);
+  it('exposes the checkout, the start link and the summary', () => {
+    expect(exposedTags).toEqual(['mfe-booking-checkout', 'mfe-booking-start', 'mfe-booking-summary']);
   });
 
   it.each(exposedTags)('defines exactly the exposed tag <%s>', (tag) => {

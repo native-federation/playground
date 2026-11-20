@@ -41,6 +41,12 @@ export interface NavigatePayload {
   readonly payload?: NavPayload;
 }
 
+// The seats held for one screening, in grid order (A1 before A2).
+export interface SeatHold {
+  readonly screeningId: string;
+  readonly seats: readonly string[];
+}
+
 export interface BookingConfirmed {
   readonly bookingRef: string;
   readonly ticketCount: number;
@@ -53,6 +59,8 @@ declare module '@softarc/native-federation-communication' {
     'nav:navigate': NavigatePayload;
     // State: the shell's NavIntents, retained for links that render later.
     'nav:intents': NavIntents;
+    // State: seating's current hold, retained for booking's summary on the same page (ADR-16).
+    'seating:hold': SeatHold;
     // Command (emit with { retain: false }): a booking is counted once, by whoever listens now (ADR-05).
     'booking:confirmed': BookingConfirmed;
   }

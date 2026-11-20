@@ -19,8 +19,11 @@ describe('nav-contribution', () => {
     });
   });
 
-  it('offers the start link for pages to embed', () => {
-    expect(navContribution.fragments).toEqual([{ element: 'mfe-booking-start' }]);
+  it('offers the start link and the summary for pages to embed', () => {
+    expect(navContribution.fragments).toEqual([
+      { element: 'mfe-booking-start' },
+      { element: 'mfe-booking-summary' },
+    ]);
   });
 
   it('is itself exposed', () => {
