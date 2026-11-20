@@ -8,7 +8,7 @@ import { TICKET_PRICE } from './ticket-price';
   selector: 'app-booking-start',
   imports: [MatButton, NavIntentDirective],
   template: `
-    <a matButton="tonal" navIntent="seating.plan" [navPayload]="{ screeningId: screeningId() }"
+    <a matButton="filled" navIntent="seating.plan" [navPayload]="{ screeningId: screeningId() }"
       >Book · €{{ price }} per seat</a
     >
   `,

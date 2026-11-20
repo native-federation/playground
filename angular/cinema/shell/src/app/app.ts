@@ -12,7 +12,6 @@ import { NavIntentDirective } from '../shared/nav-intent.directive';
 import { RemoteFragment } from '../shared/remote-fragment';
 import { EventLogPanel } from '../event-log/event-log-panel';
 import { RemoteSwitcher } from '../remote-switcher/remote-switcher';
-import { TeamsToggle } from '../team-overlay/teams-toggle';
 import { CONTRIBUTIONS, menuEntries } from './contributions';
 import { DevDock } from './dev-dock';
 
@@ -27,7 +26,6 @@ import { DevDock } from './dev-dock';
     RemoteFragment,
     RemoteSwitcher,
     EventLogPanel,
-    TeamsToggle,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',

@@ -43,81 +43,53 @@ body {
   color: var(--mat-sys-on-surface);
 }
 
-// Team overlay: which micro-frontend serves which part of the page, toggled by the dock's Teams pill.
-// The shell names the tags here only; it stays unmarked, so anything without a label is the shell.
+// Team colours: every micro-frontend is lightly accented in its own colour (docs/architecture.md § Team colours).
+// Palette and tag mapping live here only, so the header's dots use the same values.
 :root {
   --team-programme: #1d4e9e;
-  --team-film: #a35f00;
+  --team-film: #c2410c;
   --team-seating: #007a55;
-  --team-booking: #c2410c;
+  --team-booking: #a35f00;
   --team-loyalty: #a3407f;
   --team-account: #2a7bae;
 }
 
-$routed: 'mfe-programme-list, mfe-film-detail, mfe-seating-plan, mfe-booking-checkout, mfe-loyalty-points, mfe-account-profile';
-$fragments: 'mfe-film-card, mfe-booking-start, mfe-booking-summary, mfe-loyalty-badge';
+mfe-programme-list { --team: var(--team-programme); }
+:is(mfe-film-detail, mfe-film-card) { --team: var(--team-film); }
+mfe-seating-plan { --team: var(--team-seating); }
+:is(mfe-booking-checkout, mfe-booking-start, mfe-booking-summary) { --team: var(--team-booking); }
+:is(mfe-loyalty-points, mfe-loyalty-badge) { --team: var(--team-loyalty); }
+mfe-account-profile { --team: var(--team-account); }
 
-:is(mfe-programme-list) { --team: var(--team-programme); --team-name: 'programme'; }
-:is(mfe-film-detail, mfe-film-card) { --team: var(--team-film); --team-name: 'film'; }
-:is(mfe-seating-plan) { --team: var(--team-seating); --team-name: 'seating'; }
-:is(mfe-booking-checkout, mfe-booking-start, mfe-booking-summary) { --team: var(--team-booking); --team-name: 'booking'; }
-:is(mfe-loyalty-points, mfe-loyalty-badge) { --team: var(--team-loyalty); --team-name: 'loyalty'; }
-:is(mfe-account-profile) { --team: var(--team-account); --team-name: 'account'; }
+// The M3 roles the remotes already use, derived from --team, so their buttons, chips and seats
+// take the team's hue (state layers follow). On the host, so it beats the theme on <html>.
+// Card backgrounds are resolved on <html>: tinting one means setting --mat-card-*-container-color here.
+:is(
+  mfe-programme-list, mfe-film-detail, mfe-film-card, mfe-seating-plan, mfe-booking-checkout,
+  mfe-booking-start, mfe-booking-summary, mfe-loyalty-points, mfe-loyalty-badge, mfe-account-profile,
+  .team-link
+) {
+  --mat-sys-primary: var(--team);
+  --mat-sys-on-primary: #fff;
+  --mat-sys-primary-container: color-mix(in oklab, var(--team) 14%, white);
+  --mat-sys-on-primary-container: color-mix(in oklab, var(--team) 60%, black);
+  --mat-sys-secondary-container: color-mix(in oklab, var(--team) 10%, white);
+  --mat-sys-on-secondary-container: color-mix(in oklab, var(--team) 60%, black);
+  --mat-sys-primary-fixed-dim: color-mix(in oklab, var(--team) 35%, white);
+}
 
-// Outlines and a pseudo-element only, so toggling never moves the layout.
-html.show-teams {
-  :is(#{$routed}, #{$fragments}) {
-    position: relative;
-    outline: 2px solid var(--team);
-    outline-offset: 2px;
-    border-radius: var(--mat-sys-corner-medium);
-  }
+// One quiet structural cue per piece, so nested pieces still read apart.
+mfe-programme-list {
+  --mat-card-outlined-outline-color: color-mix(in oklab, var(--team) 22%, white);
+}
 
-  // Pages dashed and lightly tinted, fragments solid: nesting reads as solid inside dashed.
-  :is(#{$routed}) {
-    outline-style: dashed;
-    outline-offset: 6px;
-    border-radius: var(--mat-sys-corner-large);
-    background: color-mix(in srgb, var(--team) 5%, transparent);
-  }
+mfe-film-card {
+  border-inline-start: 3px solid var(--team);
+  padding-inline-start: 10px;
+}
 
-  // The team name: the cue that doesn't rely on colour.
-  :is(#{$routed}, #{$fragments})::before {
-    content: var(--team-name);
-    position: absolute;
-    top: -11px;
-    left: 12px;
-    z-index: 2;
-    padding: 0 8px;
-    border-radius: var(--mat-sys-corner-full);
-    background: var(--team);
-    color: #fff;
-    font: var(--mat-sys-label-medium);
-    line-height: 20px;
-    pointer-events: none;
-  }
-
-  :is(#{$routed})::before {
-    top: -16px;
-  }
-
-  // Programme's card clips overflow, so film's label sits inside.
-  mfe-film-card::before {
-    top: 4px;
-    left: 4px;
-  }
-
-  // Off the button's label, on the outline above its right end.
-  mfe-booking-start::before {
-    left: auto;
-    right: 8px;
-  }
-
-  // The toolbar has no room above; below the badge instead.
-  mfe-loyalty-badge::before {
-    top: auto;
-    bottom: -11px;
-    left: 50%;
-    translate: -50% 0;
-  }
+mfe-booking-summary {
+  border-top: 3px solid var(--team);
+  border-radius: var(--mat-sys-corner-large);
+  overflow: hidden;
 }

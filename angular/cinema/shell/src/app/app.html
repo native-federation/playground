@@ -24,11 +24,13 @@
         @let current = isCurrent(entry.basePath);
         @for (link of entry.links; track link.id) {
           <a
+            class="team-link"
             [matButton]="current ? 'tonal' : 'text'"
             [navIntent]="link.id"
             [attr.aria-current]="current ? 'page' : null"
+            [style.--team]="'var(--team-' + entry.basePath + ')'"
           >
-            {{ link.label }}
+            <span class="team-dot" aria-hidden="true"></span>{{ link.label }}
           </a>
         }
         @for (fragment of entry.fragments; track fragment.element) {
@@ -43,5 +45,4 @@
 <div class="dev-dock">
   <app-event-log-panel />
   <app-remote-switcher />
-  <app-teams-toggle />
 </div>

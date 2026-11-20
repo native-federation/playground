@@ -41,6 +41,22 @@ nav {
   --mat-button-tonal-horizontal-padding: 16px;
 }
 
+/* The frame has no team colour, so programme's navy doesn't blur with it. */
+header {
+  --mat-sys-primary: var(--mat-sys-on-surface-variant);
+  --mat-sys-secondary-container: var(--mat-sys-surface-container-high);
+}
+
+/* Each team's link is marked with its colour: the legend for the accents in its pages. */
+.team-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-inline-end: 8px;
+  border-radius: 50%;
+  background: var(--team);
+}
+
 nav app-remote-fragment {
   margin: 0 4px;
 }
