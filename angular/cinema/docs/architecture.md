@@ -227,7 +227,7 @@ not say which app emitted, so the panel does not either.
 ### Team colours
 
 Every micro-frontend is lightly accented in its own colour, always: programme
-navy, film teal, seating green, booking amber, loyalty magenta, account
+navy, film magenta, seating teal, booking amber, loyalty green, account
 sky. Only the hue changes; shape, type, spacing and surfaces stay shared, so
 it reads as one product. The shell's header is neutral, and each team's
 menu link carries a dot in its colour as the legend.
@@ -239,8 +239,9 @@ menu link carries a dot in its colour as the legend.
 - Every page's outlined cards get a light outline in the team's colour,
   except programme's, which frame other teams' pieces and stay neutral; and
   booking's summary a top stripe. Film's title, poster icons and heading are
-  in full teal, chosen opposite booking's amber because the two always sit
-  together on programme's cards. Booking's Book button is filled, so it is
+  in full magenta: on programme's card it sits with booking's amber and
+  programme's navy day labels, three hues that stay apart, also for common
+  colour-vision deficiencies. Booking's Book button is filled, so it is
   amber everywhere. The dev dock stays neutral.
 - The palette and the mapping live in the shell only, so the header dots
   and the accents can't drift apart. The cost: the shell knows every tag

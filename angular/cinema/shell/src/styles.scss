@@ -47,10 +47,10 @@ body {
 // Palette and tag mapping live here only, so the header's dots use the same values.
 :root {
   --team-programme: #1d4e9e;
-  --team-film: #00727a;
-  --team-seating: #007a55;
+  --team-film: #a3407f;
+  --team-seating: #00727a;
   --team-booking: #a35f00;
-  --team-loyalty: #a3407f;
+  --team-loyalty: #007a55;
   --team-account: #2a7bae;
 }
 
@@ -82,7 +82,7 @@ mfe-account-profile { --team: var(--team-account); }
   --mat-card-outlined-outline-color: color-mix(in oklab, var(--team) 35%, white);
 }
 
-// Programme's cards frame film's and booking's pieces: a navy frame around teal and amber clashes,
+// Programme's cards frame film's and booking's pieces: a navy frame around them clashes,
 // so it stays neutral and programme's navy is on its own content (the day labels).
 mfe-programme-list {
   --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
