@@ -1,14 +1,15 @@
-<aside aria-labelledby="booking-summary-title">
-  <h2 id="booking-summary-title">Your seats</h2>
-  @if (seats().length) {
+@let hasSeats = seats().length > 0;
+<aside aria-label="Your seats">
+  <h2>Your seats</h2>
+  @if (hasSeats) {
     <mat-chip-set role="list" aria-label="Held seats">
       @for (seat of seats(); track seat) {
         <mat-chip role="listitem">{{ seat }}</mat-chip>
       }
     </mat-chip-set>
   }
-  <p class="price" aria-live="polite">{{ priceText() }}</p>
-  @if (seats().length) {
+  <p class="status" aria-live="polite">{{ statusText() }}</p>
+  @if (hasSeats) {
     <a
       matButton="filled"
       navIntent="booking.checkout"

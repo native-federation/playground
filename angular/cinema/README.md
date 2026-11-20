@@ -23,7 +23,8 @@ no backend. What it shows:
   example deliberately is not.
 - **Runtime composition only.** The shell discovers remotes through one
   `federation.manifest.json`, mounts `mfe-*` custom elements, routes by
-  intent, and the remotes pass one domain event over the event bus.
+  intent, and the remotes pass one domain event and one piece of shared state
+  (`seating:hold`) over the event bus.
 
 The code style and mechanics follow
 [`../tractor-store`](../tractor-store/docs/architecture.md): custom elements

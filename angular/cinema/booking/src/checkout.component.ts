@@ -18,7 +18,7 @@ import { BOOKING_REF } from './booking-ref';
 import { bus } from '@softarc/native-federation-communication';
 import type { RouteParams } from './contracts';
 import { parseSeats } from './seats-param';
-import { TICKET_PRICE, ticketsText } from './ticket-price';
+import { priceLine, ticketsText, totalPrice } from './ticket-price';
 
 @Component({
   selector: 'app-checkout',
@@ -36,24 +36,23 @@ export class CheckoutComponent {
 
   protected readonly screeningId = computed(() => this.routeParams()['screeningId'] ?? '');
   protected readonly seats = computed(() => parseSeats(this.routeParams()['seats']));
-  protected readonly total = computed(() => this.seats().length * TICKET_PRICE);
-  private readonly ticketsText = computed(() => ticketsText(this.seats().length));
-  protected readonly lineText = computed(() => `${this.ticketsText()} × €${TICKET_PRICE}`);
+  protected readonly total = computed(() => totalPrice(this.seats().length));
+  protected readonly lineText = computed(() => priceLine(this.seats().length));
   protected readonly summary = computed(() =>
     [
       `Screening ${this.screeningId()}`,
       `Seats ${this.seats().join(', ')}`,
-      this.ticketsText(),
+      ticketsText(this.seats().length),
       `€${this.total()}`,
     ].join(' · '),
   );
-  private readonly hold = computed(
+  private readonly holdKey = computed(
     () => `${this.screeningId()}/${this.routeParams()['seats'] ?? ''}`,
   );
   // A new hold starts unconfirmed; keyed on values, as the shell may re-set
   // equal params as a new object.
   protected readonly bookingRef = linkedSignal<string, string | null>({
-    source: this.hold,
+    source: this.holdKey,
     computation: () => null,
   });
 

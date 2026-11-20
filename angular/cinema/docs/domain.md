@@ -124,7 +124,8 @@ flowchart LR
     PROG -. "embeds mfe-booking-start {screening-id}" .-> BOOK
     FILM -- "intent programme.list" --> PROG
     BOOK -- "intent seating.plan {screeningId}" --> SEAT
-    SEAT -- "intent booking.checkout {screeningId, seats}" --> BOOK
+    SEAT -. "embeds mfe-booking-summary {screening-id}" .-> BOOK
+    SEAT e2@== "seating:hold (state)" ==> BOOK
     BOOK e1@== "booking:confirmed" ==> LOY
 
     Shell -. "header link" .-> PROG
@@ -132,17 +133,19 @@ flowchart LR
     Shell -. "header link" .-> ACC
 
     e1@{animate: true}
+    e2@{animate: true}
 ```
 
 These arrows are the complete set of ways subdomains meet:
 
 - **Thin arrows: intents.** One team links to another team's page by
-  intent id plus ids. It never knows the other team's URL. The booking ↔
-  seating cycle is intended (ADR-15).
-- **Thick arrows: the event.** A fact is published once and consumed by
-  anyone who cares.
-- **Dotted arrows from programme: embeds.** Programme's page places
-  another team's fragment and passes it one id as an attribute.
+  intent id plus ids. It never knows the other team's URL. Booking's own
+  summary continues to checkout, so seating links nowhere (ADR-16).
+- **Thick arrows: the bus.** `booking:confirmed` is a fact published once
+  and consumed by anyone who cares; `seating:hold` is retained state that
+  booking's summary reads (ADR-16).
+- **Dotted arrows: embeds.** A page places another team's fragment and
+  passes it one id as an attribute.
 - **Dotted arrows from the shell.** It places fragments and header links. It
   holds no domain data, and its code never subscribes to or emits a domain
   event (its `contracts.ts` only holds the reference types, ADR-03).

@@ -13,9 +13,9 @@ import { bus } from '@softarc/native-federation-communication';
 import type { SeatHold } from './contracts';
 import { formatSeats } from './seats-param';
 import { NavIntentDirective } from './shared/nav-intent.directive';
-import { TICKET_PRICE, ticketsText } from './ticket-price';
+import { priceLine, totalPrice } from './ticket-price';
 
-// Booking's side of seating's page: prices seating's hold and continues to checkout (ADR-16).
+// ADR-16
 @Component({
   selector: 'app-booking-summary',
   imports: [MatButton, MatChipSet, MatChip, NavIntentDirective],
@@ -34,11 +34,9 @@ export class BookingSummaryComponent {
     return hold?.screeningId === this.screeningId() ? hold.seats : [];
   });
   protected readonly seatsParam = computed(() => formatSeats(this.seats()));
-  protected readonly priceText = computed(() => {
+  protected readonly statusText = computed(() => {
     const count = this.seats().length;
-    return count
-      ? `${ticketsText(count)} × €${TICKET_PRICE} = €${count * TICKET_PRICE}`
-      : 'Pick one or more free seats.';
+    return count ? `${priceLine(count)} = €${totalPrice(count)}` : 'Pick one or more free seats.';
   });
 
   constructor() {

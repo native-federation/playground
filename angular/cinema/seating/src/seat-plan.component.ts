@@ -34,12 +34,12 @@ export class SeatPlanComponent {
     source: this.screeningId,
     computation: () => [],
   });
-  private readonly heldSeats = computed(() => allSeats.filter((seat) => this.held().includes(seat)));
+  private readonly sortedHeld = computed(() => allSeats.filter((seat) => this.held().includes(seat)));
 
   constructor() {
-    // An effect, not toggle(): the reset on a new screening or a revisit must replace the retained hold too (ADR-16).
+    // An effect, not toggle(): a screening change or revisit resets the hold too (ADR-16).
     effect(() =>
-      bus.emit('seating:hold', { screeningId: this.screeningId(), seats: this.heldSeats() }),
+      bus.emit('seating:hold', { screeningId: this.screeningId(), seats: this.sortedHeld() }),
     );
   }
 

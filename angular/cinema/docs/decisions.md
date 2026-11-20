@@ -316,7 +316,9 @@ Superseded by ADR-15: notifications removed.
 ## ADR-15: Pages may embed declared fragments; the shell defines them
 
 **Amended by ADR-16:** another embeddable fragment, `mfe-booking-summary`,
-placed by seating, reads seating's retained `seating:hold`.
+placed by seating, reads seating's retained `seating:hold`. Booking's summary
+now continues to `booking.checkout`, so the booking ↔ seating intent cycle
+below is gone.
 
 - **Decision.**
   - **Notifications is removed.** The `notifications` repo, its manifest
@@ -439,7 +441,9 @@ Amends ADR-04, ADR-05 and ADR-15.
     page without Continue, so the journey dead-ends, quieter than a
     drifted `seats` string, which showed an empty checkout.
   - The retained hold outlives seating's page. The effect and the
-    screening filter keep it harmless; nothing clears it.
+    screening filter keep it harmless; nothing clears it. The effect's first
+    run may emit `{ screeningId: '', seats: [] }` before `routeParams`
+    arrives; the summary ignores it, but the Events panel shows it.
   - Seating standalone, or with booking off, shows the plan with no summary
     and no Continue.
   - The empty-hold rule is a discipline seating must keep; its spec pins it.

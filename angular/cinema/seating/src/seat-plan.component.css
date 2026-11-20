@@ -132,3 +132,8 @@ mfe-booking-summary {
   display: block;
   flex: 1 1 280px;
 }
+
+/* Booking off, or not loaded yet: no empty column, and no jump when it arrives. */
+mfe-booking-summary:not(:defined) {
+  display: none;
+}

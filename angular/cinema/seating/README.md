@@ -8,5 +8,5 @@ Booking's `mfe-booking-start` links here (`seating.plan {screeningId}`). The pag
 Continue hands it to `booking.checkout` in the URL
 ([ADR-16](../docs/decisions.md#adr-16-seatings-hold-is-shared-state-the-handoff-stays-in-the-url)).
 `npm start` serves it standalone on http://localhost:4303 with screening `s-101` (no booking, so no
-summary and no Continue), `npm test` runs the specs and
+summary and no Continue: without booking the page is a dead end), `npm test` runs the specs and
 `npm run build` builds to `dist/seating`.

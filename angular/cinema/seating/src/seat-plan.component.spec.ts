@@ -58,6 +58,7 @@ describe('SeatPlanComponent', () => {
     await click(seat('A2'));
     await click(seat('A1'));
     expect(retainedHold()).toEqual(seatHoldExample);
+    // toEqual ignores an extra key whose value is undefined; the key set must match exactly.
     expect(Object.keys(retainedHold()!)).toEqual(Object.keys(seatHoldExample));
   });
 
