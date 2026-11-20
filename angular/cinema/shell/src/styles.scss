@@ -82,7 +82,7 @@ mfe-account-profile { --team: var(--team-account); }
 
 // Where a piece has no coloured element of its own, one quiet cue, so nested pieces still read apart.
 mfe-programme-list {
-  --mat-card-outlined-outline-color: color-mix(in oklab, var(--team) 22%, white);
+  --mat-card-outlined-outline-color: color-mix(in oklab, var(--team) 40%, white);
 }
 
 mfe-booking-summary {

@@ -58,7 +58,7 @@ mat-card-content {
   font: var(--mat-sys-title-small);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--mat-sys-primary);
 }
 
 .time {
