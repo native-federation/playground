@@ -210,10 +210,12 @@ Seating's "Continue" is a button that submits the hold, not a link, so it
 emits `nav:navigate` inline instead of copying the directive and
 `navigate.ts`.
 
-To watch the bus, open **Events** at the bottom right of the shell
-(`shell/src/event-log/`, demo tooling like the remote switcher). It lists
-every emit on every channel, from the shell and every remote, newest first,
-with its kind (state or command) and value. It uses `bus.tap`, which sees
+To watch the bus, open **Events** next to **Remotes** at the bottom left
+of the shell (`shell/src/event-log/`, demo tooling like the remote
+switcher; one dock panel is open at a time, Escape closes it). It lists
+every emit on every channel, from the shell and every remote, newest first:
+one collapsed row each with its kind (state or command), channel, a
+one-line preview and the time; a row expands to the pretty-printed value. It uses `bus.tap`, which sees
 all channels, so it needs no list of channel names. `tap.replay()` adds the
 values retained before it started, such as `nav:intents`. The envelope does
 not say which app emitted, so the panel does not either.

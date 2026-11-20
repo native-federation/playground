@@ -116,4 +116,19 @@ describe('App', () => {
     expect(labels()).toEqual(['Programme']);
     expect(root.querySelector('app-remote-fragment')).toBeNull();
   });
+
+  it('docks both demo tools bottom-left and closes the open panel on Escape', () => {
+    const { fixture, root } = render();
+    const dock = root.querySelector('.dev-dock')!;
+    expect(dock.querySelector('app-event-log-panel')).not.toBeNull();
+    expect(dock.querySelector('app-remote-switcher')).not.toBeNull();
+
+    root.querySelector<HTMLElement>('button[aria-controls="event-log"]')!.click();
+    fixture.detectChanges();
+    expect(root.querySelector('#event-log')).not.toBeNull();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(root.querySelector('#event-log')).toBeNull();
+  });
 });

@@ -7,8 +7,8 @@
   Remotes {{ loaded.length }}/{{ remotes.length }}
 </button>
 @if (open()) {
-  <aside id="remote-switcher" role="dialog" aria-labelledby="remote-switcher-title" cdkDrag>
-    <h2 id="remote-switcher-title">Remotes</h2>
+  <aside id="remote-switcher" role="dialog" aria-labelledby="remote-switcher-title" cdkDrag cdkDragBoundary="body">
+    <h2 id="remote-switcher-title" cdkDragHandle>Remotes</h2>
     <fieldset>
       <legend>Loaded after reload</legend>
       @for (name of remotes; track name) {

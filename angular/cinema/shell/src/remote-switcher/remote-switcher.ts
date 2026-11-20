@@ -1,20 +1,15 @@
-import { CdkDrag } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { DevDock } from '../app/dev-dock';
 import { MatButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { availableRemotes, loadedRemotes, sameNames, saveSelection } from './remote-selection';
 
 @Component({
   selector: 'app-remote-switcher',
-  imports: [CdkDrag, MatButton, MatCheckbox],
+  imports: [CdkDrag, CdkDragHandle, MatButton, MatCheckbox],
   templateUrl: './remote-switcher.html',
   styles: `
-    :host {
-      position: fixed;
-      left: 16px;
-      bottom: 16px;
-      z-index: 1000;
-    }
     aside {
       position: absolute;
       left: 0;
@@ -26,10 +21,10 @@ import { availableRemotes, loadedRemotes, sameNames, saveSelection } from './rem
       border-radius: 16px;
       background: var(--mat-sys-surface-container-high);
       box-shadow: var(--mat-sys-level3);
-      cursor: move;
     }
     h2 {
       margin: 0;
+      cursor: move;
       font: var(--mat-sys-title-small);
     }
     fieldset {
@@ -49,7 +44,8 @@ import { availableRemotes, loadedRemotes, sameNames, saveSelection } from './rem
 export class RemoteSwitcher {
   protected readonly remotes = availableRemotes();
   protected readonly loaded = loadedRemotes();
-  protected readonly open = signal(false);
+  private readonly dock = inject(DevDock);
+  protected readonly open = computed(() => this.dock.open() === 'remotes');
   protected readonly draft = signal<readonly string[]>(this.loaded);
   protected readonly canApply = computed(
     () => this.draft().length > 0 && !sameNames(this.draft(), this.loaded),
@@ -57,7 +53,7 @@ export class RemoteSwitcher {
 
   protected toggleOpen(): void {
     this.draft.set(this.loaded);
-    this.open.update((isOpen) => !isOpen);
+    this.dock.toggle('remotes');
   }
 
   protected toggle(name: string, checked: boolean): void {

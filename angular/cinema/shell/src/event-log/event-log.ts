@@ -7,6 +7,8 @@ export interface LoggedEvent {
   readonly channel: string;
   readonly kind: 'state' | 'command';
   readonly value: string;
+  // The value on one line, for the collapsed row.
+  readonly preview: string;
 }
 
 const LIMIT = 200;
@@ -35,16 +37,17 @@ export class EventLog {
       at: Date.now(),
       channel,
       kind: retain ? 'state' : 'command',
-      value: stringify(value),
+      value: stringify(value, 2),
+      preview: stringify(value),
     };
     this.log.update((events) => [event, ...events].slice(0, LIMIT));
   }
 }
 
 // Stringified on arrival, so a value mutated later still shows what was sent.
-const stringify = (value: unknown): string => {
+const stringify = (value: unknown, indent?: number): string => {
   try {
-    return JSON.stringify(value, null, 2) ?? String(value);
+    return JSON.stringify(value, null, indent) ?? String(value);
   } catch {
     return String(value);
   }

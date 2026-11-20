@@ -13,6 +13,7 @@ import { RemoteFragment } from '../shared/remote-fragment';
 import { EventLogPanel } from '../event-log/event-log-panel';
 import { RemoteSwitcher } from '../remote-switcher/remote-switcher';
 import { CONTRIBUTIONS, menuEntries } from './contributions';
+import { DevDock } from './dev-dock';
 
 @Component({
   selector: 'app-root',
@@ -29,8 +30,10 @@ import { CONTRIBUTIONS, menuEntries } from './contributions';
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:keydown.escape)': 'dock.close()' },
 })
 export class App {
+  protected readonly dock = inject(DevDock);
   private readonly router = inject(Router);
   private readonly contributions = inject(CONTRIBUTIONS);
   protected readonly menu = menuEntries(this.contributions);

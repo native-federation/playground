@@ -60,3 +60,25 @@ footer {
   color: var(--mat-sys-on-surface-variant);
   border-top: 1px solid var(--mat-sys-outline-variant);
 }
+
+@media (min-width: 600px) {
+  /* The dev dock sits bottom-left. */
+  footer {
+    text-align: right;
+  }
+}
+
+@media (max-width: 599px) {
+  footer {
+    padding-bottom: 72px;
+  }
+}
+
+.dev-dock {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+}
