@@ -42,3 +42,56 @@ body {
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
 }
+
+// Team colours: every micro-frontend is lightly accented in its own colour (docs/architecture.md § Team colours).
+// Palette and tag mapping live here only, so the header's dots use the same values.
+:root {
+  // Muted inks at one lightness and chroma, so only the hue varies.
+  --team-programme: #2f4f80;
+  --team-film: #24705f;
+  --team-seating: #2a6f78;
+  --team-booking: #94661f;
+  --team-loyalty: #a04a35;
+  --team-account: #7c467f;
+}
+
+mfe-programme-list { --team: var(--team-programme); }
+:is(mfe-film-detail, mfe-film-card) { --team: var(--team-film); }
+mfe-seating-plan { --team: var(--team-seating); }
+:is(mfe-booking-checkout, mfe-booking-start, mfe-booking-summary) { --team: var(--team-booking); }
+:is(mfe-loyalty-points, mfe-loyalty-badge) { --team: var(--team-loyalty); }
+mfe-account-profile { --team: var(--team-account); }
+
+// The M3 roles the remotes already use, derived from --team, so their buttons, chips and seats
+// take the team's hue (state layers follow). On the host, so it beats the theme on <html>; :where keeps it
+// at zero specificity, so the per-team cues below override it.
+// Card backgrounds are resolved on <html>: tinting one means setting --mat-card-*-container-color here.
+:where(
+  mfe-programme-list, mfe-film-detail, mfe-film-card, mfe-seating-plan, mfe-booking-checkout,
+  mfe-booking-start, mfe-booking-summary, mfe-loyalty-points, mfe-loyalty-badge, mfe-account-profile,
+  .team-link
+) {
+  --mat-sys-primary: var(--team);
+  --mat-sys-on-primary: #fff;
+  --mat-sys-primary-container: color-mix(in oklab, var(--team) 14%, white);
+  --mat-sys-on-primary-container: color-mix(in oklab, var(--team) 60%, black);
+  --mat-sys-secondary-container: color-mix(in oklab, var(--team) 10%, white);
+  --mat-sys-on-secondary-container: color-mix(in oklab, var(--team) 60%, black);
+  --mat-sys-primary-fixed-dim: color-mix(in oklab, var(--team) 35%, white);
+  --mat-sys-tertiary-container: var(--mat-sys-primary-container);
+  --mat-sys-on-tertiary-container: var(--mat-sys-on-primary-container);
+  --mat-card-outlined-outline-color: color-mix(in oklab, var(--team) 35%, white);
+}
+
+// Programme's cards frame film's and booking's pieces: a navy frame around them clashes,
+// so it stays neutral and programme's navy is on its own content (the day labels).
+mfe-programme-list {
+  --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
+}
+
+// Where a piece has no coloured element of its own, one quiet cue, so nested pieces still read apart.
+mfe-booking-summary {
+  border-top: 3px solid var(--team);
+  border-radius: var(--mat-sys-corner-large);
+  overflow: hidden;
+}

@@ -75,4 +75,12 @@ describe('RemoteSwitcher', () => {
     ]);
     expect(reload).toHaveBeenCalledOnce();
   });
+
+  it("marks each remote with its team's colour, by name", () => {
+    const { click, launcher, checkbox } = render();
+    click(launcher());
+    const dot = checkbox('@cinema/film').querySelector<HTMLElement>('.team-dot');
+    expect(dot?.style.background).toBe('var(--team-film, transparent)');
+    expect(dot?.getAttribute('aria-hidden')).toBe('true');
+  });
 });

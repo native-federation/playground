@@ -11,12 +11,12 @@ const exposedTags = [
   .filter((key) => key !== 'nav-contribution');
 
 describe('bootstrap', () => {
-  // Twice at once: the shell's badge slot and a route can both load the same
+  // Twice at once: the shell's startup define and a route can both load the same
   // module; customElements.define would throw on the second call.
   beforeAll(() => Promise.all([bootstrap(), bootstrap()]));
 
-  it('exposes one element', () => {
-    expect(exposedTags).toEqual(['mfe-film-detail']);
+  it('exposes the page and the card', () => {
+    expect(exposedTags).toEqual(['mfe-film-detail', 'mfe-film-card']);
   });
 
   it.each(exposedTags)('defines exactly the exposed tag <%s>', (tag) => {

@@ -16,17 +16,6 @@ article {
 .poster {
   flex: 0 0 280px;
   height: 400px;
-  border-radius: var(--mat-sys-corner-large);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-}
-
-.poster.tertiary {
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
 }
 
 .info {

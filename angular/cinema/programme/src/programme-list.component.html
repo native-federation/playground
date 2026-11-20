@@ -4,30 +4,21 @@
 </hgroup>
 <ul class="grid" role="list">
   @for (screening of screenings; track screening.screeningId) {
-    @let titleId = 'title-' + screening.screeningId;
+    @let filmCardId = 'film-' + screening.screeningId;
     @let whenId = 'when-' + screening.screeningId;
     <li>
-      <mat-card appearance="outlined">
-        <!-- ngPreserveWhitespaces keeps the space between day and time in the aria description -->
-        <div class="when" [id]="whenId" ngPreserveWhitespaces>
-          <span class="day">{{ screening.day }}</span>
-          <time class="time" [attr.datetime]="screening.time">{{ screening.time }}</time>
-        </div>
+      <mat-card appearance="outlined" role="group" [attr.aria-labelledby]="filmCardId + ' ' + whenId">
         <mat-card-content>
-          <a
-            class="title"
-            [id]="titleId"
-            navIntent="film.detail"
-            [navPayload]="{ filmId: screening.filmId }"
-          >{{ screening.title }}</a>
+          <!-- Fragment contract: ids only, as attributes (docs/architecture.md) -->
+          <mfe-film-card [id]="filmCardId" [attr.film-id]="screening.filmId" />
+          <!-- ngPreserveWhitespaces keeps the space between day and time in the group label -->
+          <p class="when" [id]="whenId" ngPreserveWhitespaces>
+            <span class="day">{{ screening.day }}</span>
+            <time class="time" [attr.datetime]="screening.time">{{ screening.time }}</time>
+          </p>
         </mat-card-content>
         <mat-card-actions>
-          <a
-            matButton="tonal"
-            navIntent="seating.plan"
-            [navPayload]="{ screeningId: screening.screeningId }"
-            [attr.aria-describedby]="titleId + ' ' + whenId"
-          >Choose seats</a>
+          <mfe-booking-start [attr.screening-id]="screening.screeningId" />
         </mat-card-actions>
       </mat-card>
     </li>

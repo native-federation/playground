@@ -66,19 +66,6 @@ describe('CheckoutComponent', () => {
     expect(confirmButton()).toBeUndefined();
   });
 
-  // Booking words its own message; notifications only displays it (ADR-14).
-  it('asks for a toast that names the booking ref', async () => {
-    const messages: string[] = [];
-    bus.on('notify:show', ({ message }) => messages.push(message), { replay: false });
-    const { fixture, confirmButton } = await render({
-      screeningId: 's-101',
-      seats: seatsParamExample,
-    });
-    confirmButton()!.click();
-    await fixture.whenStable();
-    expect(messages).toEqual(['Booking BR-0001 confirmed']);
-  });
-
   it('emits once when Confirm is clicked twice before a render', async () => {
     const { fixture, confirmButton } = await render({
       screeningId: 's-101',

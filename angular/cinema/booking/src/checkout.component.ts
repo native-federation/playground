@@ -17,15 +17,8 @@ import { MatDivider } from '@angular/material/divider';
 import { BOOKING_REF } from './booking-ref';
 import { bus } from '@softarc/native-federation-communication';
 import type { RouteParams } from './contracts';
-
-const ticketPrice = 12;
-
-// Deep links may carry anything: an unparsable value is an empty checkout
-// (see docs/architecture.md § Intents).
-const parseSeats = (seats = ''): readonly string[] => {
-  const parts = seats.split(',');
-  return seats && parts.every((seat) => /^[A-Z][0-9]+$/.test(seat)) ? parts : [];
-};
+import { parseSeats } from './seats-param';
+import { priceLine, ticketsText, totalPrice } from './ticket-price';
 
 @Component({
   selector: 'app-checkout',
@@ -43,27 +36,23 @@ export class CheckoutComponent {
 
   protected readonly screeningId = computed(() => this.routeParams()['screeningId'] ?? '');
   protected readonly seats = computed(() => parseSeats(this.routeParams()['seats']));
-  protected readonly total = computed(() => this.seats().length * ticketPrice);
-  private readonly ticketsText = computed(() => {
-    const count = this.seats().length;
-    return count === 1 ? '1 ticket' : `${count} tickets`;
-  });
-  protected readonly lineText = computed(() => `${this.ticketsText()} × €${ticketPrice}`);
+  protected readonly total = computed(() => totalPrice(this.seats().length));
+  protected readonly lineText = computed(() => priceLine(this.seats().length));
   protected readonly summary = computed(() =>
     [
       `Screening ${this.screeningId()}`,
       `Seats ${this.seats().join(', ')}`,
-      this.ticketsText(),
+      ticketsText(this.seats().length),
       `€${this.total()}`,
     ].join(' · '),
   );
-  private readonly hold = computed(
+  private readonly holdKey = computed(
     () => `${this.screeningId()}/${this.routeParams()['seats'] ?? ''}`,
   );
   // A new hold starts unconfirmed; keyed on values, as the shell may re-set
   // equal params as a new object.
   protected readonly bookingRef = linkedSignal<string, string | null>({
-    source: this.hold,
+    source: this.holdKey,
     computation: () => null,
   });
 
@@ -78,7 +67,6 @@ export class CheckoutComponent {
       { bookingRef, ticketCount: this.seats().length },
       { retain: false },
     );
-    bus.emit('notify:show', { message: `Booking ${bookingRef} confirmed` }, { retain: false });
     // The Confirm button is gone after this render; move focus to the result instead of <body>.
     afterNextRender(() => this.heading()?.nativeElement.focus(), { injector: this.injector });
   }

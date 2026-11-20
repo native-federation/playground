@@ -10,8 +10,10 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { filter, map } from 'rxjs';
 import { NavIntentDirective } from '../shared/nav-intent.directive';
 import { RemoteFragment } from '../shared/remote-fragment';
+import { EventLogPanel } from '../event-log/event-log-panel';
 import { RemoteSwitcher } from '../remote-switcher/remote-switcher';
-import { CONTRIBUTIONS, fragmentsIn, menuEntries } from './contributions';
+import { CONTRIBUTIONS, menuEntries } from './contributions';
+import { DevDock } from './dev-dock';
 
 @Component({
   selector: 'app-root',
@@ -23,16 +25,18 @@ import { CONTRIBUTIONS, fragmentsIn, menuEntries } from './contributions';
     NavIntentDirective,
     RemoteFragment,
     RemoteSwitcher,
+    EventLogPanel,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:keydown.escape)': 'dock.close()' },
 })
 export class App {
+  protected readonly dock = inject(DevDock);
   private readonly router = inject(Router);
   private readonly contributions = inject(CONTRIBUTIONS);
   protected readonly menu = menuEntries(this.contributions);
-  protected readonly overlays = fragmentsIn(this.contributions, 'overlay');
   private readonly section = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),

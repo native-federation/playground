@@ -4,6 +4,8 @@ export default withNativeFederation({
   name: '@cinema/booking',
   exposes: {
     'mfe-booking-checkout': './src/bootstrap.ts',
+    'mfe-booking-start': './src/bootstrap.ts',
+    'mfe-booking-summary': './src/bootstrap.ts',
     'nav-contribution': './src/nav-contribution.ts',
   },
   shared: fromPackageJson({ singleton: true, strictVersion: true, requiredVersion: 'auto', build: 'package' })
@@ -15,8 +17,8 @@ export default withNativeFederation({
     'rxjs/fetch',
     'rxjs/testing',
     'rxjs/webSocket',
-    // Bundled into every app instead of shared: each copy finds the page's one bus on globalThis.__NF_BUS__.
-    '@softarc/native-federation-communication',
+    // The package and its subpaths are bundled into every app, not shared: each copy finds the page's one bus on globalThis.__NF_BUS__.
+    /^@softarc\/native-federation-communication(\/|$)/,
     // node-only entry points that keepAll would otherwise bundle for the browser
     '@angular/cdk/schematics',
     '@angular/cdk/testing/selenium-webdriver',

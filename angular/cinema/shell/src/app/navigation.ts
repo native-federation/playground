@@ -6,10 +6,9 @@ import {
 } from '@angular/core';
 import { Router, type Routes } from '@angular/router';
 import { bus } from '@softarc/native-federation-communication';
-import type { NavResolver } from '../contracts';
+import type { NavIntents } from '../contracts';
+import { urlFor } from '../shared/navigate';
 import type { RemoteContribution } from './contributions';
-
-const PARAM = /^\{(\w+)\}$/;
 
 // Runs as an app initializer so the routes exist before the first navigation.
 export const provideNavigation = (
@@ -29,17 +28,18 @@ export const provideNavigation = (
         : { path: '**', children: [] },
     ]);
 
-    const resolve = createResolver(contributions);
-    bus.emit('nav:resolve', resolve);
+    const intents = toIntents(contributions);
+    bus.emit('nav:intents', intents);
 
     // replay: false ignores a stale command if a remote emitted it without retain: false.
     destroyRef.onDestroy(
       bus.on(
         'nav:navigate',
         ({ id, payload }) => {
-          // An unresolvable intent was already warned about by the resolver, if it is drift.
-          const url = resolve(id, payload);
+          const url = urlFor(intents, id, payload);
           if (url !== null) void router.navigateByUrl(url);
+          // A whole team being absent is normal (ADR-12); a miss inside a loaded team is drift.
+          else if (isLoadedTeam(intents, id)) console.warn(`[nav] cannot navigate to "${id}"`);
         },
         { replay: false },
       ),
@@ -53,9 +53,7 @@ const toRoutes = (contributions: readonly RemoteContribution[]): Routes =>
     intents
       .filter((intent) => intent.element !== undefined)
       .map((intent) => ({
-        path: segments(basePath, intent.path)
-          .map((segment) => segment.replace(PARAM, ':$1'))
-          .join('/'),
+        path: segments(basePath, intent.path).join('/').replace(PARAM, ':$1'),
         loadComponent: () =>
           import('./remote-shell.component').then(
             (m) => m.RemoteShellComponent,
@@ -64,59 +62,29 @@ const toRoutes = (contributions: readonly RemoteContribution[]): Routes =>
       })),
   );
 
-// Payload keys fill the `{param}` segments; the rest become the query string.
-const createResolver = (
-  contributions: readonly RemoteContribution[],
-): NavResolver => {
-  const templates = new Map<string, string[]>();
+const toIntents = (contributions: readonly RemoteContribution[]): NavIntents => {
+  const intents: Record<string, string> = {};
   for (const { remoteName, contribution } of contributions) {
     for (const intent of contribution.intents) {
       const id = `${contribution.basePath}.${intent.id}`;
-      if (templates.has(id)) {
+      if (Object.hasOwn(intents, id)) {
         console.warn(
           `[nav] "${remoteName}" redefines intent "${id}"; the last one wins`,
         );
       }
-      templates.set(id, segments(contribution.basePath, intent.path));
+      intents[id] = `/${segments(contribution.basePath, intent.path).join('/')}`;
     }
   }
-
-  const loadedTeams = new Set(
-    contributions.map(({ contribution }) => contribution.basePath),
-  );
-
-  return (id, payload = {}) => {
-    const template = templates.get(id);
-    if (!template) {
-      // A whole team being absent is normal (ADR-12); an unknown id inside a loaded team is drift.
-      if (loadedTeams.has(id.split('.')[0])) {
-        console.warn(`[nav] unknown intent "${id}"`);
-      }
-      return null;
-    }
-
-    const query: Record<string, string> = { ...payload };
-    const path: string[] = [];
-    for (const segment of template) {
-      const name = PARAM.exec(segment)?.[1];
-      if (name === undefined) {
-        path.push(segment);
-        continue;
-      }
-      if (payload[name] === undefined) {
-        console.warn(`[nav] intent "${id}" is missing param "${name}"`);
-        return null;
-      }
-      path.push(encodeURIComponent(payload[name]));
-      delete query[name];
-    }
-
-    const search = Object.entries(query)
-      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-      .join('&');
-    return `/${path.join('/')}${search ? `?${search}` : ''}`;
-  };
+  // Frozen: every remote gets this same object from the bus.
+  return Object.freeze(intents);
 };
+
+const isLoadedTeam = (intents: NavIntents, id: string): boolean => {
+  const team = `${id.split('.')[0]}.`;
+  return Object.keys(intents).some((key) => key.startsWith(team));
+};
+
+const PARAM = /\{(\w+)\}/g;
 
 const segments = (basePath: string, path: string): string[] =>
   `${basePath}/${path}`.split('/').filter((segment) => segment !== '');

@@ -41,6 +41,22 @@ nav {
   --mat-button-tonal-horizontal-padding: 16px;
 }
 
+/* The frame has no team colour, so programme's navy doesn't blur with it. */
+header {
+  --mat-sys-primary: var(--mat-sys-on-surface-variant);
+  --mat-sys-secondary-container: var(--mat-sys-surface-container-high);
+}
+
+/* Each team's link is marked with its colour: the legend for the accents in its pages. */
+.team-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-inline-end: 8px;
+  border-radius: 50%;
+  background: var(--team);
+}
+
 nav app-remote-fragment {
   margin: 0 4px;
 }
@@ -59,4 +75,29 @@ footer {
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
   border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+@media (min-width: 600px) {
+  /* The dev dock sits bottom-left. */
+  footer {
+    text-align: right;
+  }
+}
+
+@media (max-width: 599px) {
+  footer {
+    padding-bottom: 72px;
+  }
+}
+
+.dev-dock {
+  /* Dev tooling, not a team: neutral, so it isn't mistaken for programme's navy. */
+  --mat-sys-secondary-container: var(--mat-sys-surface-container-high);
+  --mat-sys-on-secondary-container: var(--mat-sys-on-surface);
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
 }

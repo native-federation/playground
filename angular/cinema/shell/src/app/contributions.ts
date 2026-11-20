@@ -60,16 +60,38 @@ export interface MenuEntry {
   readonly fragments: readonly FragmentRef[];
 }
 
-// Contributions are remote data: a malformed or unknown fragment is ignored.
-export const fragmentsIn = (
+// Contributions are remote data: a malformed fragment or an unknown slot is ignored.
+export const declaredFragments = (
   contributions: readonly RemoteContribution[],
-  slot: NavFragment['slot'],
-): FragmentRef[] =>
+): (FragmentRef & Pick<NavFragment, 'slot'>)[] =>
   contributions.flatMap(({ remoteName, contribution: { fragments } }) =>
     (Array.isArray(fragments) ? fragments : [])
-      .filter((f) => f?.slot === slot && typeof f.element === 'string')
-      .map(({ element }) => ({ remoteName, element })),
+      .filter(
+        (f) => typeof f?.element === 'string' && (f.slot === undefined || f.slot === 'header'),
+      )
+      .map(({ element, slot }) => ({ remoteName, element, slot })),
   );
+
+export const fragmentsIn = (
+  contributions: readonly RemoteContribution[],
+  slot: 'header',
+): FragmentRef[] =>
+  declaredFragments(contributions)
+    .filter((f) => f.slot === slot)
+    .map(({ remoteName, element }) => ({ remoteName, element }));
+
+// Defines every declared fragment so pages can embed its tag; not awaited, so a
+// slow or broken remote never holds up the shell (ADR-15).
+export const defineFragments = (
+  contributions: readonly RemoteContribution[],
+  load: (remoteName: string, element: string) => Promise<void>,
+): void => {
+  for (const { remoteName, element } of declaredFragments(contributions)) {
+    load(remoteName, element).catch((err) =>
+      console.error(`[remote] failed to load <${element}> from "${remoteName}"`, err),
+    );
+  }
+};
 
 // One entry per team that contributes a menu link or a header fragment, in
 // manifest order. Intents with `{params}` can't be menu links.

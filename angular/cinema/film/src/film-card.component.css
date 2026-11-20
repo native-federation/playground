@@ -1,0 +1,33 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poster {
+  /* fixed, so the card does not jump when the remote loads late */
+  height: 160px;
+  --poster-icon-size: 64px;
+}
+
+h2 {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+}
+
+a {
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  color: var(--mat-sys-primary);
+  text-decoration: underline;
+}
+
+.facts {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}

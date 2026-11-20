@@ -36,13 +36,14 @@ h2 {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
   font: var(--mat-sys-title-large);
 }
 
 mat-list {
   padding: 0;
+  --mat-list-list-item-leading-icon-color: var(--mat-sys-primary);
   --mat-list-list-item-two-line-container-height: 72px;
 }
 

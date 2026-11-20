@@ -1,0 +1,56 @@
+import {
+  DestroyRef,
+  Directive,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import { bus } from '@softarc/native-federation-communication';
+import type { NavIntents, NavPayload } from '../contracts';
+import { navigateTo, urlFor } from './navigate';
+
+// Links to a page by intent id, e.g. 'film.detail': the href comes from the shell's nav:intents, and the shell navigates.
+@Directive({
+  selector: '[navIntent]',
+  host: {
+    '[attr.href]': 'isAnchor ? url() : null',
+    '[attr.aria-disabled]': 'url() === null ? "true" : null',
+    // Without href an <a> loses its link role, so aria-disabled would be ignored.
+    '[attr.role]': 'isAnchor && url() === null ? "link" : null',
+    '(click)': 'navigate($event)',
+  },
+})
+export class NavIntentDirective {
+  readonly navIntent = input.required<string>();
+  readonly navPayload = input<NavPayload>({});
+
+  private readonly intents = signal<NavIntents>({});
+  protected readonly isAnchor =
+    inject<ElementRef<HTMLElement>>(ElementRef).nativeElement.tagName === 'A';
+  protected readonly url = computed(
+    () => urlFor(this.intents(), this.navIntent(), this.navPayload()),
+  );
+
+  constructor() {
+    inject(DestroyRef).onDestroy(
+      bus.on('nav:intents', (intents) => this.intents.set(intents)),
+    );
+  }
+
+  protected navigate(event: MouseEvent): void {
+    // Leave new-tab and new-window clicks on real links to the browser.
+    if (this.isAnchor && isModifiedClick(event)) return;
+    if (this.url() === null) return;
+    event.preventDefault();
+    navigateTo({ id: this.navIntent(), payload: this.navPayload() });
+  }
+}
+
+const isModifiedClick = (event: MouseEvent): boolean =>
+  event.button !== 0 ||
+  event.ctrlKey ||
+  event.metaKey ||
+  event.shiftKey ||
+  event.altKey;

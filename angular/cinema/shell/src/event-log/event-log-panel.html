@@ -1,0 +1,45 @@
+<button
+  matButton="tonal"
+  aria-controls="event-log"
+  [attr.aria-expanded]="open()"
+  (click)="toggleOpen()"
+>
+  Events {{ log.events().length }}
+</button>
+@if (open()) {
+  <aside id="event-log" role="dialog" aria-labelledby="event-log-title" cdkDrag cdkDragBoundary="body">
+    <header>
+      <h2 id="event-log-title" cdkDragHandle>Bus events</h2>
+      <button matButton="text" [disabled]="!log.events().length" (click)="toggleAll()">
+        {{ allExpanded() ? 'Collapse all' : 'Expand all' }}
+      </button>
+      <button matButton="text" [disabled]="!log.events().length" (click)="clear()">Clear</button>
+    </header>
+    @if (log.events().length) {
+      <ol>
+        @for (event of log.events(); track event.id) {
+          @let expanded = isExpanded(event.id);
+          <li [class]="event.kind" [class.fresh]="event.id >= firstFreshId()">
+            <button
+              class="row"
+              [attr.aria-expanded]="expanded"
+              [attr.aria-controls]="'event-' + event.id"
+              (click)="toggle(event.id)"
+            >
+              <span class="chevron" aria-hidden="true"></span>
+              <span class="kind">{{ event.kind }}</span>
+              <span class="channel">{{ event.channel }}</span>
+              <span class="preview">{{ event.preview }}</span>
+              <time>{{ event.at | date: 'HH:mm:ss.SSS' }}</time>
+            </button>
+            @if (expanded) {
+              <pre [id]="'event-' + event.id">{{ event.value }}</pre>
+            }
+          </li>
+        }
+      </ol>
+    } @else {
+      <p class="empty">No events yet. Click around the app.</p>
+    }
+  </aside>
+}

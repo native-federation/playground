@@ -3,11 +3,12 @@ import { MatButton } from '@angular/material/button';
 import { MatChip, MatChipAvatar, MatChipSet } from '@angular/material/chips';
 import type { RouteParams } from './contracts';
 import { films } from './films';
+import { PosterComponent } from './poster.component';
 import { NavIntentDirective } from './shared/nav-intent.directive';
 
 @Component({
   selector: 'app-film-detail',
-  imports: [MatButton, MatChipSet, MatChip, MatChipAvatar, NavIntentDirective],
+  imports: [MatButton, MatChipSet, MatChip, MatChipAvatar, NavIntentDirective, PosterComponent],
   templateUrl: './film-detail.component.html',
   styleUrl: './film-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

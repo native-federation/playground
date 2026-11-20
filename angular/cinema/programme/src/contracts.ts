@@ -18,25 +18,3 @@ export interface NavIntent {
   // Shown in the shell's main menu; only on intents without `{params}`.
   readonly menuLabel?: string;
 }
-
-// Fills `{param}` segments of an intent path; leftover keys become the query string.
-export type NavPayload = Readonly<Record<string, string>>;
-
-// Published by the shell: turns an intent into a URL, or null when it is unknown
-// or a path param is missing.
-export type NavResolver = (id: string, payload?: NavPayload) => string | null;
-
-export interface NavigatePayload {
-  readonly id: string;
-  readonly payload?: NavPayload;
-}
-
-// Every channel on the bus, by name.
-declare module '@softarc/native-federation-communication' {
-  interface Channels {
-    // Command (emit with { retain: false }): ask the shell to navigate to an intent.
-    'nav:navigate': NavigatePayload;
-    // State: the shell's NavResolver, retained for links that render later.
-    'nav:resolve': NavResolver;
-  }
-}

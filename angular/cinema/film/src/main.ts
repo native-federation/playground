@@ -6,7 +6,7 @@ import {
 } from '@softarc/native-federation-orchestrator/options';
 import type { RouteParams } from './contracts';
 
-// Standalone only: no other remotes, so links stay inert (no shell resolver).
+// Standalone only: no other remotes, so links stay inert (no shell publishes nav:intents).
 initFederation({}, {
   ...useShimImportMap({ shimMode: true }),
   logger: consoleLogger,
@@ -21,6 +21,8 @@ initFederation({}, {
       'mfe-film-detail',
     )!;
     el.routeParams = { filmId: 'f-1' };
+    // Standalone, this app is its own host; its exposed modules never install.
+    await import('@softarc/native-federation-communication/install');
     const { bootstrap } = await import('./bootstrap');
     await bootstrap();
   })

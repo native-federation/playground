@@ -4,6 +4,7 @@ export default withNativeFederation({
   name: '@cinema/film',
   exposes: {
     'mfe-film-detail': './src/bootstrap.ts',
+    'mfe-film-card': './src/bootstrap.ts',
     'nav-contribution': './src/nav-contribution.ts',
   },
   // Angular 21 is shared only with other ng21 remotes, never with the shell's Angular 22.
@@ -17,8 +18,8 @@ export default withNativeFederation({
     'rxjs/fetch',
     'rxjs/testing',
     'rxjs/webSocket',
-    // Bundled into every app instead of shared: each copy finds the page's one bus on globalThis.__NF_BUS__.
-    '@softarc/native-federation-communication',
+    // The package and its subpaths are bundled into every app, not shared: each copy finds the page's one bus on globalThis.__NF_BUS__.
+    /^@softarc\/native-federation-communication(\/|$)/,
     // node-only entry points that keepAll would otherwise bundle for the browser
     '@angular/cdk/schematics',
     '@angular/cdk/testing/selenium-webdriver',

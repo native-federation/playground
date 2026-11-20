@@ -19,6 +19,10 @@ describe('nav-contribution', () => {
     });
   });
 
+  it('offers the film card for pages to embed', () => {
+    expect(navContribution.fragments).toEqual([{ element: 'mfe-film-card' }]);
+  });
+
   it('is itself exposed', () => {
     expect(exposedKeys).toContain('nav-contribution');
   });
@@ -30,4 +34,11 @@ describe('nav-contribution', () => {
   )('exposes the routed element <%s>', (element) => {
     expect(exposedKeys).toContain(element);
   });
+
+  it.each((navContribution.fragments ?? []).map(({ element }) => element))(
+    'exposes the fragment <%s>',
+    (element) => {
+      expect(exposedKeys).toContain(element);
+    },
+  );
 });

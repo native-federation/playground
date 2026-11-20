@@ -1,0 +1,153 @@
+aside {
+  position: absolute;
+  left: 0;
+  bottom: 48px;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, calc(100vw - 32px));
+  /* Fixed, so the panel doesn't grow while events arrive. */
+  height: min(640px, calc(100dvh - 140px));
+  box-sizing: border-box;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--mat-sys-surface-container-high);
+  box-shadow: var(--mat-sys-level3);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 8px 8px 16px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+h2 {
+  flex: 1;
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+  cursor: move;
+}
+
+ol {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: auto;
+}
+
+li {
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  border-left: 3px solid var(--accent);
+}
+
+li.command {
+  --accent: var(--mat-sys-primary);
+  --chip: var(--mat-sys-primary-container);
+  --on-chip: var(--mat-sys-on-primary-container);
+}
+
+li.state {
+  --accent: var(--mat-sys-tertiary);
+  --chip: var(--mat-sys-tertiary-container);
+  --on-chip: var(--mat-sys-on-tertiary-container);
+}
+
+li.fresh {
+  animation: arrive 1.2s ease-out;
+}
+
+@keyframes arrive {
+  from {
+    background: var(--mat-sys-primary-container);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  li.fresh {
+    animation: none;
+  }
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: none;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-large);
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
+}
+
+.chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+
+[aria-expanded='true'] .chevron {
+  transform: rotate(45deg);
+}
+
+.kind {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--chip);
+  color: var(--on-chip);
+  font: var(--mat-sys-label-medium);
+}
+
+.channel {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+
+.preview {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: ui-monospace, monospace;
+  font-size: 14px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+time {
+  font: var(--mat-sys-body-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+pre {
+  max-height: 320px;
+  margin: 0;
+  padding: 4px 16px 12px 40px;
+  overflow: auto;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.empty {
+  margin: 0;
+  padding: 16px;
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-surface-variant);
+}

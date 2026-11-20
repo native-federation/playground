@@ -24,10 +24,10 @@ const contributionsByRemote: Record<string, RemoteContribution['contribution']> 
     intents: [{ id: 'points', path: '', element: 'mfe-loyalty-points', menuLabel: 'Points' }],
     fragments: [{ element: 'mfe-loyalty-badge', slot: 'header' }],
   },
-  '@cinema/notifications': {
-    basePath: 'notifications',
-    intents: [],
-    fragments: [{ element: 'mfe-notifications-toast', slot: 'overlay' }],
+  '@cinema/booking': {
+    basePath: 'booking',
+    intents: [{ id: 'checkout', path: '{screeningId}', element: 'mfe-booking-checkout' }],
+    fragments: [{ element: 'mfe-booking-start' }],
   },
   '@cinema/account': {
     basePath: 'account',
@@ -98,13 +98,12 @@ describe('App', () => {
     expect(await visit('/')).toEqual(['Programme']);
   });
 
-  it('mounts header fragments after their team links and overlays outside the header', async () => {
+  it('mounts header fragments after their team links and leaves embedded ones to pages', async () => {
     const { fixture, root } = render();
     await fixture.whenStable();
     const badge = root.querySelector('nav mfe-loyalty-badge');
     expect(badge?.closest('app-remote-fragment')?.previousElementSibling?.textContent?.trim()).toBe('Points');
-    expect(root.querySelector('header mfe-notifications-toast')).toBeNull();
-    expect(root.querySelector('mfe-notifications-toast')).not.toBeNull();
+    expect(root.querySelector('mfe-booking-start')).toBeNull();
   });
 
   it('links the brand to the root, which falls back to the first page', () => {
@@ -116,5 +115,20 @@ describe('App', () => {
     const { root, labels } = render(undefined, loaded('@cinema/programme'));
     expect(labels()).toEqual(['Programme']);
     expect(root.querySelector('app-remote-fragment')).toBeNull();
+  });
+
+  it('docks both demo tools bottom-left and closes the open panel on Escape', () => {
+    const { fixture, root } = render();
+    const dock = root.querySelector('.dev-dock')!;
+    expect(dock.querySelector('app-event-log-panel')).not.toBeNull();
+    expect(dock.querySelector('app-remote-switcher')).not.toBeNull();
+
+    root.querySelector<HTMLElement>('button[aria-controls="event-log"]')!.click();
+    fixture.detectChanges();
+    expect(root.querySelector('#event-log')).not.toBeNull();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(root.querySelector('#event-log')).toBeNull();
   });
 });
