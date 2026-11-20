@@ -4,12 +4,11 @@
   justify-content: center;
   border-radius: var(--mat-sys-corner-large);
   background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
+  color: var(--mat-sys-primary);
 }
 
 :host(.tertiary) {
   background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
 }
 
 svg {

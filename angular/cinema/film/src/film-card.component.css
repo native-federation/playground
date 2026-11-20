@@ -16,7 +16,7 @@ h2 {
 }
 
 a {
-  color: var(--mat-sys-on-surface);
+  color: var(--mat-sys-primary);
 }
 
 .facts {

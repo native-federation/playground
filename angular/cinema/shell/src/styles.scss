@@ -47,7 +47,7 @@ body {
 // Palette and tag mapping live here only, so the header's dots use the same values.
 :root {
   --team-programme: #1d4e9e;
-  --team-film: #c2410c;
+  --team-film: #00727a;
   --team-seating: #007a55;
   --team-booking: #a35f00;
   --team-loyalty: #a3407f;
@@ -76,15 +76,12 @@ mfe-account-profile { --team: var(--team-account); }
   --mat-sys-secondary-container: color-mix(in oklab, var(--team) 10%, white);
   --mat-sys-on-secondary-container: color-mix(in oklab, var(--team) 60%, black);
   --mat-sys-primary-fixed-dim: color-mix(in oklab, var(--team) 35%, white);
-  --mat-sys-tertiary-container: var(--mat-sys-primary-container);
+  --mat-sys-tertiary-container: color-mix(in oklab, var(--team) 24%, white);
   --mat-sys-on-tertiary-container: var(--mat-sys-on-primary-container);
+  --mat-card-outlined-outline-color: color-mix(in oklab, var(--team) 35%, white);
 }
 
 // Where a piece has no coloured element of its own, one quiet cue, so nested pieces still read apart.
-mfe-programme-list {
-  --mat-card-outlined-outline-color: color-mix(in oklab, var(--team) 40%, white);
-}
-
 mfe-booking-summary {
   border-top: 3px solid var(--team);
   border-radius: var(--mat-sys-corner-large);

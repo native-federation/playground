@@ -36,8 +36,8 @@ h2 {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
   font: var(--mat-sys-title-large);
 }
 
@@ -53,4 +53,5 @@ mat-list-item {
 /* the list's .mdc-list-item__start sets fill: currentColor, which would fill these outline icons */
 [matListItemIcon] {
   fill: none;
+  color: var(--mat-sys-primary);
 }

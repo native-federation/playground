@@ -31,6 +31,7 @@ article {
 h1 {
   margin: 0;
   font: var(--mat-sys-display-medium);
+  color: var(--mat-sys-primary);
 }
 
 mat-chip-set {
