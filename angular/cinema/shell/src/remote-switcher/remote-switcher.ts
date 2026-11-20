@@ -33,6 +33,13 @@ import { availableRemotes, loadedRemotes, sameNames, saveSelection } from './rem
       padding: 0;
       border: 0;
     }
+    .team-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-inline-end: 8px;
+      border-radius: 50%;
+    }
     legend {
       padding: 0;
       font: var(--mat-sys-body-small);
@@ -50,6 +57,11 @@ export class RemoteSwitcher {
   protected readonly canApply = computed(
     () => this.draft().length > 0 && !sameNames(this.draft(), this.loaded),
   );
+
+  // '@cinema/film' → the shell's --team-film; a remote without a colour gets no dot.
+  protected teamColor(name: string): string {
+    return `var(--team-${name.split('/').pop()}, transparent)`;
+  }
 
   protected toggleOpen(): void {
     this.draft.set(this.loaded);

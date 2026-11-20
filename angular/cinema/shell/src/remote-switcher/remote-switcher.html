@@ -13,7 +13,7 @@
       <legend>Loaded after reload</legend>
       @for (name of remotes; track name) {
         <mat-checkbox [checked]="draft().includes(name)" (change)="toggle(name, $event.checked)">
-          {{ name }}
+          <span class="team-dot" aria-hidden="true" [style.background]="teamColor(name)"></span>{{ name }}
         </mat-checkbox>
       }
     </fieldset>
