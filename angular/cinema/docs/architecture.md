@@ -237,7 +237,8 @@ menu link carries a dot in its colour as the legend.
   (`--mat-sys-primary`, the containers) from it, so their buttons, chips and
   seats take the team's hue without changing the remotes.
 - One quiet cue per piece keeps nested pieces apart: programme's cards get a
-  faint outline, film's card a left stripe, booking's summary a top stripe;
+  faint outline and booking's summary a top stripe; film's posters carry its
+  colour themselves;
   booking's Book button is filled, so it is amber everywhere.
 - The palette and the mapping live in the shell only, so the header dots
   and the accents can't drift apart. The cost: the shell knows every tag

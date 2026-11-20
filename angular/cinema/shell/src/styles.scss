@@ -76,16 +76,13 @@ mfe-account-profile { --team: var(--team-account); }
   --mat-sys-secondary-container: color-mix(in oklab, var(--team) 10%, white);
   --mat-sys-on-secondary-container: color-mix(in oklab, var(--team) 60%, black);
   --mat-sys-primary-fixed-dim: color-mix(in oklab, var(--team) 35%, white);
+  --mat-sys-tertiary-container: var(--mat-sys-primary-container);
+  --mat-sys-on-tertiary-container: var(--mat-sys-on-primary-container);
 }
 
-// One quiet structural cue per piece, so nested pieces still read apart.
+// Where a piece has no coloured element of its own, one quiet cue, so nested pieces still read apart.
 mfe-programme-list {
   --mat-card-outlined-outline-color: color-mix(in oklab, var(--team) 22%, white);
-}
-
-mfe-film-card {
-  border-inline-start: 3px solid var(--team);
-  padding-inline-start: 10px;
 }
 
 mfe-booking-summary {
