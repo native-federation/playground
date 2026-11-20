@@ -5,7 +5,7 @@ import { cdnImageLoader } from '../../app.config';
 import { LOAD_REMOTE } from '../../shared/remote-element';
 import { testEnv } from '../../testing/env.fixture';
 import { HeaderComponent } from './header.component';
-import { publishNavResolver } from '../../testing/nav-resolver.stub';
+import { publishNavIntents } from '../../testing/nav-intents.stub';
 
 describe('HeaderComponent', () => {
   let loadRemote: ReturnType<typeof vi.fn>;
@@ -18,7 +18,7 @@ describe('HeaderComponent', () => {
         { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
     });
-    publishNavResolver((id) => id);
+    publishNavIntents({ 'explore.home': '/explore' });
   });
 
   async function render() {
@@ -29,7 +29,7 @@ describe('HeaderComponent', () => {
 
   it('links the logo to the home page', async () => {
     const link = (await render()).querySelector('.e_Header__link')!;
-    expect(link.getAttribute('href')).toBe('explore.home');
+    expect(link.getAttribute('href')).toBe('/explore');
     expect(link.querySelector('img')?.getAttribute('src')).toBe(
       `${testEnv.cdnUrl}/cdn/img/logo.svg`,
     );

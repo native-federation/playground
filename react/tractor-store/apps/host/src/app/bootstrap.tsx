@@ -1,6 +1,7 @@
+// Installs the page's one bus before any remote code runs.
+import '@softarc/native-federation-communication/install';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { RouterProvider } from 'react-router-dom';
 import type {
   FederationManifest,
   NativeFederationResult,
@@ -8,6 +9,7 @@ import type {
 import type { EnvironmentConfig } from '@tractor-store/contracts';
 import { createRemoteLoader, LoadRemoteContext } from './load-remote';
 import { createNavigation } from './navigation';
+import { NavigationRoot } from './navigation-root';
 
 export const bootstrap = async (
   env: EnvironmentConfig,
@@ -37,12 +39,12 @@ export const bootstrap = async (
   helper.src = `${cdnUrl}/cdn/js/helper.js`;
   document.head.appendChild(helper);
 
-  const router = await createNavigation(nf, manifest);
+  const navigation = await createNavigation(nf, manifest);
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <LoadRemoteContext.Provider value={createRemoteLoader(env, nf)}>
-        <RouterProvider router={router} />
+        <NavigationRoot {...navigation} />
       </LoadRemoteContext.Provider>
     </StrictMode>,
   );

@@ -35,7 +35,7 @@ flowchart TD
         HA["Owns the URL<br/>(Angular Router)"]
         HB["Owns page chrome<br/>(layout, error UI)"]
         HC["Loads remotes via<br/>Native Federation"]
-        HD["Resolves intents<br/>to URLs"]
+        HD["Publishes the<br/>intent table"]
     end
 
     subgraph RemoteSide["REMOTE (×3)"]
@@ -187,22 +187,17 @@ needs. Clean separation, zero collisions.
 
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant R as Angular Router (host)
-    participant S as RemoteShellComponent
-    participant L as createRemoteLoader
-    participant B as remote bootstrap()
-    participant E as Custom element
-
-    U->>R: navigate to /explore/products/tractors
-    R->>S: load lazy route, bind inputs {remoteName, element: 'mfe-category'}
-    S->>L: loadRemote('@tractor-store/explore', 'mfe-category')
-    L->>B: nf.loadRemoteModule(...) → bootstrap(env, nf)
-    B->>B: customElements.define('mfe-category', …)
-    L-->>S: resolved
-    S->>E: document.createElement('mfe-category')
-    S->>E: el.routeParams = { category: 'tractors' }
-    Note over S,E: an effect keeps routeParams<br/>live as the URL changes
+    participant User
+    participant Router as Host router
+    participant Shell as Remote shell
+    participant Explore as explore
+    participant Element as mfe-category
+    User->>Router: Open /explore/products/tractors
+    Router->>Shell: Show mfe-category from explore
+    Shell->>Explore: First visit only: load the code, start explore's app, register the tag
+    Shell->>Element: Create the element
+    Shell->>Element: Pass routeParams { category: tractors }
+    Note over Shell,Element: routeParams stays in step with the URL
 ```
 
 `RemoteShellComponent` (`projects/host/src/app/remote-shell.component.ts`)
@@ -224,10 +219,15 @@ _talk_ to each other. They do that through a small event bus, the
 [`@softarc/native-federation-communication`][nf-comm] package. In
 these docs it is always called _the event bus_.
 
-No app installs it. The first `bus` call on a page installs the bus on
-`globalThis.__NF_BUS__`, and every later call, from any app, uses that
-one. So a remote running standalone gets a bus too, and nothing has to
-run before federation init. Every app bundles its own copy of the
+The host installs it: the first import of
+`projects/host/src/app/bootstrap.ts` is
+`import '@softarc/native-federation-communication/install'`, which puts
+one bus on `globalThis.__NF_BUS__` before any remote loads. Every `bus`
+call, from any app, uses that one; without an installed bus every call
+is dropped, and the first one warns (once per copy). A remote's exposed modules never install. A
+remote served standalone is its own host, so its `main.ts` imports
+`/install` after `initFederation`, before it loads its first
+`bootstrap.ts`. Every app bundles its own copy of the
 package (it is listed in `skip` in each `federation.config.mjs`, so
 Native Federation does not share it, see
 [Contracts](#contracts-not-a-shared-library)); the copies still find
@@ -248,8 +248,8 @@ declare module '@softarc/native-federation-communication' {
   interface Channels {
     // Command (emit with { retain: false }): ask the host to navigate to an intent.
     'nav:navigate': NavigatePayload;
-    // State: the host's NavResolver, retained for links that render later.
-    'nav:resolve': NavResolver;
+    // State: the host's NavIntents, retained for links that render later.
+    'nav:intents': NavIntents;
     'store:selected': StoreSelectedPayload;
   }
 }
@@ -269,14 +269,13 @@ inject(DestroyRef).onDestroy(
 
 The listener gets the value itself. If the channel holds a retained
 value, `on` delivers it synchronously, before it returns, then every
-later emit. That suits state: `store:selected` and `nav:resolve` reach
+later emit. That suits state: `store:selected` and `nav:intents` reach
 an element that renders after they were emitted. A navigation request
 is a _command_ instead, which must never be replayed: every remote
 emits `nav:navigate` with `{ retain: false }` (through its one
 `navigateTo` helper in `shared/navigate.ts`), so it reaches only the
 listeners subscribed at that moment, and the host also subscribes with
-`{ replay: false }`. Values are never called or copied, so the host
-emits its resolver function as is.
+`{ replay: false }`.
 
 [nf-comm]: https://github.com/native-federation/communication
 [nf-comm-api]: https://github.com/native-federation/communication/blob/main/docs/api.md
@@ -304,8 +303,8 @@ channel's contract is in one file that both ends import as a type.
 ```mermaid
 flowchart LR
     subgraph Host["host"]
-        SN[provideNavigation]
-        NR[(resolver)]
+        SN[Host navigation]
+        NR[(intent table)]
     end
     subgraph Explore["explore"]
         SP[mfe-store-picker]
@@ -318,18 +317,17 @@ flowchart LR
     end
 
     PD -- "nav:navigate" --> SN
-    SP -- "nav:navigate" --> SN
     CO -- "nav:navigate" --> SN
-    NR -- "nav:resolve (state)" --> Explore
-    NR -- "nav:resolve (state)" --> Decide
-    NR -- "nav:resolve (state)" --> Checkout
+    NR -- "nav:intents (state)" --> Explore
+    NR -- "nav:intents (state)" --> Decide
+    NR -- "nav:intents (state)" --> Checkout
     SP -- "store:selected" --> CO
 ```
 
 | Channel          | Direction                 | Purpose                                                                       |
 | ---------------- | ------------------------- | ----------------------------------------------------------------------------- |
 | `nav:navigate`   | remote → host (command)   | Intent-based navigation requests (from `[navIntent]` or `navigateTo`)          |
-| `nav:resolve`    | host → remotes (state)    | The `NavResolver` (`(id, payload) => url \| null`) so links render real `href`s |
+| `nav:intents`    | host → remotes (state)    | The `NavIntents` table (intent id → path template) so links render real `href`s |
 | `store:selected` | explore → checkout (state) | Notify checkout when the user picks a pickup store                           |
 
 All three are typed in `libs/contracts/index.ts` (`Channels`).
@@ -385,28 +383,43 @@ _without_ every team having to know every other team's URL scheme.
 
 ## The bootstrap chain
 
-How a host page comes alive, end to end:
+How a host page comes alive, end to end. First the host starts:
 
 ```mermaid
 sequenceDiagram
     participant Browser
-    participant Main as projects/host/src/main.ts
-    participant Boot as app/bootstrap.ts
-    participant Nav as app/navigation.ts<br/>(appInitializer)
-    participant Router as Angular Router
-
-    Browser->>Main: load
-    Main->>Main: fetch env.config.json + federation.manifest.json
-    Main->>Main: initFederation(manifest, …)
-    Main->>Boot: bootstrap(env, nf, manifest)
-    Boot->>Boot: load global.css + Raleway + helper.js
-    Boot->>Nav: bootstrapApplication(App, { providers: [provideNavigation(nf, manifest), …] })
-    Nav->>Nav: load every remote's nav-contribution<br/>(Promise.allSettled)
-    Nav->>Router: router.resetConfig([…remote routes, '**' → fallback])
-    Nav->>Nav: bus.emit('nav:resolve', resolve)
-    Nav->>Nav: bus.on('nav:navigate', …, { replay: false })
-    Router-->>Browser: first paint
+    participant Main as Host main
+    participant Boot as Host bootstrap
+    participant Bus
+    participant Nav as Host navigation
+    Browser->>Main: Load the page
+    Main->>Main: Fetch env.config.json and federation.manifest.json
+    Main->>Main: Start Native Federation (initFederation)
+    Main->>Boot: Start the host
+    Boot->>Bus: Install the bus (/install)
+    Boot->>Boot: Load global.css, the font and helper.js
+    Boot->>Nav: Start Host navigation
 ```
+
+Then Host navigation builds the routes and the intent table, the same
+startup step as in [navigation.md](./navigation.md#at-startup-each-team-declares-its-pages):
+
+```mermaid
+sequenceDiagram
+    participant Nav as Host navigation
+    participant Remotes as explore · decide · checkout
+    participant Router as Host router
+    participant Bus
+    Nav->>Remotes: Which pages do you have?
+    Remotes-->>Nav: nav-contribution, e.g. decide: product → /product/{id}
+    Nav->>Router: One route per page, plus a fallback for unknown URLs
+    Nav->>Bus: Share the intent table (nav:intents)
+    Router->>Router: Show the first page
+```
+
+Host navigation also starts listening for `nav:navigate` commands
+inside the same `provideAppInitializer`, so before the first route
+activates.
 
 Every app's `main.ts` does the same three steps; only the last line
 differs. The host bootstraps its Angular app, a standalone remote
@@ -436,9 +449,11 @@ bootstrap. Two artefacts drive everything, both fetched with
   any subsequent `nf.loadRemoteModule(remoteName, exposedModule)`
   resolves to the right bundle.
 
-No step installs the event bus: the first `bus` call, from whichever
-app makes it, puts it on `globalThis.__NF_BUS__`, so it is there for
-every remote no matter which bootstraps first.
+The event bus is installed once `initFederation` has resolved: the
+host's `bootstrap.ts` imports `/install` first, and a standalone
+remote's `main.ts` imports it before its first `bootstrap.ts`. So
+`globalThis.__NF_BUS__` holds the bus before any remote code runs (see
+[The event bus](#2-the-event-bus-softarcnative-federation-communication)).
 
 ## Native Federation vs. Module Federation
 
@@ -478,7 +493,7 @@ What the teams _do_ agree on lives in one types-only file,
 | `EnvironmentConfig`                           | every app's `env.config.json`                       |
 | `RemoteElementModule`                         | the loaders and every exposed `bootstrap.ts`        |
 | `NavContribution`, `NavIntent`                | each remote's `nav-contribution.ts` and the host    |
-| `NavPayload`, `NavResolver`, `RouteParams`    | the host's navigation and the remotes' pages/links  |
+| `NavPayload`, `NavIntents`, `RouteParams`     | the host's navigation and the remotes' pages/links  |
 | `Channels` augmentation (+ payload types)     | everyone on the event bus                           |
 
 Because it is imported with `import type` only, it compiles away:
@@ -497,8 +512,14 @@ skip: [
   'rxjs/testing',
   'rxjs/webSocket',
   // Bundled into every app instead of shared: each copy finds the page's one bus on globalThis.__NF_BUS__.
-  '@softarc/native-federation-communication',
+  // A regex, because a string skips only the root entry and would leave /install shared.
+  /^@softarc\/native-federation-communication(\/|$)/,
 ],
+features: {
+  denseChunking: true,
+  denseExternals: true,
+  integrityHashes: true,
+},
 ```
 
 What the flags mean:
@@ -518,10 +539,18 @@ What the flags mean:
   every TypeScript path alias in `tsconfig.json`. There is nothing to
   share, so it is turned off explicitly.
 - **`skip`** trims rxjs sub-entries that aren't used at runtime,
-  cutting the shared bundle. It also keeps the event bus package out
-  of `shared`: every app bundles its own copy, so no app depends on
+  cutting the shared bundle. It also keeps the event bus package and
+  its subpaths (`/install`) out of `shared`: every app bundles its own copy, so no app depends on
   another one's version of it, and all copies use the one bus on
   `globalThis.__NF_BUS__`.
+- **`features`** are the same three as in the React store, so both
+  stores' `remoteEntry.json` files have the same format and a remote
+  can be swapped between them (see [Hot swap](./hot-swap.md)).
+  `denseChunking` writes the shared chunks compactly, `denseExternals`
+  groups every entry point of a shared package under one record, and
+  `integrityHashes` adds a hash for every file. Since Native
+  Federation 4.10, each exposed module also lists the chunks it reaches
+  (`exposes[].chunks`), so a runtime can preload them.
 
 > Cam Jackson, _martinfowler.com_: "_The most obvious candidates for
 > sharing are 'dumb' visual primitives such as icons, labels, and
@@ -562,3 +591,5 @@ from another remote, only the types in `@tractor-store/contracts`.
   boundary navigable without coupling.
 - [Features](./features.md) — concrete catalogue of what each remote
   ships and which events it speaks.
+- [Hot swap](./hot-swap.md) — swapping a remote between the Angular
+  and React stores at runtime.

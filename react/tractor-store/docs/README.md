@@ -37,10 +37,11 @@ Three ideas carry the weight in this repo:
    root in its shadow DOM. The host (or any other remote) places that
    tag in the DOM and the browser does the rest. The contract is plain
    HTML — no React import crosses team boundaries.
-2. **A central event bus** (`window.__NF_REGISTRY__`). Remotes
-   publish and subscribe to small, _typed_ events instead of calling
-   each other directly. Each event's payload type is listed once in
-   the `Events` interface in `libs/contracts/index.ts`; emitter and
+2. **A central event bus** ([`@softarc/native-federation-communication`][nf-comm]).
+   Remotes publish and subscribe to small, _typed_ channels instead of
+   calling each other directly. Each channel's value type is declared
+   once, by augmenting the package's `Channels` interface in
+   `libs/contracts/index.ts`; emitter and
    listener then share the same compile-time contract. Navigation and
    store selection ride on this bus.
 3. **Intent-based navigation.** A link in the _decide_ micro frontend
@@ -51,11 +52,13 @@ Three ideas carry the weight in this repo:
 
 Together these three keep the apps decoupled. The apps share no
 runtime code at all: each one writes out its own bootstrap, loader
-and link component, so its flow can be read in its own folder. The
+and link component, so its flow can be read in its own folder. (The
+bus package is a third-party library that each app bundles.) The
 rest of this doc set explains how each piece is implemented.
 
 [blueprint]: https://github.com/neuland/tractor-store-blueprint
 [mfo]: https://micro-frontends.org/
+[nf-comm]: https://github.com/native-federation/communication
 
 ## At a glance
 
@@ -103,8 +106,11 @@ custom element inside its own page without going through the host.
   system and why it is the load-bearing piece of the host/remote
   decoupling.
 - **[Features](./features.md)** — what each team ships, the
-  fragments they expose, the events they emit, and the cross-remote
+  fragments they expose, the channels they emit on, and the cross-remote
   dependencies between them.
+- **[Hot swap](./hot-swap.md)** — swapping a remote between the Angular
+  and React stores at runtime, since both use the same remote names,
+  contracts and `mfe-*` tags.
 
 ## Where does X live?
 
@@ -112,7 +118,9 @@ custom element inside its own page without going through the host.
 | ------------------------------------------------ | -------------------------------------------------------------------------------- |
 | Bootstrap & federation init (every app)          | `apps/<app>/src/main.tsx`                                                        |
 | Host CDN assets, React root                      | `apps/host/src/app/bootstrap.tsx`                                                |
-| Loading contributions, routes, resolver, `nav:navigate` | `apps/host/src/app/navigation.tsx` (`createNavigation`)                   |
+| Loading contributions, routes, intent table, `nav:navigate` | `apps/host/src/app/navigation.tsx` (`createNavigation`, `handleNavigateCommands`) |
+| Installing the event bus                         | `apps/host/src/app/bootstrap.tsx` (first import); standalone: `apps/<remote>/src/main.tsx` |
+| Host root: router + `nav:navigate` listener      | `apps/host/src/app/navigation-root.tsx` (`NavigationRoot`)                       |
 | Host route → element mount                       | `apps/host/src/app/remote-shell.tsx`                                             |
 | Loading a remote's custom element                | `apps/host/src/app/load-remote.ts`, `apps/<remote>/src/shared/remote-element.ts` (`createRemoteLoader`) |
 | Embedding a foreign `mfe-*` element              | `apps/<remote>/src/shared/remote-element.ts` (`useRemoteElement`)                |
@@ -120,9 +128,11 @@ custom element inside its own page without going through the host.
 | Remote bootstrap (custom element)                | `apps/<remote>/src/features/<feature>/bootstrap.tsx`                             |
 | Remote nav contribution                          | `apps/<remote>/src/nav-contribution.ts`                                          |
 | Cross-MFE link (`<NavLink>`, `useNavIntent`)     | `apps/<remote>/src/shared/nav-intent.tsx`                                        |
-| Shared types: env, contributions, params, `Events`, `mfe-*` JSX tags | `libs/contracts/index.ts`                                    |
+| Emitting `nav:navigate`, filling in hrefs (`navigateTo`, `urlFor`) | `apps/<remote>/src/shared/navigate.ts`                         |
+| Event bus for tests (fresh real bus per test)    | `apps/<app>/src/testing/setup.ts`                                                |
+| Shared types: env, contributions, params, bus `Channels`, `mfe-*` JSX tags | `libs/contracts/index.ts`                              |
 | Cart state & cross-tab sync                      | `apps/checkout/src/data/cart-store.ts`                                           |
-| Mock backend data                                | `apps/<remote>/src/data/<entity>.data.ts`                                        |
+| Mock backend data                                | `apps/<remote>/src/data/<entity>.data.ts` (explore's stores and teasers: `store.ts`, `teaser.ts`) |
 | Federation config (per app)                      | `apps/<app>/federation.config.mjs`                                               |
 | Build & dev server (per app)                     | `apps/<app>/build.mjs`                                                           |
 | Runtime remote discovery                         | `apps/<app>/public/federation.manifest.json`                                     |

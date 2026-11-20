@@ -1,17 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import type { NavResolver } from '@tractor-store/contracts';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { VariantOptionComponent } from './variant-option.component';
-import { publishNavResolver } from '../../../testing/nav-resolver.stub';
+import { publishNavIntents } from '../../../testing/nav-intents.stub';
 import { bus, type ChannelValue } from '@softarc/native-federation-communication';
-
-// Stands in for the host's resolver: '/<intent>?<payload>'.
-const resolve: NavResolver = (id, payload = {}) =>
-  `/${id}?${new URLSearchParams(payload)}`;
 
 describe('VariantOptionComponent', () => {
   beforeEach(() => {
-    publishNavResolver(resolve);
+    publishNavIntents({ 'decide.product': '/decide/product/{id}' });
   });
 
   async function render(
@@ -33,7 +28,7 @@ describe('VariantOptionComponent', () => {
     const link = el.querySelector('a')!;
     expect(link.textContent).toBe('Scarlet Dynamo');
     expect(link.getAttribute('href')).toBe(
-      '/decide.product?id=AU-03&sku=AU-03-RD',
+      '/decide/product/AU-03?sku=AU-03-RD',
     );
     expect(el.querySelector('strong')).toBeNull();
   });
@@ -56,7 +51,7 @@ describe('VariantOptionComponent', () => {
     fixture.componentRef.setInput('sku', 'AU-03-YE');
     await fixture.whenStable();
     expect(el.querySelector('a')!.getAttribute('href')).toBe(
-      '/decide.product?id=AU-03&sku=AU-03-YE',
+      '/decide/product/AU-03?sku=AU-03-YE',
     );
   });
 

@@ -8,10 +8,10 @@ import {
   signal,
 } from '@angular/core';
 import { bus } from '@softarc/native-federation-communication';
-import type { NavPayload, NavResolver } from '@tractor-store/contracts';
-import { navigateTo } from './navigate';
+import type { NavIntents, NavPayload } from '@tractor-store/contracts';
+import { navigateTo, urlFor } from './navigate';
 
-// Links to a page by intent id, e.g. 'decide.product': the host resolves the href and navigates.
+// Links to a page by intent id, e.g. 'decide.product': the href comes from the host's nav:intents, and the host navigates.
 @Directive({
   selector: '[navIntent]',
   host: {
@@ -26,16 +26,16 @@ export class NavIntentDirective {
   readonly navIntent = input.required<string>();
   readonly navPayload = input<NavPayload>({});
 
-  private readonly resolve = signal<NavResolver | undefined>(undefined);
+  private readonly intents = signal<NavIntents>({});
   protected readonly isAnchor =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement.tagName === 'A';
   protected readonly url = computed(
-    () => this.resolve()?.(this.navIntent(), this.navPayload()) ?? null,
+    () => urlFor(this.intents(), this.navIntent(), this.navPayload()),
   );
 
   constructor() {
     inject(DestroyRef).onDestroy(
-      bus.on('nav:resolve', (resolve) => this.resolve.set(resolve)),
+      bus.on('nav:intents', (intents) => this.intents.set(intents)),
     );
   }
 

@@ -35,9 +35,9 @@ export type NavPayload = Readonly<Record<string, string>>;
 // Repeated query params arrive as arrays.
 export type RouteParams = Readonly<Record<string, string | readonly string[]>>;
 
-// Published by the host: turns an intent into a URL, or null when it is unknown
-// or a path param is missing.
-export type NavResolver = (id: string, payload?: NavPayload) => string | null;
+// Published by the host: every intent's absolute path by full id, e.g.
+// 'decide.product' → '/decide/product/{id}'. Params are `{name}` placeholders.
+export type NavIntents = Readonly<Record<string, string>>;
 
 export interface NavigatePayload {
   readonly id: string;
@@ -53,8 +53,8 @@ declare module '@softarc/native-federation-communication' {
   interface Channels {
     // Command (emit with { retain: false }): ask the host to navigate to an intent.
     'nav:navigate': NavigatePayload;
-    // State: the host's NavResolver, retained for links that render later.
-    'nav:resolve': NavResolver;
+    // State: the host's NavIntents, retained for links that render later.
+    'nav:intents': NavIntents;
     'store:selected': StoreSelectedPayload;
   }
 }

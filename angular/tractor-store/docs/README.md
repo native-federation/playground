@@ -11,6 +11,9 @@ The runtime is [Native Federation][nf]. It is built on ECMAScript
 Modules and Import Maps, so what we ship is plain browser-native code
 with a small orchestration layer on top.
 
+This Angular version is mirrored by the [React version](../../../react/tractor-store/docs/)
+file for file; only the framework-specific glue differs.
+
 [nf]: https://native-federation.com/
 
 ## New to micro-frontends?
@@ -105,6 +108,9 @@ custom element inside its own page without going through the host.
 - **[Features](./features.md)** — what each team ships, the
   fragments they expose, the channels they emit on, and the cross-remote
   dependencies between them.
+- **[Hot swap](./hot-swap.md)** — swapping a remote between the Angular
+  and React stores at runtime, since both use the same remote names,
+  contracts and `mfe-*` tags.
 
 ## Where does X live?
 
@@ -112,7 +118,8 @@ custom element inside its own page without going through the host.
 | -------------------------------------------- | ----------------------------------------------------------------------------- |
 | Bootstrap & federation init (every app)      | `projects/<app>/src/main.ts`                                                  |
 | Host providers, CDN assets, Angular bootstrap | `projects/host/src/app/bootstrap.ts`                                         |
-| Loading contributions, routes, resolver, `nav:navigate` | `projects/host/src/app/navigation.ts` (`provideNavigation`)        |
+| Installing the event bus                     | `projects/host/src/app/bootstrap.ts` (first import); standalone: `projects/<remote>/src/main.ts` |
+| Loading contributions, routes, intent table, `nav:navigate` | `projects/host/src/app/navigation.ts` (`provideNavigation`, `handleNavigateCommands`) |
 | Host route → element mount                   | `projects/host/src/app/remote-shell.component.ts`                             |
 | Loading a remote's custom element            | `projects/host/src/app/load-remote.ts`, `projects/<remote>/src/shared/remote-element.ts` (`createRemoteLoader`) |
 | Embedding a foreign `mfe-*` element          | `projects/<remote>/src/shared/remote-element.ts` (`[mfeRemote]`)              |
@@ -120,7 +127,7 @@ custom element inside its own page without going through the host.
 | Remote bootstrap (custom element)            | `projects/<remote>/src/features/<feature>/bootstrap.ts`                       |
 | Remote nav contribution                      | `projects/<remote>/src/nav-contribution.ts`                                   |
 | Cross-MFE link directive (`[navIntent]`)     | `projects/<remote>/src/shared/nav-intent.directive.ts`                        |
-| Emitting `nav:navigate` (`navigateTo`)       | `projects/<remote>/src/shared/navigate.ts`                                    |
+| Emitting `nav:navigate`, filling in hrefs (`navigateTo`, `urlFor`) | `projects/<remote>/src/shared/navigate.ts`                    |
 | Shared types: env, contributions, params, bus `Channels` | `libs/contracts/index.ts`                                         |
 | Cart state & cross-tab sync                  | `projects/checkout/src/data/cart-store.ts`                                    |
 | Mock backend data                            | `projects/<remote>/src/data/<entity>.data.ts`                                 |

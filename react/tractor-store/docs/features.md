@@ -1,7 +1,9 @@
 # Features
 
 A catalogue of what each team ships, the fragments they expose, the
-events they speak, and the cross-remote dependencies between them.
+channels they speak, and the cross-remote dependencies between them.
+Use this document as a map when you need to find where something
+lives or what would break if you renamed an `mfe-*` tag.
 
 ## Teams at a glance
 
@@ -14,6 +16,15 @@ events they speak, and the cross-remote dependencies between them.
 The host runs on port 4300 and owns the URL. Colours are used by the
 boundary-overlay debugging script described in
 [architecture.md](./architecture.md#team-boundary-visualisation).
+
+The team names come from the [Tractor Store Blueprint][blueprint] and
+are deliberately *verbs from the customer journey*, not technical
+layers. Explore helps the user browse, Decide helps them choose a
+product, Checkout takes them through the purchase. That vertical
+split — feature, not framework layer — is the textbook MFE team
+decomposition.
+
+[blueprint]: https://github.com/neuland/tractor-store-blueprint
 
 ---
 
@@ -41,7 +52,7 @@ store picker.
 
 | Public intent ID            | Path                           | Renders        |
 | --------------------------- | ------------------------------ | -------------- |
-| `explore.home`              | `/explore/`                    | `mfe-home`     |
+| `explore.home`              | `/explore`                     | `mfe-home`     |
 | `explore.products`          | `/explore/products`            | `mfe-category` |
 | `explore.products.category` | `/explore/products/{category}` | `mfe-category` |
 | `explore.stores`            | `/explore/stores`              | `mfe-stores`   |
@@ -51,10 +62,12 @@ store picker.
 - `mfe-mini-cart` from `@tractor-store/checkout`
   (`features/header/Header.tsx`).
 
-### Events it emits
+### Channels it emits
 
 - `store:selected` — when the user picks a pickup store inside
-  `mfe-store-picker`. Consumed by `mfe-checkout`.
+  `mfe-store-picker` (`features/store-picker/StorePicker.tsx`). The bus
+  retains the last pick, so `mfe-checkout` pre-fills the order's store
+  field even when it subscribes after the pick.
 
 ---
 
@@ -89,6 +102,9 @@ useRemoteElement('@tractor-store/explore', 'mfe-footer');
 <mfe-recommendations skus={selected?.sku ?? ''}></mfe-recommendations>
 ```
 
+`useRemoteElement` names the remote each tag is loaded from. Each is a
+custom element, so HTML is the only contract.
+
 ---
 
 ## Checkout — cart & purchase flow
@@ -119,12 +135,12 @@ useRemoteElement('@tractor-store/explore', 'mfe-footer');
 - `Checkout.tsx` — `mfe-store-picker`, `mfe-footer` (explore).
 - `Thanks.tsx` — `mfe-header`, `mfe-footer` (explore).
 
-### Events it speaks
+### Channels it speaks
 
 - **Listens to** `store:selected` from explore — pre-fills the order's
   store field.
-- **Emits** `nav:navigate` with intent `'checkout.thanks'` after a
-  successful order.
+- **Emits** `nav:navigate` with intent `'checkout.thanks'` (through
+  `navigateTo`) after a successful order.
 - **No bus for the cart.** `<mfe-add-to-cart>` and `<mfe-mini-cart>`
   are both checkout elements from the same bundle, so they share the
   module-level store in `data/cart-store.ts` and always show the same
@@ -145,11 +161,24 @@ useRemoteElement('@tractor-store/explore', 'mfe-footer');
 
 ## Cross-remote events
 
-| Event            | Emitter                              | Subscriber                         |
-| ---------------- | ------------------------------------ | ---------------------------------- |
-| `nav:navigate`   | `<NavLink>` + direct emitters        | host (`createNavigation`)          |
-| `nav:resolve`    | host (registers its resolver)        | `useNavIntent` in every remote     |
-| `store:selected` | explore (`mfe-store-picker`)         | checkout (`mfe-checkout`)          |
+Every channel on the bus
+([`@softarc/native-federation-communication`][nf-comm]):
+
+| Channel          | Kind    | Emitter                                   | Subscriber                            |
+| ---------------- | ------- | ----------------------------------------- | ------------------------------------- |
+| `nav:navigate`   | command | `navigateTo` (`<NavLink>`, checkout page) | host (`handleNavigateCommands`)       |
+| `nav:intents`    | state   | host (publishes the intent table)         | `useNavIntent` in every remote        |
+| `store:selected` | state   | explore (`mfe-store-picker`)              | checkout (`mfe-checkout`)             |
+
+A state value is retained, so a late subscriber gets the current one;
+a command (`{ retain: false }`) only reaches the listeners subscribed
+at that moment. Each channel's name and value type are declared once,
+by augmenting the package's `Channels` interface in
+`libs/contracts/index.ts`. `bus.emit` and `bus.on` take their types
+from it without type arguments, so a value that doesn't match is a
+compile error on both ends.
+
+[nf-comm]: https://github.com/native-federation/communication
 
 ## Contracts
 
@@ -157,14 +186,14 @@ The apps share no runtime code. What the teams agree on is one
 types-only file, `libs/contracts/index.ts` (alias
 `@tractor-store/contracts`):
 
-| Type                                       | Used for                                                       |
-| ------------------------------------------ | -------------------------------------------------------------- |
-| `EnvironmentConfig`                        | the shape of every app's `env.config.json`                     |
-| `RemoteElementModule`                      | what every exposed `mfe-*` module exports (`bootstrap`)        |
-| `NavContribution`, `NavIntent`             | each remote's `nav-contribution.ts`                            |
-| `NavPayload`, `NavResolver`, `RouteParams` | links in the remotes and params on routed elements             |
-| `Events` and the payload types             | every event on the bus, plus the `window.__NF_REGISTRY__` type |
-| `JSX.IntrinsicElements`                    | the embeddable `mfe-*` tags and their attributes               |
+| Type                                       | Used for                                                |
+| ------------------------------------------ | ------------------------------------------------------- |
+| `EnvironmentConfig`                        | the shape of every app's `env.config.json`              |
+| `RemoteElementModule`                      | what every exposed `mfe-*` module exports (`bootstrap`) |
+| `NavContribution`, `NavIntent`             | each remote's `nav-contribution.ts`                     |
+| `NavPayload`, `NavIntents`, `RouteParams`  | links in the remotes and params on routed elements      |
+| `Channels` augmentation and payload types  | every channel on the bus                                |
+| `JSX.IntrinsicElements`                    | the embeddable `mfe-*` tags and their attributes        |
 
 Everything else, including the bootstrap, the custom-element wrapper,
 the remote loader, `<NavLink>` and the button, is written out in each

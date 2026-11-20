@@ -5,7 +5,7 @@ import { cdnImageLoader } from '../../../app.config';
 import { testEnv } from '../../../testing/env.fixture';
 import { recommendationFixture } from '../../../testing/recommendation.fixture';
 import { RecommendationComponent } from './recommendation.component';
-import { publishNavResolver } from '../../../testing/nav-resolver.stub';
+import { publishNavIntents } from '../../../testing/nav-intents.stub';
 
 const [item] = recommendationFixture;
 
@@ -16,9 +16,7 @@ describe('RecommendationComponent', () => {
         { provide: IMAGE_LOADER, useValue: cdnImageLoader(testEnv.cdnUrl) },
       ],
     });
-    publishNavResolver(
-      (id, payload) => `/${id}?${new URLSearchParams(payload)}`,
-    );
+    publishNavIntents({ 'decide.product': '/decide/product/{id}' });
   });
 
   async function render() {
@@ -32,7 +30,7 @@ describe('RecommendationComponent', () => {
     const link = (await render()).querySelector('a')!;
     expect(link.textContent).toContain(item.name);
     expect(link.getAttribute('href')).toBe(
-      '/decide.product?id=AU-01&sku=AU-01-SI',
+      '/decide/product/AU-01?sku=AU-01-SI',
     );
   });
 

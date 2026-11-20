@@ -7,6 +7,8 @@ import type {
 } from '@softarc/native-federation-orchestrator';
 import type {
   NavContribution,
+  NavIntents,
+  NavPayload,
 } from '@tractor-store/contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { testManifest } from '../testing/manifest.fixture';
@@ -15,7 +17,7 @@ import {
   decideContribution,
   exploreContribution,
 } from '../testing/nav-contribution.fixture';
-import { provideNavigation } from './navigation';
+import { handleNavigateCommands, provideNavigation, urlFor } from './navigation';
 import { bus, type ChannelValue } from '@softarc/native-federation-communication';
 
 const bothRemotes = () =>
@@ -44,11 +46,13 @@ const setup = async (
   await TestBed.inject(ApplicationInitStatus).donePromise;
   const router = TestBed.inject(Router);
 
-  const resolve = bus.peek('nav:resolve')!;
+  const intents = bus.peek('nav:intents')!;
+  const url = (id: string, payload?: NavPayload) =>
+    urlFor(intents, id, payload);
   const navigate = (data: ChannelValue<'nav:navigate'>) =>
     bus.emit('nav:navigate', data, { retain: false });
 
-  return { router, navigateByUrl, resolve, navigate };
+  return { router, navigateByUrl, intents, url, navigate };
 };
 
 describe('provideNavigation', () => {
@@ -84,7 +88,7 @@ describe('provideNavigation', () => {
       const { router } = await setup(nf);
       expect(router.config.map((r) => r.path)).toEqual([
         'explore',
-        'explore/products',
+        'explore/products/:category',
         '**',
       ]);
       expect(consoleWarn).toHaveBeenCalled();
@@ -106,7 +110,7 @@ describe('provideNavigation', () => {
       const { router } = await setup(bothRemotes());
       expect(router.config.map((r) => r.path)).toEqual([
         'explore',
-        'explore/products',
+        'explore/products/:category',
         'decide/product/:id',
         '**',
       ]);
@@ -141,7 +145,7 @@ describe('provideNavigation', () => {
       );
       expect(product?.data).toEqual({
         remoteName: '@tractor-store/decide',
-        element: 'mfe-decide-product',
+        element: 'mfe-product',
       });
       expect(typeof product?.loadComponent).toBe('function');
     });
@@ -166,34 +170,38 @@ describe('provideNavigation', () => {
     });
   });
 
-  describe('nav:resolve', () => {
-    it('publishes a resolver for links in the remotes', async () => {
-      const { resolve } = await setup(bothRemotes());
-      expect(resolve('explore.home')).toBe('/explore');
-      expect(resolve('explore.products')).toBe('/explore/products');
+  describe('nav:intents', () => {
+    it('publishes every intent path for links in the remotes', async () => {
+      const { intents } = await setup(bothRemotes());
+      expect(intents).toEqual({
+        'explore.home': '/explore',
+        'explore.products.category': '/explore/products/{category}',
+        'decide.product': '/decide/product/{id}',
+        'decide.about': '/decide/about',
+      });
     });
 
     it('fills path params and turns the other payload keys into the query', async () => {
-      const { resolve } = await setup(bothRemotes());
-      expect(resolve('decide.product', { id: 'CL-01', sku: 'CL-01-GR' })).toBe(
+      const { url } = await setup(bothRemotes());
+      expect(url('decide.product', { id: 'CL-01', sku: 'CL-01-GR' })).toBe(
         '/decide/product/CL-01?sku=CL-01-GR',
       );
     });
 
     it('URL-encodes path params and query keys and values', async () => {
-      const { resolve } = await setup(bothRemotes());
-      expect(resolve('decide.product', { id: 'a b', 'q&': 'x=y' })).toBe(
+      const { url } = await setup(bothRemotes());
+      expect(url('decide.product', { id: 'a b', 'q&': 'x=y' })).toBe(
         '/decide/product/a%20b?q%26=x%3Dy',
       );
     });
 
-    it('resolves link-only intents too', async () => {
+    it('includes link-only intents', async () => {
       const { nf, manifest } = onlyRemote({
         basePath: 'git',
         intents: [{ id: 'external', path: '/somewhere' }],
       });
-      const { resolve } = await setup(nf, manifest);
-      expect(resolve('git.external')).toBe('/git/somewhere');
+      const { url } = await setup(nf, manifest);
+      expect(url('git.external')).toBe('/git/somewhere');
     });
 
     it('warns when two remotes define the same intent id and keeps the last', async () => {
@@ -211,21 +219,21 @@ describe('provideNavigation', () => {
           },
         },
       });
-      const { resolve } = await setup(nf, {
+      const { url } = await setup(nf, {
         '@x/a': 'http://a/remoteEntry.json',
         '@x/b': 'http://b/remoteEntry.json',
       });
-      expect(resolve('shop.home')).toBe('/shop/b');
+      expect(url('shop.home')).toBe('/shop/b');
       expect(consoleWarn).toHaveBeenCalledWith(
         expect.stringContaining('"shop.home"'),
       );
     });
 
     it('returns null for an unknown intent or a missing path param', async () => {
-      const { resolve } = await setup(bothRemotes());
-      expect(resolve('nope.nothing')).toBeNull();
-      expect(resolve('decide.product')).toBeNull();
-      expect(resolve('decide.product', { sku: 'X' })).toBeNull();
+      const { url } = await setup(bothRemotes());
+      expect(url('nope.nothing')).toBeNull();
+      expect(url('decide.product')).toBeNull();
+      expect(url('decide.product', { sku: 'X' })).toBeNull();
     });
   });
 
@@ -251,9 +259,57 @@ describe('provideNavigation', () => {
 
     it('does not replay a command emitted before the host listened', async () => {
       // A stale command a remote emitted without retain: false must not trigger a navigation on start-up.
-      bus.emit('nav:navigate', { id: 'explore.products' });
+      bus.emit('nav:navigate', { id: 'explore.home' });
       const { navigateByUrl } = await setup(bothRemotes());
       expect(navigateByUrl).not.toHaveBeenCalled();
     });
+
+    it('stops handling commands once the app is destroyed', async () => {
+      const { navigate, navigateByUrl } = await setup(bothRemotes());
+      // Destroys the environment injector, which runs the DestroyRef cleanup.
+      TestBed.resetTestingModule();
+      navigate({ id: 'explore.home' });
+      expect(navigateByUrl).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('handleNavigateCommands', () => {
+  // explore.home must resolve, or the "not navigated" tests below would pass even with a live listener.
+  const intents: NavIntents = {
+    'explore.home': '/explore',
+    'decide.product': '/decide/product/{id}',
+  };
+  const listen = () => {
+    const router = { navigateByUrl: vi.fn(() => Promise.resolve(true)) };
+    return { router, off: handleNavigateCommands(router, intents) };
+  };
+
+  it('navigates to the resolved URL of a nav:navigate command', () => {
+    const { router } = listen();
+    bus.emit('nav:navigate', { id: 'decide.product', payload: { id: 'CL-01' } }, { retain: false });
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/decide/product/CL-01');
+  });
+
+  it('ignores a command that was retained before it subscribed', () => {
+    bus.emit('nav:navigate', { id: 'explore.home' });
+    const { router } = listen();
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('logs an intent it cannot resolve instead of navigating', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { router } = listen();
+    bus.emit('nav:navigate', { id: 'decide.product' }, { retain: false });
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith('[nav] cannot navigate to "decide.product"');
+    error.mockRestore();
+  });
+
+  it('stops listening once unsubscribed', () => {
+    const { router, off } = listen();
+    off();
+    bus.emit('nav:navigate', { id: 'explore.home' }, { retain: false });
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
   });
 });

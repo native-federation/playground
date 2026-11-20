@@ -20,7 +20,7 @@ const setup = async (opts: {
   params?: Record<string, string>;
   query?: Record<string, string | string[]>;
 }) => {
-  const { remoteName = '@x/decide', element = 'mfe-decide-product' } = opts;
+  const { remoteName = '@x/decide', element = 'mfe-product' } = opts;
   const loadRemote = opts.loadRemote ?? vi.fn<LoadRemote>(async () => {});
   // ActivatedRoute's param maps are BehaviorSubject-like: they emit on subscribe.
   const params$ = new BehaviorSubject<ParamMap>(
@@ -69,9 +69,9 @@ describe('RemoteShellComponent', () => {
   it('loads the remote element and mounts it', async () => {
     const { loadRemote, mounted } = await setup({
       remoteName: '@x/explore',
-      element: 'mfe-explore-home',
+      element: 'mfe-home',
     });
-    expect(loadRemote).toHaveBeenCalledWith('@x/explore', 'mfe-explore-home');
+    expect(loadRemote).toHaveBeenCalledWith('@x/explore', 'mfe-home');
     expect(mounted()).not.toBeNull();
   });
 
@@ -93,7 +93,7 @@ describe('RemoteShellComponent', () => {
     });
     const fixture = TestBed.createComponent(RemoteShellComponent);
     fixture.componentRef.setInput('remoteName', '@x/explore');
-    fixture.componentRef.setInput('element', 'mfe-explore-home');
+    fixture.componentRef.setInput('element', 'mfe-home');
     fixture.detectChanges();
     expect(
       fixture.nativeElement.querySelector('[role="status"]')?.textContent,

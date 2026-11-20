@@ -10,9 +10,10 @@
     "typecheck": "pnpm -r --filter \"@tractor-store/*\" typecheck"
   },
   "devDependencies": {
-    "@softarc/native-federation": "~4.9.0",
-    "@softarc/native-federation-esbuild": "~4.3.0",
-    "@softarc/native-federation-orchestrator": "~4.9.0",
+    "@softarc/native-federation": "~4.10.0",
+    "@softarc/native-federation-communication": "4.0.0-next.2",
+    "@softarc/native-federation-esbuild": "~4.4.0",
+    "@softarc/native-federation-orchestrator": "~4.10.0",
     "@types/node": "^22.10.5",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",

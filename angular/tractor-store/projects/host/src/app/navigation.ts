@@ -12,7 +12,8 @@ import type {
 import { bus } from '@softarc/native-federation-communication';
 import type {
   NavContribution,
-  NavResolver,
+  NavIntents,
+  NavPayload,
 } from '@tractor-store/contracts';
 
 interface RemoteContribution {
@@ -20,10 +21,8 @@ interface RemoteContribution {
   readonly contribution: NavContribution;
 }
 
-const PARAM = /^\{(\w+)\}$/;
-
 // Before the first route activates: load every remote's nav-contribution, turn
-// it into routes, publish the resolver for links in the remotes and handle
+// it into routes, publish the intents for links in the remotes and handle
 // their `nav:navigate` commands.
 export const provideNavigation = (
   nf: NativeFederationResult,
@@ -45,22 +44,27 @@ export const provideNavigation = (
         : routes,
     );
 
-    const resolve = createResolver(contributions);
-    bus.emit('nav:resolve', resolve);
+    const intents = toIntents(contributions);
+    bus.emit('nav:intents', intents);
 
-    // replay: false ignores a stale command if a remote emitted it without retain: false.
-    destroyRef.onDestroy(
-      bus.on(
-        'nav:navigate',
-        ({ id, payload }) => {
-          const url = resolve(id, payload);
-          if (url === null) console.error(`[nav] cannot navigate to "${id}"`);
-          else void router.navigateByUrl(url);
-        },
-        { replay: false },
-      ),
-    );
+    destroyRef.onDestroy(handleNavigateCommands(router, intents));
   });
+
+// Handles the remotes' `nav:navigate` commands; returns the unsubscribe function.
+export const handleNavigateCommands = (
+  router: Pick<Router, 'navigateByUrl'>,
+  intents: NavIntents,
+): (() => void) =>
+  // replay: false ignores a stale command if a remote emitted it without retain: false.
+  bus.on(
+    'nav:navigate',
+    ({ id, payload }) => {
+      const url = urlFor(intents, id, payload);
+      if (url === null) console.error(`[nav] cannot navigate to "${id}"`);
+      else void router.navigateByUrl(url);
+    },
+    { replay: false },
+  );
 
 // A remote that fails to load or exposes something invalid is skipped, so the
 // rest of the store keeps working.
@@ -99,9 +103,7 @@ const toRoutes = (contributions: readonly RemoteContribution[]): Routes =>
     intents
       .filter((intent) => intent.element !== undefined)
       .map((intent) => ({
-        path: segments(basePath, intent.path)
-          .map((segment) => segment.replace(PARAM, ':$1'))
-          .join('/'),
+        path: segments(basePath, intent.path).join('/').replace(PARAM, ':$1'),
         loadComponent: () =>
           import('./remote-shell.component').then(
             (m) => m.RemoteShellComponent,
@@ -110,46 +112,47 @@ const toRoutes = (contributions: readonly RemoteContribution[]): Routes =>
       })),
   );
 
-// Payload keys fill the `{param}` segments; the rest become the query string.
-const createResolver = (
-  contributions: readonly RemoteContribution[],
-): NavResolver => {
-  const templates = new Map<string, string[]>();
+const toIntents = (contributions: readonly RemoteContribution[]): NavIntents => {
+  const intents: Record<string, string> = {};
   for (const { remoteName, contribution } of contributions) {
     for (const intent of contribution.intents) {
       const id = `${contribution.basePath}.${intent.id}`;
-      if (templates.has(id)) {
+      if (Object.hasOwn(intents, id)) {
         console.warn(
           `[nav] "${remoteName}" redefines intent "${id}"; the last one wins`,
         );
       }
-      templates.set(id, segments(contribution.basePath, intent.path));
+      intents[id] = `/${segments(contribution.basePath, intent.path).join('/')}`;
     }
   }
-
-  return (id, payload = {}) => {
-    const template = templates.get(id);
-    if (!template) return null;
-
-    const query: Record<string, string> = { ...payload };
-    const path: string[] = [];
-    for (const segment of template) {
-      const name = PARAM.exec(segment)?.[1];
-      if (name === undefined) {
-        path.push(segment);
-        continue;
-      }
-      if (payload[name] === undefined) return null;
-      path.push(encodeURIComponent(payload[name]));
-      delete query[name];
-    }
-
-    const search = Object.entries(query)
-      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-      .join('&');
-    return `/${path.join('/')}${search ? `?${search}` : ''}`;
-  };
+  // Frozen: every remote gets this same object from the bus.
+  return Object.freeze(intents);
 };
+
+// The same function as each remote's shared/navigate.ts, so an href and a navigation never differ.
+// Payload keys fill the path's `{param}` segments; the rest become the query string.
+export const urlFor = (
+  intents: NavIntents,
+  id: string,
+  payload: NavPayload = {},
+): string | null => {
+  // hasOwn, so an id like 'constructor' doesn't hit Object.prototype.
+  const path = Object.hasOwn(intents, id) ? intents[id] : undefined;
+  if (path === undefined) return null;
+  const params = [...path.matchAll(PARAM)].map(([, name]) => name);
+  if (params.some((name) => payload[name] === undefined)) return null;
+
+  const url = path.replace(PARAM, (_, name: string) =>
+    encodeURIComponent(payload[name]),
+  );
+  const query = Object.entries(payload)
+    .filter(([key]) => !params.includes(key))
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&');
+  return query ? `${url}?${query}` : url;
+};
+
+const PARAM = /\{(\w+)\}/g;
 
 const segments = (basePath: string, path: string): string[] =>
   `${basePath}/${path}`.split('/').filter((segment) => segment !== '');

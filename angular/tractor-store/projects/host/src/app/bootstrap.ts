@@ -1,3 +1,5 @@
+// Installs the page's one bus before any remote code runs.
+import '@softarc/native-federation-communication/install';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';

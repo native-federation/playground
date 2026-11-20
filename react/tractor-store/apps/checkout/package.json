@@ -11,7 +11,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@softarc/native-federation-orchestrator": "~4.9.0",
+    "@softarc/native-federation-communication": "4.0.0-next.2",
+    "@softarc/native-federation-orchestrator": "~4.10.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }

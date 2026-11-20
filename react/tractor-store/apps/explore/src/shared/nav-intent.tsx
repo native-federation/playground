@@ -1,27 +1,20 @@
 import { useEffect, useState, type AnchorHTMLAttributes, type MouseEvent } from 'react';
-import type { Events, NavPayload, NavResolver } from '@tractor-store/contracts';
+import { bus } from '@softarc/native-federation-communication';
+import type { NavIntents, NavPayload } from '@tractor-store/contracts';
+import { navigateTo, urlFor } from './navigate';
 
-// Links to a page by intent id, e.g. 'decide.product': the host resolves the href and navigates.
+// Links to a page by intent id, e.g. 'decide.product': the href comes from the host's nav:intents, and the host navigates.
 export const useNavIntent = (intent: string, payload: NavPayload = {}) => {
-  const [resolve, setResolve] = useState<NavResolver>();
-  useEffect(
-    () =>
-      window.__NF_REGISTRY__!.onReady<Events['nav:resolve']>('nav:resolve', (resolver) =>
-        setResolve(() => resolver),
-      ),
-    [],
-  );
-  const url = resolve?.(intent, payload) ?? null;
+  const [intents, setIntents] = useState<NavIntents>({});
+  useEffect(() => bus.on('nav:intents', setIntents), []);
+  const url = urlFor(intents, intent, payload);
 
   const onClick = (event: MouseEvent<HTMLElement>): void => {
     // Leave new-tab and new-window clicks on real links to the browser.
     if (event.currentTarget.tagName === 'A' && isModifiedClick(event)) return;
     if (url === null) return;
     event.preventDefault();
-    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
-      id: intent,
-      payload,
-    });
+    navigateTo({ id: intent, payload });
   };
 
   return { url, onClick, 'aria-disabled': url === null ? true : undefined };

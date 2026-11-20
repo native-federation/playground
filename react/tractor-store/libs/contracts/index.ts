@@ -2,14 +2,8 @@
 // so each app keeps its own implementation of the flow.
 import type { HTMLAttributes } from 'react';
 import type { NativeFederationResult } from '@softarc/native-federation-orchestrator';
-import type { NFEventRegistry } from '@softarc/native-federation-orchestrator/registry';
 
 declare global {
-  interface Window {
-    // Installed by whichever main.tsx runs first (see apps/host/src/main.tsx).
-    __NF_REGISTRY__?: NFEventRegistry;
-  }
-
   // The `mfe-*` elements one team embeds in another team's page, and the
   // attributes they read.
   namespace JSX {
@@ -57,9 +51,9 @@ export type NavPayload = Readonly<Record<string, string>>;
 // Repeated query params arrive as arrays.
 export type RouteParams = Readonly<Record<string, string | readonly string[]>>;
 
-// Published by the host: turns an intent into a URL, or null when it is unknown
-// or a path param is missing.
-export type NavResolver = (id: string, payload?: NavPayload) => string | null;
+// Published by the host: every intent's absolute path by full id, e.g.
+// 'decide.product' → '/decide/product/{id}'. Params are `{name}` placeholders.
+export type NavIntents = Readonly<Record<string, string>>;
 
 export interface NavigatePayload {
   readonly id: string;
@@ -70,12 +64,13 @@ export interface StoreSelectedPayload {
   readonly id: string;
 }
 
-// Every event on window.__NF_REGISTRY__, by name.
-export interface Events {
-  // Command (emit with replay 0): ask the host to navigate to an intent.
-  'nav:navigate': NavigatePayload;
-  // Resource (register/onReady): the host's NavResolver. register() calls a
-  // function argument as a provider, so the host registers `() => resolve`.
-  'nav:resolve': NavResolver;
-  'store:selected': StoreSelectedPayload;
+// Every channel on the bus, by name.
+declare module '@softarc/native-federation-communication' {
+  interface Channels {
+    // Command (emit with { retain: false }): ask the host to navigate to an intent.
+    'nav:navigate': NavigatePayload;
+    // State: the host's NavIntents, retained for links that render later.
+    'nav:intents': NavIntents;
+    'store:selected': StoreSelectedPayload;
+  }
 }

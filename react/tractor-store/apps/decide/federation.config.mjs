@@ -17,10 +17,12 @@ export default withNativeFederation({
     'react-dom/server.node',
     'react-dom/server.browser',
     'react-dom/test-utils',
+    // Bundled into every app instead of shared: each copy finds the page's one bus on globalThis.__NF_BUS__.
+    // A regex, because a string skips only the root entry and would leave /install shared.
+    /^@softarc\/native-federation-communication(\/|$)/,
   ],
 
   features: {
-    ignoreUnusedDeps: true,
     denseChunking: true,
     denseExternals: true,
     integrityHashes: true,

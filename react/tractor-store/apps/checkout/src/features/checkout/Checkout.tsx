@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import type { Events } from '@tractor-store/contracts';
+import { bus } from '@softarc/native-federation-communication';
 import { useStyles } from '../../app';
 import { useCart } from '../../data/cart-store';
 import { Button, ButtonLink } from '../../shared/components/Button';
 import { CompactHeader } from '../../shared/components/CompactHeader';
+import { navigateTo } from '../../shared/navigate';
 import { useRemoteElement } from '../../shared/remote-element';
 import { checkoutStyles } from './checkout-styles';
 
@@ -17,13 +18,7 @@ export function Checkout() {
   const [lastname, setLastname] = useState('');
   const [storeId, setStoreId] = useState('');
 
-  useEffect(
-    () =>
-      window.__NF_REGISTRY__!.on<Events['store:selected']>('store:selected', ({ data }) =>
-        setStoreId(data.id),
-      ),
-    [],
-  );
+  useEffect(() => bus.on('store:selected', ({ id }) => setStoreId(id)), []);
 
   const isReady = Boolean(firstname && lastname && storeId);
 
@@ -31,9 +26,7 @@ export function Checkout() {
     event.preventDefault();
     if (!isReady) return;
     cart.clear();
-    window.__NF_REGISTRY__!.emit<Events['nav:navigate']>('nav:navigate', {
-      id: 'checkout.thanks',
-    });
+    navigateTo({ id: 'checkout.thanks' });
   };
 
   return (
