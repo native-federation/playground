@@ -403,6 +403,12 @@ Amends ADR-04, ADR-05 and ADR-15.
     `/booking/{screeningId}/{seats}` and checkout reads only `routeParams`,
     never the bus. The `seats` string is now booking's own: the summary
     writes it, checkout reads it (`seats-param.ts`).
+  - **Rule: micro-frontends communicate only over the bus.** An element
+    gets its *configuration* once from whoever places it: an id attribute
+    for a fragment, `routeParams` for a page. Everything that changes at
+    runtime, or that one micro-frontend tells another, is a bus channel,
+    also between two elements on the same page. No DOM `CustomEvent`s
+    between teams, and no attributes that change at runtime.
   - ADR-05's rule "consumed only by elements the shell mounts at startup"
     applies to domain facts and commands. Retained state may be read by a
     page's fragments. ADR-15's "an embedded fragment emits and consumes no
@@ -412,16 +418,22 @@ Amends ADR-04, ADR-05 and ADR-15.
     booking (domain.md). The card showed both concerns on seating's page,
     and seating had to know booking's intent id and URL format. Now seating
     only knows seats.
-  - Why the bus and not a `seats` attribute: a custom element's attributes
-    are just as framework-agnostic, and seating does place the summary, so
-    an attribute would work and could never be stale. The bus is chosen
-    because the hold becomes **state any team can read without seating
-    changing** (a header basket, analytics), and because this demo exists
-    to show micro-frontends sharing state over the bus. That second reason
-    is a demo choice, stated as one.
+  - Why the bus and not a `seats` attribute or a DOM event: **one uniform
+    way to communicate**. Attributes and DOM events are just as
+    framework-agnostic, and seating does place the summary, so either would
+    work here. But each would be a second mechanism that only works
+    between a parent and its child, with its own contract style and
+    nothing to watch it. With one mechanism every cross-team message is a
+    typed `Channels` entry, shows in the shell's Events panel, and works
+    the same whether the other side is a child, a sibling or the shell.
+    It also makes the hold state any team can read without seating
+    changing (a header basket, analytics).
   - Retained, not a command: the summary and the plan mount in no fixed
     order, and replaying a hold is harmless, unlike `booking:confirmed`.
 - **Cost.**
+  - Between a parent and its child the bus is the long way round: the value
+    goes out to the whole page, and the child filters it (`screening-id`).
+    That is the price of one mechanism.
   - The contract between the two teams is now a channel name, a payload key
     set and a tag, all strings. A drifted tag or channel leaves seating's
     page without Continue, so the journey dead-ends, quieter than a

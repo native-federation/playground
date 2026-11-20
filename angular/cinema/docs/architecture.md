@@ -129,7 +129,10 @@ There are six. Anything not on this list is private to one repo.
 
 Pages take one `routeParams` property, and embedded fragments take named id
 attributes. That is two input conventions on purpose: a route passes a bag
-of params, and an embed passes one id.
+of params, and an embed passes one id. Both are **configuration**, set once
+by whoever places the element. Everything micro-frontends **communicate**
+goes over the bus, also between two elements on the same page
+([ADR-16](decisions.md#adr-16-seatings-hold-is-shared-state-the-handoff-stays-in-the-url)).
 
 The runtime contract is **strings**: tag names, exposed keys, intent ids,
 param names, event names and the manifest's remote names. TypeScript types
