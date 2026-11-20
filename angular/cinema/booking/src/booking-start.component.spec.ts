@@ -2,7 +2,7 @@ import { bus } from '@softarc/native-federation-communication';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { bootstrap } from './bootstrap';
 import type { NavigatePayload } from './contracts';
-import { publishNavResolver } from './testing/nav-resolver.stub';
+import { publishNavIntents } from './testing/nav-intents.stub';
 
 // Tested through the custom element, the way programme's page uses it: one screening-id attribute.
 describe('<mfe-booking-start>', () => {
@@ -11,9 +11,7 @@ describe('<mfe-booking-start>', () => {
   beforeEach(() => {
     navigations = [];
     bus.on('nav:navigate', (value) => navigations.push(value), { replay: false });
-    publishNavResolver((id, payload) =>
-      id === 'seating.plan' ? `/seating/${payload?.['screeningId']}` : null,
-    );
+    publishNavIntents({ 'seating.plan': '/seating/{screeningId}' });
   });
 
   afterEach(() => document.body.replaceChildren());

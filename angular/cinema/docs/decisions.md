@@ -61,7 +61,7 @@ here once; the other documents link to it.
   - Optional fields live only in the copies that set them (`menuLabel`,
     `fragments`, ADR-13). That knowingly lets the copies drift further.
   - Helpers are copied from the tractor store only where used:
-    `nav-intent.directive.ts` with its spec, `nav-resolver.stub.ts`, and
+    `nav-intent.directive.ts` and `navigate.ts` with their specs, `nav-intents.stub.ts`, and
     `testing/setup.ts` (a fresh real bus per test, in every repo except
     programme and account, which never touch the bus).
 - **Why.**
@@ -70,7 +70,7 @@ here once; the other documents link to it.
     skew handling.
   - The small, visible duplication *is* the polyrepo lesson.
 - **Cost.** Drift between copies is caught by no automated check, only by
-  the resolver's `[nav]` warnings and the walkthrough (testing.md).
+  the shell's `[nav]` warnings and the walkthrough (testing.md).
 - **Production note.** Use a types-only npm package as a devDependency.
   Never share contracts through federation.
 
@@ -268,9 +268,9 @@ here once; the other documents link to it.
   - The shell renders header links and fragment slots only for present
     remotes. The brand links to `/`, and `**` falls back to the first
     parameterless page in manifest order.
-  - The resolver warns about an unknown intent only when its team (the part
-    before the dot) loaded. `nav:navigate` to an unresolvable intent is a
-    silent no-op.
+  - The shell warns about a `nav:navigate` it cannot fill in only when the
+    intent's team (the part before the dot) loaded. One for an absent team
+    is a silent no-op.
 - **Why.** With the switcher (ADR-11), a remote being off is a normal
   state, not an incident. Warnings are kept for what a developer can fix:
   drift inside a loaded team, a missing param, an invalid contribution, a
@@ -386,7 +386,7 @@ Superseded by ADR-15: notifications removed.
 | Backend, HTTP, persistence, points history | Inline mock data. A reload resets the booking and the points. |
 | Real payment, seat-hold expiry, staff/admin actor | Features, not architecture. |
 | Cross-tab `storage` sync | A tractor-store nicety with no architectural lesson. |
-| Query strings in intents | The copied resolver supports them; the demo does not use them. |
+| Query strings in intents | The copied `urlFor()` supports them; the demo does not use them. |
 | A "not available" page | `**` redirects to a page that loaded, as in the tractor store. |
 | A fake bus | Specs use a real one (`createBus()`) through `testing/setup.ts` (ADR-03). |
 | `integrityHashes` | Production hardening that is noise in a demo. |

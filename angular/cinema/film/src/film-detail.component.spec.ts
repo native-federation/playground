@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { NavigatePayload, RouteParams } from './contracts';
 import { FilmDetailComponent } from './film-detail.component';
-import { publishNavResolver } from './testing/nav-resolver.stub';
+import { publishNavIntents } from './testing/nav-intents.stub';
 import { bus } from '@softarc/native-federation-communication';
 
 describe('FilmDetailComponent', () => {
@@ -62,8 +62,8 @@ describe('FilmDetailComponent', () => {
   });
 
   it('asks the shell for the programme from the back link', async () => {
-    // Any non-null URL makes the link live; the shell's real resolver is tested there.
-    publishNavResolver((id) => `/${id}`);
+    // Without the intent the link stays disabled; the shell builds the real table.
+    publishNavIntents({ 'programme.list': '/programme' });
     const { el } = await render({ filmId: 'f-1' });
     el.querySelector<HTMLElement>('a[navIntent="programme.list"]')!.click();
     expect(navigations).toEqual([{ id: 'programme.list', payload: {} }]);

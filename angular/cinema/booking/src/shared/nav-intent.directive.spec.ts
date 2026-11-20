@@ -1,24 +1,14 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import type {
-  NavigatePayload,
-  NavResolver,
-} from '../contracts';
+import type { NavigatePayload } from '../contracts';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { publishNavResolver } from '../testing/nav-resolver.stub';
+import { publishNavIntents } from '../testing/nav-intents.stub';
 import { NavIntentDirective } from './nav-intent.directive';
 import { bus } from '@softarc/native-federation-communication';
 
-// Stand-in for the shell's resolver: knows two intents, needs {filmId} for the film.
-const resolver: NavResolver = (id, payload = {}) => {
-  if (id === 'programme.list') return '/';
-  if (id === 'film.detail' && payload['filmId']) {
-    return `/film/${payload['filmId']}`;
-  }
-  return null;
-};
-
-const publishResolver = () => publishNavResolver(resolver);
+// Stand-in for the shell's intents: two of them, and the film needs {filmId}.
+const publishIntents = () =>
+  publishNavIntents({ 'programme.list': '/', 'film.detail': '/film/{filmId}' });
 
 @Component({
   imports: [NavIntentDirective],
@@ -44,8 +34,8 @@ describe('NavIntentDirective', () => {
     );
   });
 
-  function render(resolverPublished = true) {
-    if (resolverPublished) publishResolver();
+  function render(intentsPublished = true) {
+    if (intentsPublished) publishIntents();
     TestBed.configureTestingModule({ imports: [HostComponent] });
     const fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();
@@ -99,7 +89,7 @@ describe('NavIntentDirective', () => {
     expect(navigations).toEqual([]);
   });
 
-  it('marks links aria-disabled until the shell publishes its resolver', () => {
+  it('marks links aria-disabled until the shell publishes its intents', () => {
     const { fixture, anchors, button } = render(false);
     expect(anchors[0].getAttribute('aria-disabled')).toBe('true');
     // Buttons keep their own role; only href-less anchors need role="link".
@@ -109,14 +99,14 @@ describe('NavIntentDirective', () => {
     anchors[0].click();
     expect(navigations).toEqual([]);
 
-    publishResolver();
+    publishIntents();
     fixture.detectChanges();
     expect(anchors[0].getAttribute('aria-disabled')).toBeNull();
     expect(anchors[0].getAttribute('role')).toBeNull();
     expect(anchors[0].getAttribute('href')).toBe('/');
   });
 
-  it('stays disabled and silent when the resolver cannot build the URL', () => {
+  it('stays disabled and silent when a path param is missing', () => {
     const { anchors } = render();
     expect(anchors[2].getAttribute('aria-disabled')).toBe('true');
     expect(anchors[2].getAttribute('role')).toBe('link');

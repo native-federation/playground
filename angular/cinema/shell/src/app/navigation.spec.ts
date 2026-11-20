@@ -5,9 +5,7 @@ import type {
   FederationManifest,
   NativeFederationResult,
 } from '@softarc/native-federation-orchestrator';
-import type {
-  NavContribution,
-} from '../contracts';
+import type { NavContribution } from '../contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { testManifest } from '../testing/manifest.fixture';
 import { fakeNfByRemote } from '../testing/native-federation.stub';
@@ -48,11 +46,11 @@ const setup = async (
   await TestBed.inject(ApplicationInitStatus).donePromise;
   const router = TestBed.inject(Router);
 
-  const resolve = bus.peek('nav:resolve')!;
+  const intents = bus.peek('nav:intents')!;
   const navigate = (data: ChannelValue<'nav:navigate'>) =>
     bus.emit('nav:navigate', data, { retain: false });
 
-  return { router, navigateByUrl, resolve, navigate };
+  return { router, navigateByUrl, intents, navigate };
 };
 
 describe('provideNavigation', () => {
@@ -142,36 +140,24 @@ describe('provideNavigation', () => {
     });
   });
 
-  describe('nav:resolve', () => {
-    it('publishes a resolver for links in the remotes', async () => {
-      const { resolve } = await setup(bothRemotes());
-      expect(resolve('programme.list')).toBe('/programme');
-      expect(resolve('seating.plan', { screeningId: 's1' })).toBe(
-        '/seating/s1',
-      );
+  describe('nav:intents', () => {
+    it('publishes every intent by full id with its absolute path', async () => {
+      const { intents } = await setup(bothRemotes());
+      expect(intents).toEqual({
+        'programme.list': '/programme',
+        'seating.plan': '/seating/{screeningId}',
+      });
+      // Every remote gets this same object from the bus.
+      expect(Object.isFrozen(intents)).toBe(true);
     });
 
-    it('fills path params and turns the other payload keys into the query', async () => {
-      const { resolve } = await setup(bothRemotes());
-      expect(resolve('seating.plan', { screeningId: 's1', row: 'A' })).toBe(
-        '/seating/s1?row=A',
-      );
-    });
-
-    it('URL-encodes path params and query keys and values', async () => {
-      const { resolve } = await setup(bothRemotes());
-      expect(resolve('seating.plan', { screeningId: 'a b', 'q&': 'x=y' })).toBe(
-        '/seating/a%20b?q%26=x%3Dy',
-      );
-    });
-
-    it('resolves link-only intents too', async () => {
+    it('normalises slashes in the path and includes link-only intents', async () => {
       const { nf, manifest } = onlyRemote({
         basePath: 'git',
-        intents: [{ id: 'external', path: '/somewhere' }],
+        intents: [{ id: 'external', path: '/somewhere/' }],
       });
-      const { resolve } = await setup(nf, manifest);
-      expect(resolve('git.external')).toBe('/git/somewhere');
+      const { intents } = await setup(nf, manifest);
+      expect(intents).toEqual({ 'git.external': '/git/somewhere' });
     });
 
     it('warns when two remotes define the same intent id and keeps the last', async () => {
@@ -189,41 +175,31 @@ describe('provideNavigation', () => {
           },
         },
       });
-      const { resolve } = await setup(nf, {
+      const { intents } = await setup(nf, {
         '@x/a': 'http://a/remoteEntry.json',
         '@x/b': 'http://b/remoteEntry.json',
       });
-      expect(resolve('shop.home')).toBe('/shop/b');
+      expect(intents['shop.home']).toBe('/shop/b');
       expect(consoleWarn).toHaveBeenCalledWith(
         expect.stringContaining('"shop.home"'),
       );
     });
-
-    it('returns null and warns for an unknown intent in a loaded team or a missing path param', async () => {
-      const { resolve } = await setup(bothRemotes());
-      expect(resolve('programme.nothing')).toBeNull();
-      expect(resolve('seating.plan')).toBeNull();
-      expect(resolve('seating.plan', { row: 'A' })).toBeNull();
-      expect(consoleWarn).toHaveBeenCalledWith(
-        '[nav] unknown intent "programme.nothing"',
-      );
-      expect(consoleWarn).toHaveBeenCalledWith(
-        '[nav] intent "seating.plan" is missing param "screeningId"',
-      );
-    });
-
-    it('returns null silently for an intent of a team that did not load', async () => {
-      const { resolve } = await setup(bothRemotes());
-      expect(resolve('film.detail', { filmId: 'f-1' })).toBeNull();
-      expect(consoleWarn).not.toHaveBeenCalled();
-    });
   });
 
   describe('nav:navigate', () => {
-    it('navigates to the resolved URL', async () => {
+    it('navigates to the URL filled in from the intents', async () => {
       const { navigate, navigateByUrl } = await setup(bothRemotes());
-      navigate({ id: 'seating.plan', payload: { screeningId: 's1' } });
-      expect(navigateByUrl).toHaveBeenCalledWith('/seating/s1');
+      navigate({ id: 'seating.plan', payload: { screeningId: 's1', row: 'A' } });
+      expect(navigateByUrl).toHaveBeenCalledWith('/seating/s1?row=A');
+    });
+
+    it('warns about an unknown intent or a missing param in a loaded team', async () => {
+      const { navigate, navigateByUrl } = await setup(bothRemotes());
+      navigate({ id: 'programme.nothing' });
+      navigate({ id: 'seating.plan', payload: { row: 'A' } });
+      expect(navigateByUrl).not.toHaveBeenCalled();
+      expect(consoleWarn).toHaveBeenCalledWith('[nav] cannot navigate to "programme.nothing"');
+      expect(consoleWarn).toHaveBeenCalledWith('[nav] cannot navigate to "seating.plan"');
     });
 
     it('does nothing when the target team did not load', async () => {

@@ -38,9 +38,9 @@ export type NavPayload = Readonly<Record<string, string>>;
 // Written by the shell onto a routed element as its `routeParams` property.
 export type RouteParams = Readonly<Record<string, string>>;
 
-// Published by the shell: turns an intent into a URL, or null when it is unknown
-// or a path param is missing.
-export type NavResolver = (id: string, payload?: NavPayload) => string | null;
+// Published by the shell: every intent's absolute path by full id, e.g.
+// 'film.detail' → '/film/{filmId}'. Params are `{name}` placeholders.
+export type NavIntents = Readonly<Record<string, string>>;
 
 export interface NavigatePayload {
   readonly id: string;
@@ -57,8 +57,8 @@ declare module '@softarc/native-federation-communication' {
   interface Channels {
     // Command (emit with { retain: false }): ask the shell to navigate to an intent.
     'nav:navigate': NavigatePayload;
-    // State: the shell's NavResolver, retained for links that render later.
-    'nav:resolve': NavResolver;
+    // State: the shell's NavIntents, retained for links that render later.
+    'nav:intents': NavIntents;
     // Command (emit with { retain: false }): a booking is counted once, by whoever listens now (ADR-05).
     'booking:confirmed': BookingConfirmed;
   }

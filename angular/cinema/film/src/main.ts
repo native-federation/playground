@@ -6,7 +6,7 @@ import {
 } from '@softarc/native-federation-orchestrator/options';
 import type { RouteParams } from './contracts';
 
-// Standalone only: no other remotes, so links stay inert (no shell resolver).
+// Standalone only: no other remotes, so links stay inert (no shell publishes nav:intents).
 initFederation({}, {
   ...useShimImportMap({ shimMode: true }),
   logger: consoleLogger,

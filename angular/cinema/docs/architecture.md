@@ -60,13 +60,17 @@ repo copies (ADR-03).
     page that loaded, in manifest order (programme comes first). If none loaded, `**` is an empty route
     (`children: []`) that keeps the URL and renders nothing in the outlet, so
     the router never throws `NG04002`. There is no "not available" page;
-  - emits the resolver on `nav:resolve` and handles `nav:navigate` (see
-    [Events](#events));
-  - the resolver is copied unchanged, with one addition: it
-    **`console.warn`s on a missing param, or on an unknown intent id whose
-    team did load**. Without that, a misspelled id looks exactly like a
-    remote that is down. An intent of a team that did not load returns
-    `null` silently (ADR-12).
+  - emits the intent table on `nav:intents` (full id → absolute path with
+    `{name}` placeholders, e.g. `'seating.plan'` → `'/seating/{screeningId}'`)
+    and handles `nav:navigate` (see [Events](#events)). The shell and every
+    `[navIntent]` copy fill in a URL with the same `urlFor()` from
+    `src/shared/navigate.ts`, so an `href` and a navigation never differ;
+  - one addition to the tractor-store host: a `nav:navigate` that cannot be
+    filled in **`console.warn`s when the intent's team did load** (an
+    unknown id or a missing param). Without that, a misspelled id looks
+    exactly like a remote that is down. An intent of a team that did not
+    load is ignored silently (ADR-12). A link with a drifted id or param
+    renders inert, like a link to an absent team.
 - `contributions.ts` loads the `nav-contribution` of every present remote
   with `Promise.allSettled` before Angular starts. An absent remote (off or
   down) is skipped silently (ADR-12); only a remote that loaded but exposes
@@ -120,7 +124,7 @@ There are six. Anything not on this list is private to one repo.
 | 2 | **Exposed element** | Exposed key = tag name. Its module is a `RemoteElementModule`: `{ bootstrap(): Promise<void> }`. Fragments are declared in the `nav-contribution`, never hard-coded in the shell. | Shell and each remote |
 | 3 | **`nav-contribution`** | `{ basePath, intents: [{ id, path, element, menuLabel? }], fragments?: [{ element, slot? }] }` with a **local** `id` (`'plan'`); the shell builds the full id `basePath.id` (`seating.plan`). `slot` is absent (pages embed it) or `'header'` (the shell also places it). | Shell, every remote, and each caller of an intent |
 | 4 | **`routeParams`** | One property the shell writes onto a routed element: **ids, plus the one documented `seats` string**. Param names equal the `{placeholders}` in the owner's path. | Shell, each page and each caller |
-| 5 | **Bus events** | `nav:navigate`, `nav:resolve`, `booking:confirmed` | Producer and consumers |
+| 5 | **Bus events** | `nav:navigate`, `nav:intents`, `booking:confirmed` | Producer and consumers |
 | 6 | **Embedded fragment** | Tag plus **one id as an attribute**: `<mfe-film-card film-id>`, `<mfe-booking-start screening-id>`. It emits and consumes no domain events. | The fragment's owner and the host page (programme) |
 
 Pages take one `routeParams` property, and embedded fragments take named id
@@ -144,7 +148,7 @@ prefix (Geers: "establish team prefixes").
 | `basePath` = first URL segment | `<team>` | `/seating/...` |
 | Intent id | `<team>.<thing>` | `seating.plan` |
 | Domain event | `<team>:<past-tense-verb>` | `booking:confirmed` |
-| Infrastructure event | `<capability>:<verb>` | `nav:navigate`, `nav:resolve` |
+| Infrastructure event | `<capability>:<noun or verb>` | `nav:navigate`, `nav:intents` |
 
 Avoid names that stutter. `mfe-seating-plan` is fine. `mfe-seating-seat-plan`
 is not.
@@ -178,7 +182,7 @@ team owns its URL prefix**, and no team's URL borrows another team's noun.
   the address bar shows `/booking/s-101/A1,A2`. A typed `A1%2CA2` deep link
   works too. Booking receives the decoded value through `routeParams`.
 
-The copied resolver also turns extra payload keys into a query string. The
+The copied `urlFor()` also turns extra payload keys into a query string. The
 demo simply does not use that, and the shell does not pass query params on
 to `routeParams`.
 
@@ -196,7 +200,7 @@ value a **command**: only current listeners get it, and nothing is kept.
 | Channel | Kind | Direction | Emitted / subscribed with |
 |---|---|---|---|
 | `nav:navigate` | command | any remote → shell | emitted with `{ retain: false }` (`navigateTo()` in `src/shared/navigate.ts`, inline in seating); the shell listens with `{ replay: false }`: an old navigation must never be replayed |
-| `nav:resolve` | state: the shell's `NavResolver` | shell → any `[navIntent]` | `bus.emit('nav:resolve', resolve)`, retained; `bus.on` without options: a link that renders late still gets the resolver |
+| `nav:intents` | state: the shell's `NavIntents`, frozen | shell → any `[navIntent]` | `bus.emit('nav:intents', intents)`, retained; `bus.on` without options: a link that renders late still gets the table, and one that renders before it waits for it |
 | `booking:confirmed` | domain fact, sent as a command | booking → loyalty | `{ retain: false }` and `{ replay: false }`, see [ADR-05](decisions.md#adr-05-one-domain-event-sent-as-a-command-shell-mounted-consumers-only) |
 
 Seating's "Continue" is a button that submits the hold, not a link, so it
@@ -321,7 +325,7 @@ touches.**
   imports no contract values.
 - Copy rule: the `Channels` entries the repo emits or subscribes to (none
   in account); `NavPayload` and
-  `NavResolver` if it has the directive; `NavContribution` in every remote;
+  `NavIntents` if it has the directive; `NavContribution` in every remote;
   `RouteParams` if a page takes params; `BookingConfirmed` for booking and
   loyalty; `NavFragment` where a remote declares a fragment.
 - Copied helpers, each from the tractor store, each **only where used**:
@@ -329,8 +333,8 @@ touches.**
   | File | In |
   |---|---|
   | `src/shared/nav-intent.directive.ts` + its `.spec.ts` | shell, film, booking |
-  | `src/shared/navigate.ts` (`navigateTo()`, the `nav:navigate` command) | shell, film, booking |
-  | `src/testing/nav-resolver.stub.ts` | shell, film, booking |
+  | `src/shared/navigate.ts` (`navigateTo()`, the `nav:navigate` command, and `urlFor()`) + its `.spec.ts` | shell, film, booking |
+  | `src/testing/nav-intents.stub.ts` | shell, film, booking |
   | `src/testing/setup.ts` (fresh real bus per test) | every repo except programme and account |
 
 - In production you would publish a types-only npm package as a
@@ -378,7 +382,7 @@ to match another's version of it.
      first render has them), then imports `./bootstrap` and calls
      `bootstrap()`.
 
-  Links stay inert, because there is no shell to resolve intents. Standalone
+  Links stay inert, because there is no shell to publish `nav:intents`. Standalone
   mode is for working on one element. It is not production.
 - **Everything at once:** `./start-all.sh` at the example root:
   - runs `npm --prefix <repo> install` **one repo after another** (parallel

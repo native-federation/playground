@@ -76,7 +76,7 @@ Two more specs in every repo that has them:
 |---|---|---|---|---|---|
 | 1 | Manifest | the checked-in dev manifest | shell loads it | every `remoteEntry.json` reachable; its `name` equals the manifest key | app loads |
 | 2 | Exposed element | remote: bootstrap spec (exposed keys = defined tags); `nav-contribution.spec.ts`: every declared element and fragment is exposed (ADR-09) | shell: mounts the tag; fragment slot survives a rejected loader | every remote's `name` matches and it exposes `nav-contribution`; every exposed file returns HTTP 200 | pages and fragments render |
-| 3 | `nav-contribution` | page owner: declares id + path | shell: routes + resolver from fixtures; caller: emits the exact id literal | every remote exposes `nav-contribution` | no `[nav]` warnings in the console |
+| 3 | `nav-contribution` | page owner: declares id + path | shell: routes + `nav:intents` from fixtures; caller: emits the exact id literal | every remote exposes `nav-contribution` | no `[nav]` warnings in the console |
 | 4 | `routeParams` | caller: exact param names (and sorted `seats`) | page: renders for given params; shell: writes `routeParams` | none | no `[nav]` warnings; pages show the right data |
 | 5 | Bus events | booking: payload matches the example | loyalty: consumes the example on a real bus | none | badge reaches 20 |
 | 6 | Embedded fragment | film and booking: custom-element specs set the attribute literal (`film-id`, `screening-id`) and render | programme: asserts the tag and attribute literals per card | none | each card shows film and Book (walkthrough step 1) |
@@ -85,7 +85,8 @@ Two more specs in every repo that has them:
 drift apart (an intent id, a param name, an event name, an example
 payload, an embedded tag or attribute). Both sides' specs stay green against their own copy. No pull
 request ever shows both copies, so no review catches it either. The
-resolver's `[nav]` warnings make id and param drift visible, and the
+shell's `[nav]` warnings make id and param drift visible on navigation (a
+drifted link just renders inert), and the
 walkthrough is the only check for event and embed drift. A drifted embed
 tag or attribute is the quietest: it renders nothing, exactly like an
 absent remote. That is the honest cost of

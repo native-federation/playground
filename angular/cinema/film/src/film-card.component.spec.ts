@@ -2,7 +2,7 @@ import { bus } from '@softarc/native-federation-communication';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { bootstrap } from './bootstrap';
 import type { NavigatePayload } from './contracts';
-import { publishNavResolver } from './testing/nav-resolver.stub';
+import { publishNavIntents } from './testing/nav-intents.stub';
 
 // Tested through the custom element, the way programme's page uses it: one film-id attribute.
 describe('<mfe-film-card>', () => {
@@ -11,9 +11,7 @@ describe('<mfe-film-card>', () => {
   beforeEach(() => {
     navigations = [];
     bus.on('nav:navigate', (value) => navigations.push(value), { replay: false });
-    publishNavResolver((id, payload) =>
-      id === 'film.detail' ? `/film/${payload?.['filmId']}` : null,
-    );
+    publishNavIntents({ 'film.detail': '/film/{filmId}' });
   });
 
   afterEach(() => document.body.replaceChildren());
