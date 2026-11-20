@@ -46,7 +46,7 @@ Ports start at 4300 so the demo runs next to the other examples here
 
 | # | Repo | Port | Angular | Federation name | Subdomain type | Exposes | The one tiny thing | Pattern it demonstrates |
 |---|---|---|---|---|---|---|---|---|
-| 0 | `shell` | 4300 | 22 | `@cinema/shell` | (app, not a subdomain) | none | Layout, router, manifest, bus, remote switcher | The host: discovery, routing, intent resolution, the header slot, **defines every declared fragment** |
+| 0 | `shell` | 4300 | 22 | `@cinema/shell` | (app, not a subdomain) | none | Layout, router, manifest, bus, remote switcher, event log | The host: discovery, routing, intent resolution, the header slot, **defines every declared fragment** |
 | 1 | `programme` | 4301 | 22 | `@cinema/programme` | supporting | page `mfe-programme-list` | Lists this week's screenings: day and time | Landing page. **A page assembled from other teams' fragments** |
 | 2 | `film` | 4302 | 21 | `@cinema/film` | generic | page `mfe-film-detail`, fragment `mfe-film-card` | Poster, title, synopsis, runtime, age label | **Route params in** (`routeParams`), and an **embedded fragment** with an id attribute |
 | 3 | `seating` | 4303 | 22 | `@cinema/seating` | **core** | page `mfe-seating-plan` | 5×8 seat grid, toggle seats, "Continue" | **The URL is the contract**: the hold travels as intent params |

@@ -1,0 +1,32 @@
+<button
+  matButton="tonal"
+  aria-controls="event-log"
+  [attr.aria-expanded]="open()"
+  (click)="open.set(!open())"
+>
+  Events {{ log.events().length }}
+</button>
+@if (open()) {
+  <aside id="event-log" role="dialog" aria-labelledby="event-log-title" cdkDrag>
+    <div class="bar" cdkDragHandle>
+      <h2 id="event-log-title">Bus events</h2>
+      <button matButton="text" (click)="log.clear()">Clear</button>
+    </div>
+    @if (log.events().length) {
+      <ol aria-live="polite" aria-relevant="additions">
+        @for (event of log.events(); track event.id) {
+          <li>
+            <div class="meta">
+              <span class="channel">{{ event.channel }}</span>
+              <span>{{ event.kind }}</span>
+              <time>{{ event.at | date: 'HH:mm:ss.SSS' }}</time>
+            </div>
+            <pre>{{ event.value }}</pre>
+          </li>
+        }
+      </ol>
+    } @else {
+      <p class="empty">No events yet.</p>
+    }
+  </aside>
+}

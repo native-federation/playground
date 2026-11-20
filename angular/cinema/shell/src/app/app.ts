@@ -10,6 +10,7 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { filter, map } from 'rxjs';
 import { NavIntentDirective } from '../shared/nav-intent.directive';
 import { RemoteFragment } from '../shared/remote-fragment';
+import { EventLogPanel } from '../event-log/event-log-panel';
 import { RemoteSwitcher } from '../remote-switcher/remote-switcher';
 import { CONTRIBUTIONS, menuEntries } from './contributions';
 
@@ -23,6 +24,7 @@ import { CONTRIBUTIONS, menuEntries } from './contributions';
     NavIntentDirective,
     RemoteFragment,
     RemoteSwitcher,
+    EventLogPanel,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
